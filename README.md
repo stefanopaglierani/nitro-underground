@@ -26,7 +26,8 @@ La grafica low poly è provvisoria; dal passo 3 si passa a una grafica realistic
 
 - `scenes/main.tscn`: scena principale; tutto il resto è costruito da codice.
 - `scripts/main.gd`: regole di gara, checkpoint, polizia, telecamera.
-- `scripts/car.gd`: auto `RigidBody3D` su quattro ruote a raggio (sospensioni a molla, aderenza per ruota, assistenze arcade) e guida del computer (avversari e polizia).
+- `scripts/car.gd`: auto `RigidBody3D` su quattro ruote a raggio (sospensioni a molla, aderenza per ruota, assistenze arcade), salti con controllo in volo (sterzo = avvitamento, freno = muso su, freno a mano = muso giù) e conteggio delle rotazioni, e guida del computer (avversari e polizia).
+- `scripts/ramp.gd`: rampa da salto con raccordo curvo all'inizio.
 - `scripts/city.gd`: generazione della città e percorsi lungo le strade.
 - `scripts/traffic.gd`: auto civili.
 - `scripts/hud.gd`: comandi touch, menu, schermate di fine gara.
@@ -34,7 +35,7 @@ La grafica low poly è provvisoria; dal passo 3 si passa a una grafica realistic
 
 ## Prove automatiche
 
-`godot --headless -s res://tests/physics_bench.gd -- --tps=60` misura accelerazione, frenata, curve, derapata, retromarcia, urto contro un muro e due salti da rampa (15° e 25°, confrontati con la gittata teorica d = v² sin 2θ / g) e stampa i risultati in una riga JSON. Conviene lanciarlo a 30, 60 e 120 per controllare che la fisica non dipenda dal frame rate.
+`godot --headless -s res://tests/physics_bench.gd -- --tps=60` misura accelerazione, frenata, curve, derapata, retromarcia, urto contro un muro, salti da rampa (15° e 25°, confrontati con la gittata teorica d = v² sin 2θ / g, più un avvitamento e un salto mortale) e una caduta da 8 m e stampa i risultati in una riga JSON. Conviene lanciarlo a 30, 60 e 120 per controllare che la fisica non dipenda dal frame rate.
 
 `godot --headless -- --autotest --mode=sprint` fa guidare l'auto da sola per tutta la gara e stampa cosa succede (seme casuale fisso, cambiabile con `--seed=N`).
 Con `--shots=<cartella>` (e un display) salva anche degli screenshot.

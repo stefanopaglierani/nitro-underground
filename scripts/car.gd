@@ -37,6 +37,9 @@ var spring_rest := 0.3
 var wheel_radius := 0.35
 var spring_k := 45000.0
 var damper := 4200.0
+## Extension is damped harder than compression, like a real shock absorber, so hard landings
+## don't throw the car back into the air.
+var rebound_ratio := 1.8
 var bump_stop := 0.08
 var grip := 1.05
 var handbrake_rear_grip := 0.5
@@ -48,6 +51,10 @@ var yaw_assist := 0.55
 var downforce := 1.0
 var drag := 0.42
 var roll_reduction := 0.75
+## Air control (player only): steering spins the car, brake lifts the nose, handbrake drops it.
+var air_yaw_rate := 4.0
+var air_pitch_rate := 3.0
+var air_response := 3.0
 ## Kept for the AI corner-speed estimate: roughly the deceleration of a full brake.
 var brake_decel := 11.0
 
@@ -73,6 +80,13 @@ var jumping := false
 ## Position and velocity on the last frame with a wheel on the ground before the current jump.
 var takeoff_position := Vector3.ZERO
 var takeoff_velocity := Vector3.ZERO
+## Rotation in degrees since the wheels left the ground (x pitch, y yaw, z roll, signed), kept
+## after landing until the next jump. A backflip is about +360 on x, a full spin to the right -360 on y.
+var air_rotation := Vector3.ZERO
+## How the last jump ended: tilt of the body from upright and angle between the nose and the
+## direction of travel, in degrees. Small values mean a clean landing.
+var landing_tilt := 0.0
+var landing_slip := 0.0
 var velocity: Vector3:
 	get:
 		return linear_velocity
@@ -94,9 +108,9 @@ var _wheel_pos: Array[Vector3] = [
 var _rays: Array[RayCast3D] = []
 var _wheel_nodes: Array[Node3D] = []
 var _susp_len: Array[float] = [0.0, 0.0, 0.0, 0.0]
-var _prev_susp: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var _steer := 0.0
 var _upside_down_t := 0.0
+var _body_on_ground := false
 
 var _model: Node3D
 var _smoke: CPUParticles3D
@@ -146,7 +160,6 @@ func setup(kind: Driver, paint: Color, the_city: City) -> void:
 		add_child(ray)
 		_rays.append(ray)
 		_susp_len[i] = spring_rest
-		_prev_susp[i] = spring_rest
 
 	_model = CarModel.build(paint, kind == Driver.POLICE)
 	add_child(_model)
@@ -289,20 +302,31 @@ func _apply_vehicle_forces(delta: float) -> void:
 		ray.force_raycast_update()
 		if not ray.is_colliding():
 			_susp_len[i] = spring_rest
-			_prev_susp[i] = spring_rest
 			continue
 		wheels_on_ground += 1
 		var hit := ray.get_collision_point()
 		var mount := global_transform * _wheel_pos[i]
 		var dist := mount.distance_to(hit)
-		var susp := clampf(dist - wheel_radius, 0.0, spring_rest)
-		var compression := spring_rest - susp
-		var susp_speed := (_prev_susp[i] - susp) / delta
-		_prev_susp[i] = susp
-		_susp_len[i] = susp
-		var load := spring_k * compression + damper * susp_speed
+		# Below zero the wheel has been pushed past full travel (hard landing at a low tick rate):
+		# the bump stop keeps pushing harder instead of the force topping out.
+		var susp := minf(dist - wheel_radius, spring_rest)
+		var compression := spring_rest - maxf(susp, 0.0)
+		# Compression speed from the body's motion against the road surface under the wheel,
+		# which stays right at any tick rate (also when the road tilts, like on a ramp).
+		var n := ray.get_collision_normal()
+		var mount_v := v + angular_velocity.cross(mount - global_position)
+		var susp_speed := -mount_v.dot(n) / maxf(n.dot(up), 0.2)
+		_susp_len[i] = maxf(susp, 0.0)
+		var spring := spring_k * compression
+		var damping := damper * susp_speed * (rebound_ratio if susp_speed < 0.0 else 1.0)
 		if susp < bump_stop:
-			load += spring_k * 4.0 * (bump_stop - susp)
+			# Rubber bump stop: stiff, and it soaks up energy instead of giving it back.
+			spring += spring_k * 4.0 * (bump_stop - susp)
+			damping += damper * 2.0 * maxf(susp_speed, 0.0)
+		# Never damp harder than what stops this corner within one step: on a hard landing at a
+		# low tick rate a bigger force would overshoot and throw the car back up.
+		var max_damp := (mass / 4.0) * absf(susp_speed) / delta
+		var load := spring + clampf(damping, -max_damp, max_damp)
 		load = maxf(load, 0.0)
 		apply_force(up * load, mount - global_position)
 
@@ -341,21 +365,32 @@ func _apply_vehicle_forces(delta: float) -> void:
 
 	drifting = absf(lateral) > 4.0 and absf(speed) > 8.0 and wheels_on_ground >= 2
 
-	if wheels_on_ground > 0:
+	# Touching down on the roof or a side also ends a jump.
+	var on_ground := wheels_on_ground > 0 or _body_on_ground
+	if on_ground:
 		if jumping:
 			jumping = false
+			landing_tilt = rad_to_deg(acos(clampf(up.dot(Vector3.UP), -1.0, 1.0)))
+			var flat := Vector3(v.x, 0, v.z)
+			landing_slip = rad_to_deg(flat.angle_to(Vector3(fwd.x, 0, fwd.z))) if flat.length() > 3.0 else 0.0
 			landed.emit(airborne_time, maxf(-v.y, 0.0))
 		airborne_time = 0.0
 		takeoff_position = global_position
 		takeoff_velocity = v
+	if wheels_on_ground > 0:
 		# Yaw assist: pull the spin rate towards what the steering asks for.
 		var target_yaw := -speed * tan(_steer) / (WHEEL_Z * 2.0)
 		var yaw := angular_velocity.dot(up)
 		var assist := yaw_assist * (0.5 if in_handbrake else 1.0)
 		apply_torque(up * (target_yaw - yaw) * assist * mass * 1.5 * float(wheels_on_ground) / 4.0)
 		apply_central_force(-up * downforce * v.length_squared())
-	else:
+	elif not on_ground:
+		if airborne_time == 0.0:
+			air_rotation = Vector3.ZERO
 		airborne_time += delta
+		air_rotation += rad_to_deg(1.0) * (b.inverse() * angular_velocity) * delta
+		if driver == Driver.PLAYER:
+			_air_control(b)
 		if not jumping and airborne_time >= JUMP_MIN_AIR:
 			jumping = true
 			took_off.emit()
@@ -363,14 +398,28 @@ func _apply_vehicle_forces(delta: float) -> void:
 	apply_central_force(-v * v.length() * drag)
 
 
+func _air_control(b: Basis) -> void:
+	# Pull the spin rate on each axis towards what the input asks for; with no input the car keeps
+	# the rotation it took off with.
+	var torque_k := mass * 1.8 * air_response
+	if absf(in_steer) > 0.05:
+		var wy := angular_velocity.dot(b.y)
+		apply_torque(b.y * (-in_steer * air_yaw_rate - wy) * torque_k)
+	var pitch_in := (1.0 if in_brake > 0.1 else 0.0) - (1.0 if in_handbrake else 0.0)
+	if pitch_in != 0.0:
+		var wx := angular_velocity.dot(b.x)
+		apply_torque(b.x * (pitch_in * air_pitch_rate - wx) * torque_k)
+
+
 func _check_recovery(delta: float) -> void:
-	# Upside down or on its side and nearly stopped for 3 s: put the car back on its wheels.
+	# Lying on its roof or side: put the car back on its wheels after 1.5 s once it has nearly
+	# stopped, or after 3 s if it is still sliding.
 	var upright := global_transform.basis.y.dot(Vector3.UP)
-	if upright < 0.4 and linear_velocity.length() < 3.0:
+	if upright < 0.4 and wheels_on_ground == 0 and airborne_time == 0.0:
 		_upside_down_t += delta
 	else:
 		_upside_down_t = 0.0
-	if _upside_down_t > 3.0:
+	if _upside_down_t > 3.0 or (_upside_down_t > 1.5 and linear_velocity.length() < 6.0):
 		_upside_down_t = 0.0
 		var f := -global_transform.basis.z
 		f.y = 0
@@ -380,6 +429,11 @@ func _check_recovery(delta: float) -> void:
 
 
 func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
+	_body_on_ground = false
+	for i in state.get_contact_count():
+		if state.get_contact_local_normal(i).y > 0.7:
+			_body_on_ground = true
+			break
 	_hit_cooldown -= state.step
 	if frozen or _hit_cooldown > 0.0:
 		return
