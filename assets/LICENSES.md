@@ -46,3 +46,11 @@ Formato glTF 2.0 (`.gltf` + `.bin` + texture 1K), importato direttamente da Godo
 | `plastic_crate_02/` | Plastic Crate 02 | Fabi_G | 5.840 | https://polyhaven.com/a/plastic_crate_02 | CC0 1.0 | 2026-10-28 | Nessuna |
 
 Nota: `street_lamp_02` (20 mila triangoli) e `concrete_road_barrier_02` (42 mila) sono pesanti per un telefono se ripetuti molte volte; prima dell'uso in massa andranno semplificati (LOD o riduzione poligoni) e la modifica andrà annotata qui.
+
+## KayKit City Builder Bits 1.0 — `assets/kaykit_city_builder_bits/`
+
+| Pack | Autore | Link | Licenza | Download | Modifiche |
+|---|---|---|---|---|---|
+| City Builder Bits 1.0 (solo la cartella glTF: 41 modelli + `citybits_texture.png`) | Kay Lousberg (www.kaylousberg.com) | https://github.com/KayKit-Game-Assets/KayKit-City-Builder-Bits-1.0 (commit `6397691`) | CC0 1.0 (vedi `LICENSE.txt` nella cartella) | 2026-10-28 | Nessuna |
+
+Contiene 5 auto low poly con ruote separate (berlina, hatchback, station wagon, taxi, **polizia**), edifici, strade, lampioni, semafori, cassonetti, idranti, panchine. Stile cartoon: adatto a traffico e segnaposto. Scala circa 1/5 del reale (un'auto è lunga 0,94 m): va scalata ×5 circa quando si usa. La volante non ha scritte di corpi di polizia reali.
