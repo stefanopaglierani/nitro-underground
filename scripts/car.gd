@@ -7,12 +7,17 @@ extends RigidBody3D
 ## Each frame a controller fills the in_* inputs; _physics_process turns them into forces.
 
 signal crashed(impact: float, other: Object)
+## Emitted once the car has been off the ground for JUMP_MIN_AIR seconds (bumps don't count).
+signal took_off
+## Emitted when a wheel touches down after a jump; impact_speed is the downward speed in m/s.
+signal landed(air_time: float, impact_speed: float)
 
 enum Driver { PLAYER, RACER, POLICE }
 
 const WHEEL_X := 0.86
 const WHEEL_Z := 1.35
 const MOUNT_Y := 0.55
+const JUMP_MIN_AIR := 0.15
 
 var driver: Driver = Driver.PLAYER
 var frozen := true:
@@ -64,6 +69,10 @@ var drifting := false
 var using_nitro := false
 var wheels_on_ground := 0
 var airborne_time := 0.0
+var jumping := false
+## Position and velocity on the last frame with a wheel on the ground before the current jump.
+var takeoff_position := Vector3.ZERO
+var takeoff_velocity := Vector3.ZERO
 var velocity: Vector3:
 	get:
 		return linear_velocity
@@ -219,6 +228,7 @@ func place(pos: Vector3, facing: Vector3) -> void:
 	global_transform = Transform3D(Basis.looking_at(flat, Vector3.UP), pos + Vector3(0, 0.1, 0))
 	linear_velocity = Vector3.ZERO
 	angular_velocity = Vector3.ZERO
+	jumping = false
 
 
 ## Yaw angle of the car's nose on the ground plane (ignores pitch and roll).
@@ -332,7 +342,12 @@ func _apply_vehicle_forces(delta: float) -> void:
 	drifting = absf(lateral) > 4.0 and absf(speed) > 8.0 and wheels_on_ground >= 2
 
 	if wheels_on_ground > 0:
+		if jumping:
+			jumping = false
+			landed.emit(airborne_time, maxf(-v.y, 0.0))
 		airborne_time = 0.0
+		takeoff_position = global_position
+		takeoff_velocity = v
 		# Yaw assist: pull the spin rate towards what the steering asks for.
 		var target_yaw := -speed * tan(_steer) / (WHEEL_Z * 2.0)
 		var yaw := angular_velocity.dot(up)
@@ -341,6 +356,9 @@ func _apply_vehicle_forces(delta: float) -> void:
 		apply_central_force(-up * downforce * v.length_squared())
 	else:
 		airborne_time += delta
+		if not jumping and airborne_time >= JUMP_MIN_AIR:
+			jumping = true
+			took_off.emit()
 
 	apply_central_force(-v * v.length() * drag)
 

@@ -12,8 +12,13 @@ var start_pos := Vector3.ZERO
 var mark_t := 0.0
 var max_yaw_rate := 0.0
 var prev_yaw := 0.0
-var queue: Array[String] = ["accel", "brake", "turn_low", "turn_high", "drift", "nitro", "reverse", "wall"]
+var queue: Array[String] = ["accel", "brake", "turn_low", "turn_high", "drift", "nitro", "reverse", "wall", "jump_15", "jump_25"]
 var wall: StaticBody3D
+var jump_parts: Array[Node] = []
+var jump_speed := 0.0
+var jump_data := {}
+const RAMP_START := -60.0
+const RAMP_LENGTH := 16.0
 
 
 func _initialize() -> void:
@@ -38,7 +43,7 @@ func _initialize() -> void:
 
 
 func _reset(speed: float) -> void:
-	car.global_transform = Transform3D(Basis(), Vector3(0, 0.05, 0))
+	car.transform = Transform3D(Basis(), Vector3(0, 0.05, 0))
 	car.linear_velocity = Vector3(0, 0, -speed)
 	car.angular_velocity = Vector3.ZERO
 	car.nitro = 1.0
@@ -52,7 +57,7 @@ func _reset(speed: float) -> void:
 	mark_t = -1.0
 	max_yaw_rate = 0.0
 	prev_yaw = 0.0
-	start_pos = car.global_position
+	start_pos = car.position
 
 
 func _next() -> void:
@@ -80,6 +85,32 @@ func _next() -> void:
 			wall.add_child(c)
 			wall.position = Vector3(0, 2, -150)
 			root.add_child(wall)
+		"jump_15", "jump_25":
+			# Ramp onto a long plateau at the height of the lip, so take-off and landing heights
+			# match the textbook range formula d = v^2 sin(2a) / g.
+			if wall:
+				wall.queue_free()
+				wall = null
+			for n in jump_parts:
+				n.queue_free()
+			jump_parts.clear()
+			var deg := 15.0 if phase == "jump_15" else 25.0
+			jump_speed = 25.0 if phase == "jump_15" else 30.0
+			var ramp := Ramp.create(RAMP_LENGTH, 8.0, deg)
+			var h := ramp.height()
+			ramp.position = Vector3(0, 0, RAMP_START)
+			root.add_child(ramp)
+			var deck := StaticBody3D.new()
+			var s := BoxShape3D.new()
+			s.size = Vector3(40, h, 400)
+			var c := CollisionShape3D.new()
+			c.shape = s
+			deck.add_child(c)
+			deck.position = Vector3(0, h / 2.0, RAMP_START - RAMP_LENGTH - 200.0)
+			root.add_child(deck)
+			jump_parts.append_array([ramp, deck])
+			jump_data = {"ramp_deg": deg, "ramp_h": h}
+			_reset(jump_speed)
 
 
 func _step() -> void:
@@ -158,3 +189,58 @@ func _step() -> void:
 				_next()
 			if t > 15:
 				_next()
+		"jump_15", "jump_25":
+			_jump_step()
+
+
+func _jump_step() -> void:
+	# Hold the approach speed, then let go of the throttle in the air.
+	car.in_throttle = 1.0 if car.speed < jump_speed and not car.jumping else 0.0
+	var g := float(ProjectSettings.get_setting("physics/3d/default_gravity")) * car.gravity_scale
+	if car.jumping and not jump_data.has("v0"):
+		var v0: Vector3 = car.takeoff_velocity
+		var vh := Vector2(v0.x, v0.z).length()
+		jump_data["v0"] = v0
+		jump_data["p0"] = car.takeoff_position
+		jump_data["launch_deg"] = rad_to_deg(atan2(v0.y, vh))
+		jump_data["max_y"] = car.takeoff_position.y
+		jump_data["max_pitch"] = 0.0
+		jump_data["t0"] = t - Car.JUMP_MIN_AIR
+	if car.jumping:
+		jump_data["max_y"] = maxf(jump_data["max_y"], car.global_position.y)
+		var pitch := rad_to_deg(asin(clampf(-car.global_transform.basis.z.y, -1.0, 1.0)))
+		jump_data["max_pitch"] = maxf(jump_data["max_pitch"], absf(pitch))
+	elif jump_data.has("v0") and not jump_data.has("air_s"):
+		var v0: Vector3 = jump_data["v0"]
+		var p0: Vector3 = jump_data["p0"]
+		var p1 := car.global_position
+		var vh := Vector2(v0.x, v0.z).length()
+		var actual := Vector2(p1.x - p0.x, p1.z - p0.z).length()
+		# Ballistic flight from the measured take-off state down to the measured landing height.
+		var dy := p1.y - p0.y
+		var t_flight := (v0.y + sqrt(maxf(v0.y * v0.y - 2.0 * g * dy, 0.0))) / g
+		var ballistic := vh * t_flight
+		# Textbook range for the take-off speed and the ramp angle (same take-off/landing height).
+		var nominal := v0.length_squared() * sin(2.0 * deg_to_rad(jump_data["ramp_deg"])) / g
+		var key := phase + "_"
+		results[key + "takeoff_kmh"] = snappedf(v0.length() * 3.6, 0.1)
+		results[key + "launch_deg"] = snappedf(jump_data["launch_deg"], 0.1)
+		results[key + "air_s"] = snappedf(t - jump_data["t0"], 0.01)
+		results[key + "dist_m"] = snappedf(actual, 0.1)
+		results[key + "ballistic_m"] = snappedf(ballistic, 0.1)
+		results[key + "ballistic_err_pct"] = snappedf(100.0 * (actual - ballistic) / ballistic, 0.1)
+		results[key + "textbook_m"] = snappedf(nominal, 0.1)
+		results[key + "textbook_err_pct"] = snappedf(100.0 * (actual - nominal) / nominal, 0.1)
+		results[key + "apex_above_lip_m"] = snappedf(jump_data["max_y"] - jump_data["ramp_h"], 0.1)
+		results[key + "max_pitch_deg"] = snappedf(jump_data["max_pitch"], 0.1)
+		jump_data["air_s"] = t
+		if OS.get_environment("BENCH_DEBUG") != "":
+			print(phase, " p0=", p0, " p1=", p1, " v0=", v0)
+		jump_data["land_t"] = t
+	if jump_data.has("land_t") and t > jump_data["land_t"] + 2.0:
+		results[phase + "_upright_2s"] = car.global_transform.basis.y.dot(Vector3.UP) > 0.8
+		results[phase + "_speed_2s_kmh"] = snappedf(car.speed * 3.6, 0.1)
+		_next()
+	if t > 20.0:
+		results[phase + "_timeout"] = true
+		_next()

@@ -34,7 +34,7 @@ La grafica low poly è provvisoria; dal passo 3 si passa a una grafica realistic
 
 ## Prove automatiche
 
-`godot --headless -s res://tests/physics_bench.gd -- --tps=60` misura accelerazione, frenata, curve, derapata, retromarcia e urto contro un muro e stampa i risultati in una riga JSON. Conviene lanciarlo a 30, 60 e 120 per controllare che la fisica non dipenda dal frame rate.
+`godot --headless -s res://tests/physics_bench.gd -- --tps=60` misura accelerazione, frenata, curve, derapata, retromarcia, urto contro un muro e due salti da rampa (15° e 25°, confrontati con la gittata teorica d = v² sin 2θ / g) e stampa i risultati in una riga JSON. Conviene lanciarlo a 30, 60 e 120 per controllare che la fisica non dipenda dal frame rate.
 
 `godot --headless -- --autotest --mode=sprint` fa guidare l'auto da sola per tutta la gara e stampa cosa succede (seme casuale fisso, cambiabile con `--seed=N`).
 Con `--shots=<cartella>` (e un display) salva anche degli screenshot.
