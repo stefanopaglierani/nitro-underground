@@ -10,7 +10,7 @@ const ROUTE: Array[Vector2i] = [
 ]
 const RIVAL_COLORS := [Color(0.1, 0.85, 0.3), Color(1, 0.55, 0.05), Color(0.6, 0.2, 1)]
 const CHECKPOINT_RADIUS := 16.0
-const AI_ADVANCE_RADIUS := 9.0
+const AI_ADVANCE_RADIUS := 12.0
 const PRIZE := 5000
 const ESCAPE_DISTANCE := 110.0
 const ESCAPE_TIME := 10.0
@@ -52,6 +52,11 @@ func _ready() -> void:
 	DisplayServer.screen_set_keep_on(true)
 	var args := OS.get_cmdline_user_args()
 	autotest = args.has("--autotest")
+	if autotest:
+		rng.seed = 1234  # same city traffic and rivals on every test run
+	for a in args:
+		if a.begins_with("--seed="):
+			rng.seed = int(a.substr(7))
 	for a in args:
 		if a.begins_with("--shots="):
 			screenshot_dir = a.substr(8)
@@ -202,7 +207,7 @@ func _start(m: String) -> void:
 			r.waypoints = checkpoints
 			r.wp_index = 1
 			r.lane_offset = rng.randf_range(-3.0, 3.0)
-			r.max_speed = 37.5 + i * 1.2
+			r.max_speed = 39.0 + i * 1.2
 			racers.append(r)
 		player = _make_car(Car.Driver.PLAYER, Color(0.95, 0.1, 0.5))
 		var ps: Vector2 = slots[3]
@@ -215,7 +220,7 @@ func _start(m: String) -> void:
 		player.place(city.node_pos(Vector2i(3, 3)) + Vector3(0, 0, -20), Vector3(0, 0, -1))
 		heat = 3.0
 		police_called = true
-	cam_yaw = player.rotation.y
+	cam_yaw = player.heading()
 	_snap_camera()
 	hud.set_heat(heat)
 
@@ -403,7 +408,7 @@ func _snap_camera() -> void:
 func _update_camera(delta: float) -> void:
 	var target := player.global_position + Vector3(player.velocity.x, 0, player.velocity.z) * 0.2
 	if player.speed > -1.0:
-		cam_yaw = lerp_angle(cam_yaw, player.rotation.y, clampf(2.0 * delta, 0.0, 1.0))
+		cam_yaw = lerp_angle(cam_yaw, player.heading(), clampf(2.0 * delta, 0.0, 1.0))
 	var height := 30.0 + absf(player.speed) * 0.3
 	var offset := Basis(Vector3.UP, cam_yaw) * Vector3(0, height, height * 0.42)
 	camera.global_position = camera.global_position.lerp(target + offset, clampf(6.0 * delta, 0.0, 1.0))
@@ -474,7 +479,10 @@ func _autotest_tick(delta: float) -> void:
 		img.save_png("%s/shot_%s_%d.png" % [screenshot_dir, mode, _shots_taken])
 		_shots_taken += 1
 	if int(_test_t * 2.0) != int((_test_t - delta) * 2.0):
-		print("[autotest] t=%.1f state=%s speed=%.1f cp=%d heat=%.1f police=%d pos=%s" % [_test_t, state, player.speed, player_cp, heat, police.size(), player.global_position.round()])
+		print("[autotest] t=%.1f state=%s speed=%.1f cp=%d heat=%.1f police=%d pos=%s wheels=%d up=%.2f in=(%.1f,%.1f,%.1f,%s)" % [_test_t, state, player.speed, player_cp, heat, police.size(), player.global_position.round(), player.wheels_on_ground, player.global_transform.basis.y.y, player.in_throttle, player.in_brake, player.in_steer, player.in_handbrake])
+	if int(_test_t / 5.0) != int((_test_t - delta) / 5.0):
+		for r in racers:
+			print("[autotest]   racer wp=%d speed=%.1f pos=%s up=%.2f" % [r.wp_index, r.speed, r.global_position.round(), r.global_transform.basis.y.y])
 	if state == "end" or _test_t > 90.0:
 		print("[autotest] END state=%s title=%s text=%s" % [state, hud.end_title.text, hud.end_text.text.replace("\n", " | ")])
 		for r in racers:
