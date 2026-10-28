@@ -53,4 +53,4 @@ Nota: `street_lamp_02` (20 mila triangoli) e `concrete_road_barrier_02` (42 mila
 |---|---|---|---|---|---|
 | City Builder Bits 1.0 (solo la cartella glTF: 41 modelli + `citybits_texture.png`) | Kay Lousberg (www.kaylousberg.com) | https://github.com/KayKit-Game-Assets/KayKit-City-Builder-Bits-1.0 (commit `6397691`) | CC0 1.0 (vedi `LICENSE.txt` nella cartella) | 2026-10-28 | Nessuna |
 
-Contiene 5 auto low poly con ruote separate (berlina, hatchback, station wagon, taxi, **polizia**), edifici, strade, lampioni, semafori, cassonetti, idranti, panchine. Stile cartoon: adatto a traffico e segnaposto. Scala circa 1/5 del reale (un'auto è lunga 0,94 m): va scalata ×5 circa quando si usa. La volante non ha scritte di corpi di polizia reali.
+Contiene 5 auto low poly con ruote separate (berlina, hatchback, station wagon, taxi, **polizia**), edifici, strade, lampioni, semafori, cassonetti, idranti, panchine. Stile cartoon: adatto a traffico e segnaposto. Scala circa 1/5 del reale (un'auto è lunga 0,94 m): va scalata ×5 circa quando si usa. Prima di usare la volante in gioco va controllata la livrea (niente scritte di corpi di polizia reali).
