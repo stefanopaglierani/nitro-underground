@@ -12,8 +12,13 @@ var start_pos := Vector3.ZERO
 var mark_t := 0.0
 var max_yaw_rate := 0.0
 var prev_yaw := 0.0
-var queue: Array[String] = ["accel", "brake", "turn_low", "turn_high", "drift", "nitro", "reverse", "wall"]
+var queue: Array[String] = ["accel", "brake", "turn_low", "turn_high", "drift", "nitro", "reverse", "wall", "jump_15", "jump_25", "jump_spin", "jump_flip", "drop"]
 var wall: StaticBody3D
+var jump_parts: Array[Node] = []
+var jump_speed := 0.0
+var jump_data := {}
+const RAMP_START := -60.0
+const RAMP_LENGTH := 16.0
 
 
 func _initialize() -> void:
@@ -38,7 +43,7 @@ func _initialize() -> void:
 
 
 func _reset(speed: float) -> void:
-	car.global_transform = Transform3D(Basis(), Vector3(0, 0.05, 0))
+	car.transform = Transform3D(Basis(), Vector3(0, 0.05, 0))
 	car.linear_velocity = Vector3(0, 0, -speed)
 	car.angular_velocity = Vector3.ZERO
 	car.nitro = 1.0
@@ -52,7 +57,7 @@ func _reset(speed: float) -> void:
 	mark_t = -1.0
 	max_yaw_rate = 0.0
 	prev_yaw = 0.0
-	start_pos = car.global_position
+	start_pos = car.position
 
 
 func _next() -> void:
@@ -80,6 +85,40 @@ func _next() -> void:
 			wall.add_child(c)
 			wall.position = Vector3(0, 2, -150)
 			root.add_child(wall)
+		"drop":
+			for n in jump_parts:
+				n.queue_free()
+			jump_parts.clear()
+			jump_data = {}
+			_reset(20.0)
+			car.position.y = 8.0
+		"jump_15", "jump_25", "jump_spin", "jump_flip":
+			# Ramp onto a long plateau at the height of the lip, so take-off and landing heights
+			# match the textbook range formula d = v^2 sin(2a) / g.
+			if wall:
+				wall.queue_free()
+				wall = null
+			for n in jump_parts:
+				n.queue_free()
+			jump_parts.clear()
+			var deg := 15.0 if phase == "jump_15" else 25.0
+			jump_speed = 25.0 if phase == "jump_15" else 30.0
+			# jump_spin and jump_flip hold the steering or the brake while in the air.
+			var ramp := Ramp.create(RAMP_LENGTH, 8.0, deg)
+			var h := ramp.height()
+			ramp.position = Vector3(0, 0, RAMP_START)
+			root.add_child(ramp)
+			var deck := StaticBody3D.new()
+			var s := BoxShape3D.new()
+			s.size = Vector3(40, h, 400)
+			var c := CollisionShape3D.new()
+			c.shape = s
+			deck.add_child(c)
+			deck.position = Vector3(0, h / 2.0, RAMP_START - RAMP_LENGTH - 200.0)
+			root.add_child(deck)
+			jump_parts.append_array([ramp, deck])
+			jump_data = {"ramp_deg": deg, "ramp_h": h}
+			_reset(jump_speed)
 
 
 func _step() -> void:
@@ -158,3 +197,96 @@ func _step() -> void:
 				_next()
 			if t > 15:
 				_next()
+		"jump_15", "jump_25", "jump_spin", "jump_flip":
+			_jump_step()
+		"drop":
+			# Level drop from 8 m at 72 km/h: the suspension should soak it up without a big bounce.
+			car.in_throttle = 0.0
+			if car.wheels_on_ground > 0 and mark_t < 0:
+				mark_t = t
+				results["drop_impact_ms"] = snappedf(-car.linear_velocity.y, 0.1)
+			if mark_t > 0:
+				# Height the body would rebound to, from its largest upward speed after touch-down.
+				var up_v := maxf(car.linear_velocity.y, 0.0)
+				var g := float(ProjectSettings.get_setting("physics/3d/default_gravity")) * car.gravity_scale
+				results["drop_rebound_m"] = maxf(results.get("drop_rebound_m", 0.0), snappedf(up_v * up_v / (2.0 * g), 0.01))
+				# Settled: four wheels down and barely moving up or down for 0.3 s in a row.
+				if car.wheels_on_ground == 4 and absf(car.linear_velocity.y) < 0.3:
+					jump_data["calm_t"] = jump_data.get("calm_t", 0.0) + dt
+				else:
+					jump_data["calm_t"] = 0.0
+				if jump_data["calm_t"] >= 0.3 and not results.has("drop_settle_s"):
+					results["drop_settle_s"] = snappedf(t - mark_t - 0.3, 0.01)
+				if t > mark_t + 3.0:
+					results["drop_upright"] = car.global_transform.basis.y.dot(Vector3.UP) > 0.95
+					_next()
+
+
+func _jump_step() -> void:
+	# Hold the approach speed, then let go of the throttle in the air.
+	car.in_throttle = 1.0 if car.speed < jump_speed and not car.jumping else 0.0
+	var in_air := car.wheels_on_ground == 0 and not jump_data.has("air_s")
+	car.in_steer = 1.0 if phase == "jump_spin" and in_air else 0.0
+	car.in_brake = 1.0 if phase == "jump_flip" and in_air else 0.0
+	var g := float(ProjectSettings.get_setting("physics/3d/default_gravity")) * car.gravity_scale
+	if car.jumping and not jump_data.has("v0"):
+		var v0: Vector3 = car.takeoff_velocity
+		var vh := Vector2(v0.x, v0.z).length()
+		jump_data["v0"] = v0
+		jump_data["p0"] = car.takeoff_position
+		jump_data["launch_deg"] = rad_to_deg(atan2(v0.y, vh))
+		jump_data["max_y"] = car.takeoff_position.y
+		jump_data["max_pitch"] = 0.0
+		jump_data["t0"] = t - Car.JUMP_MIN_AIR
+		jump_data["heading0"] = car.heading()
+	if car.jumping:
+		jump_data["max_y"] = maxf(jump_data["max_y"], car.global_position.y)
+		var pitch := rad_to_deg(asin(clampf(-car.global_transform.basis.z.y, -1.0, 1.0)))
+		jump_data["max_pitch"] = maxf(jump_data["max_pitch"], absf(pitch))
+	elif jump_data.has("v0") and not jump_data.has("air_s"):
+		var v0: Vector3 = jump_data["v0"]
+		var p0: Vector3 = jump_data["p0"]
+		var p1 := car.global_position
+		var vh := Vector2(v0.x, v0.z).length()
+		var actual := Vector2(p1.x - p0.x, p1.z - p0.z).length()
+		# Ballistic flight from the measured take-off state down to the measured landing height.
+		var dy := p1.y - p0.y
+		var t_flight := (v0.y + sqrt(maxf(v0.y * v0.y - 2.0 * g * dy, 0.0))) / g
+		var ballistic := vh * t_flight
+		# Textbook range for the take-off speed and the ramp angle (same take-off/landing height).
+		var nominal := v0.length_squared() * sin(2.0 * deg_to_rad(jump_data["ramp_deg"])) / g
+		var key := phase + "_"
+		results[key + "takeoff_kmh"] = snappedf(v0.length() * 3.6, 0.1)
+		results[key + "launch_deg"] = snappedf(jump_data["launch_deg"], 0.1)
+		results[key + "air_s"] = snappedf(t - jump_data["t0"], 0.01)
+		results[key + "dist_m"] = snappedf(actual, 0.1)
+		results[key + "ballistic_m"] = snappedf(ballistic, 0.1)
+		results[key + "ballistic_err_pct"] = snappedf(100.0 * (actual - ballistic) / ballistic, 0.1)
+		results[key + "textbook_m"] = snappedf(nominal, 0.1)
+		results[key + "textbook_err_pct"] = snappedf(100.0 * (actual - nominal) / nominal, 0.1)
+		results[key + "apex_above_lip_m"] = snappedf(jump_data["max_y"] - jump_data["ramp_h"], 0.1)
+		results[key + "max_pitch_deg"] = snappedf(jump_data["max_pitch"], 0.1)
+		var rot := car.air_rotation
+		results[key + "air_rot_deg"] = [snappedf(rot.x, 1.0), snappedf(rot.y, 1.0), snappedf(rot.z, 1.0)]
+		# The counted yaw must match the real change of heading (both wrapped to -180..180).
+		var turned := rad_to_deg(angle_difference(jump_data["heading0"], car.heading()))
+		results[key + "yaw_count_err_deg"] = snappedf(absf(rad_to_deg(angle_difference(deg_to_rad(rot.y), deg_to_rad(turned)))), 0.1)
+		results[key + "landing_tilt_deg"] = snappedf(car.landing_tilt, 0.1)
+		results[key + "landing_slip_deg"] = snappedf(car.landing_slip, 0.1)
+		jump_data["air_s"] = t
+		if OS.get_environment("BENCH_DEBUG") != "":
+			print(phase, " p0=", p0, " p1=", p1, " v0=", v0)
+		jump_data["land_t"] = t
+	if jump_data.has("land_t"):
+		# Time from touch-down until the car is back on four wheels and upright.
+		var settled := car.wheels_on_ground == 4 and car.global_transform.basis.y.dot(Vector3.UP) > 0.9
+		if settled and not jump_data.has("settled"):
+			jump_data["settled"] = true
+			results[phase + "_back_on_wheels_s"] = snappedf(t - jump_data["land_t"], 0.01)
+		if t > jump_data["land_t"] + 4.0:
+			results[phase + "_upright_4s"] = car.global_transform.basis.y.dot(Vector3.UP) > 0.8
+			results[phase + "_speed_4s_kmh"] = snappedf(car.speed * 3.6, 0.1)
+			_next()
+	if t > 20.0:
+		results[phase + "_timeout"] = true
+		_next()
