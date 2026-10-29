@@ -1,13 +1,10 @@
 extends Node3D
-## Sets up the city, cars, camera and HUD, and runs the race and police rules.
+## Sets up the level, cars, camera and HUD, and runs the race and police rules.
 ## Modes: "sprint" (race against 3 rivals, police join after a while) and "escape" (lose the police).
+## Levels: "mountain" (daytime mountain road, default) and "city" (night city), see Track.
 
 static var start_mode := ""
-
-const ROUTE: Array[Vector2i] = [
-	Vector2i(0, 6), Vector2i(0, 3), Vector2i(2, 3), Vector2i(2, 0),
-	Vector2i(4, 0), Vector2i(4, 4), Vector2i(6, 4), Vector2i(6, 1),
-]
+static var level := "mountain"
 const RIVAL_COLORS := [Color(0.1, 0.85, 0.3), Color(1, 0.55, 0.05), Color(0.1, 0.55, 1)]
 const CHECKPOINT_RADIUS := 16.0
 const AI_ADVANCE_RADIUS := 12.0
@@ -15,13 +12,14 @@ const PRIZE := 5000
 const ESCAPE_DISTANCE := 110.0
 const ESCAPE_TIME := 10.0
 
-var city: City
+var city: Track
 var hud: Hud
 var camera: Camera3D
 var player: Car
 var racers: Array[Car] = []
 var police: Array[Car] = []
 var checkpoints: Array[Vector3] = []
+var race_path: Array[Vector3] = []
 var cp_marker: Node3D
 var arrow: Node3D
 var rng := RandomNumberGenerator.new()
@@ -31,6 +29,7 @@ var state := "menu"  # menu, countdown, race, end
 var countdown := 0.0
 var race_time := 0.0
 var player_cp := 1
+var player_wp := 1  # index in race_path, for the race position
 var finish_order: Array[Car] = []
 var heat := 0.0
 var bust_t := 0.0
@@ -73,12 +72,14 @@ func _ready() -> void:
 	for a in args:
 		if a.begins_with("--mode="):
 			start_mode = a.substr(7)
+		if a.begins_with("--level="):
+			level = a.substr(8)
 
 	_setup_input()
-	_setup_environment()
-	city = City.new()
+	city = City.new() if level == "city" else Mountain.new()
 	add_child(city)
 	city.build()
+	city.setup_environment(self)
 	for i in 16:
 		var t := TrafficCar.new()
 		add_child(t)
@@ -87,7 +88,7 @@ func _ready() -> void:
 	camera = Camera3D.new()
 	camera.fov = CAM_FOV
 	camera.near = 0.1
-	camera.far = 900
+	camera.far = city.view_distance
 	add_child(camera)
 
 	hud = Hud.new()
@@ -96,8 +97,8 @@ func _ready() -> void:
 	hud.restart_pressed.connect(func(): _on_mode_chosen(mode))
 	hud.menu_pressed.connect(func(): _on_mode_chosen(""))
 
-	for p in ROUTE:
-		checkpoints.append(city.node_pos(p))
+	checkpoints = city.race_checkpoints()
+	race_path = city.race_path()
 	_build_markers()
 
 	if start_mode == "":
@@ -127,31 +128,6 @@ func _setup_input() -> void:
 				var ev := InputEventKey.new()
 				ev.physical_keycode = k
 				InputMap.action_add_event(action, ev)
-
-
-func _setup_environment() -> void:
-	var env := Environment.new()
-	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color(0.02, 0.02, 0.06)
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.35, 0.38, 0.6)
-	env.ambient_light_energy = 0.9
-	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	env.glow_enabled = true
-	env.glow_intensity = 0.9
-	env.glow_bloom = 0.05
-	env.glow_hdr_threshold = 0.9
-	env.fog_enabled = true
-	env.fog_light_color = Color(0.08, 0.05, 0.15)
-	env.fog_density = 0.004
-	var we := WorldEnvironment.new()
-	we.environment = env
-	add_child(we)
-	var moon := DirectionalLight3D.new()
-	moon.rotation_degrees = Vector3(-55, 30, 0)
-	moon.light_color = Color(0.6, 0.65, 1)
-	moon.light_energy = 0.45
-	add_child(moon)
 
 
 func _build_markers() -> void:
@@ -205,28 +181,25 @@ func _start(m: String) -> void:
 	state = "countdown"
 	countdown = 3.5
 	if mode == "sprint":
-		var start := checkpoints[0]
-		var dir := (checkpoints[1] - checkpoints[0]).normalized()
-		var side := Vector3(-dir.z, 0, dir.x)
-		var slots := [Vector2(-3.5, 22), Vector2(3.5, 22), Vector2(-3.5, 12), Vector2(3.5, 12)]
+		var grid := city.start_grid(4)
 		for i in 3:
 			var r := _make_car(Car.Driver.RACER, RIVAL_COLORS[i])
-			var slot: Vector2 = slots[i]
-			r.place(start + dir * slot.y + side * slot.x, dir)
-			r.waypoints = checkpoints
+			r.place(grid[i][0], grid[i][1])
+			r.waypoints = race_path
 			r.wp_index = 1
 			r.lane_offset = rng.randf_range(-3.0, 3.0)
 			r.max_speed = 39.0 + i * 1.2
 			racers.append(r)
 		player = _make_car(Car.Driver.PLAYER, Color(0.95, 0.1, 0.5))
-		var ps: Vector2 = slots[3]
-		player.place(start + dir * ps.y + side * ps.x, dir)
+		player.place(grid[3][0], grid[3][1])
 		cp_marker.visible = true
 		cp_marker.position = checkpoints[1]
 		arrow.visible = true
 	else:
 		player = _make_car(Car.Driver.PLAYER, Color(0.95, 0.1, 0.5))
-		player.place(city.node_pos(Vector2i(3, 3)) + Vector3(0, 0, -20), Vector3(0, 0, -1))
+		var es := city.escape_start()
+		player.place(es[0], es[1])
+		_auto_goal = city.autopilot_goal(es[0], Vector3.ZERO)
 		heat = 3.0
 		police_called = true
 	cam_yaw = player.heading()
@@ -238,9 +211,9 @@ func _process(delta: float) -> void:
 	match state:
 		"menu":
 			_orbit += delta * 0.08
-			var c := Vector3(city.extent / 2.0, 0, city.extent / 2.0)
-			camera.global_position = c + Vector3(sin(_orbit) * 260, 150, cos(_orbit) * 260)
-			camera.look_at(c, Vector3.UP)
+			var view := city.menu_camera(_orbit)
+			camera.global_position = view[0]
+			camera.look_at(view[1], Vector3.UP)
 			return
 		"countdown":
 			countdown -= delta
@@ -298,11 +271,16 @@ func _checkpoints_logic() -> void:
 	for r in racers:
 		if r.finished:
 			continue
-		if r.global_position.distance_to(checkpoints[r.wp_index]) < AI_ADVANCE_RADIUS:
+		var d := r.global_position.distance_to(race_path[r.wp_index])
+		# Also move on if the racer went past the point without touching it.
+		var passed := d < 40.0 and r.wp_index + 1 < race_path.size() and r.global_position.distance_to(race_path[r.wp_index + 1]) < race_path[r.wp_index].distance_to(race_path[r.wp_index + 1])
+		if d < AI_ADVANCE_RADIUS or passed:
 			r.wp_index += 1
-			if r.wp_index >= checkpoints.size():
+			if r.wp_index >= race_path.size():
 				r.finished = true
 				finish_order.append(r)
+	if player_wp < race_path.size() - 1 and player.global_position.distance_to(race_path[player_wp]) < CHECKPOINT_RADIUS:
+		player_wp += 1
 	if player.global_position.distance_to(checkpoints[player_cp]) < CHECKPOINT_RADIUS:
 		player_cp += 1
 		if player_cp >= checkpoints.size():
@@ -367,24 +345,8 @@ func _spawn_police(behind: bool) -> void:
 
 func _respawn_police(p: Car, behind := true, min_d := 70.0, max_d := 160.0) -> void:
 	var fwd := -player.global_transform.basis.z
-	var best := Vector2i(-1, -1)
-	var best_score := -INF
-	for i in City.BLOCKS + 1:
-		for j in City.BLOCKS + 1:
-			var n := Vector2i(i, j)
-			var pos := city.node_pos(n)
-			var to := pos - player.global_position
-			var d := to.length()
-			if d < min_d or d > max_d:
-				continue
-			var score := -to.normalized().dot(fwd) if behind else rng.randf()
-			if score > best_score:
-				best_score = score
-				best = n
-	if best.x < 0:
-		best = city.snap(player.global_position + Vector3(90, 0, 0))
-	var spawn := city.node_pos(best)
-	p.place(spawn, player.global_position - spawn)
+	var spot := city.police_spawn(player.global_position, fwd, behind, min_d, max_d, rng)
+	p.place(spot[0], spot[1])
 
 
 func _on_crash(impact: float, other: Object, car: Car) -> void:
@@ -466,7 +428,7 @@ func _update_hud() -> void:
 
 
 func _player_position() -> int:
-	var mine := _progress(player_cp, player)
+	var mine := _progress(player_wp if not finish_order.has(player) else race_path.size(), player)
 	var pos := 1
 	for r in racers:
 		if r.finished and not finish_order.has(player):
@@ -476,10 +438,10 @@ func _player_position() -> int:
 	return pos
 
 
-func _progress(cp: int, car: Car) -> float:
-	if cp >= checkpoints.size():
+func _progress(wp: int, car: Car) -> float:
+	if wp >= race_path.size():
 		return 1e9
-	return cp * 10000.0 - car.global_position.distance_to(checkpoints[cp])
+	return wp * 10000.0 - car.global_position.distance_to(race_path[wp])
 
 
 func _fmt_time(t: float) -> String:
@@ -491,14 +453,14 @@ func _fmt_time(t: float) -> String:
 func _autopilot() -> void:
 	# Drive the player like a racer, through the checkpoints, to exercise every system.
 	var dt := get_physics_process_delta_time()
-	if mode == "sprint" and _auto_wp < checkpoints.size():
-		if player.global_position.distance_to(checkpoints[_auto_wp]) < AI_ADVANCE_RADIUS and _auto_wp + 1 < checkpoints.size():
+	if mode == "sprint" and _auto_wp < race_path.size():
+		if player.global_position.distance_to(race_path[_auto_wp]) < AI_ADVANCE_RADIUS and _auto_wp + 1 < race_path.size():
 			_auto_wp += 1
-		var after := checkpoints[_auto_wp + 1] if _auto_wp + 1 < checkpoints.size() else Vector3.INF
-		player._steer_towards(checkpoints[_auto_wp], dt, after)
+		var after := race_path[_auto_wp + 1] if _auto_wp + 1 < race_path.size() else Vector3.INF
+		player._steer_towards(race_path[_auto_wp], dt, after)
 	else:
 		if player.global_position.distance_to(_auto_goal) < 20.0:
-			_auto_goal = city.node_pos(Vector2i(6, 6)) if _auto_goal.x < 1.0 else city.node_pos(Vector2i(0, 0))
+			_auto_goal = city.autopilot_goal(player.global_position, _auto_goal)
 		var goal := _auto_goal
 		var target := city.route_point(player.global_position, goal)
 		player._steer_towards(target, dt, city.route_point(target, goal))
@@ -515,7 +477,7 @@ func _autotest_tick(delta: float) -> void:
 	if int(_test_t / 5.0) != int((_test_t - delta) / 5.0):
 		for r in racers:
 			print("[autotest]   racer wp=%d speed=%.1f pos=%s up=%.2f" % [r.wp_index, r.speed, r.global_position.round(), r.global_transform.basis.y.y])
-	if state == "end" or _test_t > 90.0:
+	if state == "end" or _test_t > 150.0:
 		print("[autotest] END state=%s title=%s text=%s" % [state, hud.end_title.text, hud.end_text.text.replace("\n", " | ")])
 		for r in racers:
 			print("[autotest] racer wp=%d finished=%s pos=%s" % [r.wp_index, r.finished, r.global_position.round()])

@@ -92,7 +92,7 @@ var velocity: Vector3:
 		return linear_velocity
 
 # AI state
-var city: City
+var city: Track
 var waypoints: Array[Vector3] = []
 var wp_index := 0
 var lane_offset := 0.0
@@ -123,7 +123,7 @@ var _hit_cooldown := 0.0
 var _time := 0.0
 
 
-func setup(kind: Driver, paint: Color, the_city: City) -> void:
+func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 	driver = kind
 	city = the_city
 	mass = 1200.0
@@ -501,6 +501,11 @@ func _steer_towards(target: Vector3, delta: float, after := Vector3.INF) -> floa
 			if dist < brake_dist and speed > corner_speed:
 				in_throttle = 0.0
 				in_brake = 1.0
+	# On winding roads the level knows the corners ahead better than the next point does.
+	if city and speed > city.advised_speed(global_position, -global_transform.basis.z):
+		in_throttle = 0.0
+		in_brake = 1.0
+		in_nitro = false
 	_handle_stuck(delta)
 	return dist
 
