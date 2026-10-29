@@ -23,6 +23,9 @@ const WHEEL_SUFFIX := {"WheelFL": "_wheel_front_left", "WheelFR": "_wheel_front_
 const RGSDEV_DIR := "res://assets/cars_rgsdev/"
 const RGSDEV_SCALE := 0.78
 const RGSDEV_WHEELS := {"WheelFL": " wheel front left", "WheelFR": " wheel front right", "WheelRL": " wheel rear left", "WheelRR": " wheel rear right"}
+## Materials whose meshes belong to a wheel in the detailed glTF cars (tyres, rims, brakes).
+## "rim" only at a word start, so "Trim" does not count.
+const WHEEL_PARTS := ["wheel", "_rim", "calliper", "tire", "breaks"]
 static var _scenes := {}
 static var _paint_shader: Shader = preload("res://shaders/car_paint.gdshader")
 
@@ -57,6 +60,11 @@ static func box(parent: Node3D, size: Vector3, pos: Vector3, material: Material,
 static func build(paint: Color, police := false, body := "") -> Node3D:
 	if body == "":
 		body = "car_police" if police else "car_sedan"
+	var entry := CarCatalog.find(body)
+	if entry.get("kind", "") in ["hd", "kenney"]:
+		if ResourceLoader.exists(CarCatalog.model_path(entry)):
+			return build_generic(paint, entry)
+		body = "sports"
 	if ResourceLoader.exists(RGSDEV_DIR + body + ".fbx"):
 		return build_rgsdev(paint, body)
 	var path := KAYKIT_DIR + body + ".gltf"
@@ -165,13 +173,116 @@ static func build_rgsdev(paint: Color, body: String) -> Node3D:
 		if wheel == null:
 			continue
 		var xf := model.transform * wheel.transform
-		pivot.position = xf.origin
+		# Some wheel meshes have their origin at the car's centre: use the middle of the mesh.
+		pivot.position = (xf * (wheel as MeshInstance3D).get_aabb()).get_center()
 		model.remove_child(wheel)
 		wheel.owner = null
 		pivot.add_child(wheel)
-		wheel.transform = Transform3D(xf.basis, Vector3.ZERO)
+		wheel.transform = Transform3D(Basis(), -pivot.position) * xf
 	root.set_meta("tail_mat", tail)
 	if body.begins_with("police"):
+		root.set_meta("siren_red", red)
+		root.set_meta("siren_blue", blue)
+	return root
+
+
+## Transform of node relative to root (works before the model is in the scene tree).
+static func _xf_in(node: Node3D, root: Node3D) -> Transform3D:
+	var xf := node.transform
+	var n := node.get_parent() as Node3D
+	while n != root:
+		xf = n.transform * xf
+		n = n.get_parent() as Node3D
+	return xf
+
+
+## glTF car from the catalog (detailed Sketchfab cars, Kenney Car Kit), scaled to entry.len
+## metres and set on the ground. Meshes that are wheel parts (by node or material name) go under
+## the pivot of their corner; the paint and the tail lights get materials car.gd can drive.
+static func build_generic(paint: Color, entry: Dictionary) -> Node3D:
+	var path := CarCatalog.model_path(entry)
+	if not _scenes.has(path):
+		_scenes[path] = load(path)
+	var root := Node3D.new()
+	root.name = "Model"
+	var model := (_scenes[path] as PackedScene).instantiate() as Node3D
+	root.add_child(model)
+
+	var tail := mat(Color(0.6, 0, 0), Color(1, 0.05, 0.05), 1.5)
+	var paint_mat: Material = null
+	if paint.a > 0.0:
+		var pm := mat(paint, Color.BLACK, 0.0, 0.4, 0.25)
+		pm.clearcoat_enabled = true
+		pm.clearcoat = 1.0
+		pm.clearcoat_roughness = 0.05
+		paint_mat = pm
+	var meshes: Array[MeshInstance3D] = []
+	var bounds := AABB()
+	for node in model.find_children("*", "MeshInstance3D", true, false):
+		var mi := node as MeshInstance3D
+		meshes.append(mi)
+		var bb: AABB = _xf_in(mi, model) * mi.get_aabb()
+		bounds = bb if meshes.size() == 1 else bounds.merge(bb)
+	# Facing +Z in the file: turn to -Z, scale to the wanted length, wheels on the ground.
+	var k: float = entry["len"] / maxf(bounds.size.z, 0.001)
+	model.scale = Vector3.ONE * k
+	model.rotation.y = PI
+	model.position = Vector3(bounds.get_center().x * k, -bounds.position.y * k, bounds.get_center().z * k)
+
+	var corners := {"WheelFL": [], "WheelFR": [], "WheelRL": [], "WheelRR": []}
+	var wheel_bounds := {}
+	for mi in meshes:
+		var all_wheel := String(mi.name).to_lower().contains("wheel")
+		var named := all_wheel
+		if not named:
+			all_wheel = true
+		for i in mi.mesh.get_surface_count():
+			var src := mi.mesh.surface_get_material(i)
+			var key: String = src.resource_name if src else ""
+			if key != "" and key == entry.get("paint", "") and paint_mat:
+				mi.set_surface_override_material(i, paint_mat)
+			elif key != "" and key == entry.get("tail", ""):
+				mi.set_surface_override_material(i, tail)
+			if not named:
+				var is_wheel := false
+				var low := key.to_lower()
+				for part in WHEEL_PARTS:
+					if low.contains(part) or low.begins_with(part.trim_prefix("_")):
+						is_wheel = true
+				all_wheel = all_wheel and is_wheel
+		if not all_wheel:
+			continue
+		var xf := model.transform * _xf_in(mi, model)
+		var bb: AABB = xf * mi.get_aabb()
+		var c := bb.get_center()
+		# A mesh holding several wheels at once cannot steer, and parts near the middle or up high
+		# (badges, trims sharing a material) are not wheels: leave them on the body.
+		if bb.size.x > 0.8 or bb.size.z > 1.6 or absf(c.x) < bounds.size.x * k * 0.25 or c.y > 0.9:
+			continue
+		var corner := "Wheel%s%s" % ["F" if c.z < 0.0 else "R", "L" if c.x < 0.0 else "R"]
+		corners[corner].append([mi, xf])
+		# The pivot goes at the middle of the biggest part of the corner: the tyre.
+		if not wheel_bounds.has(corner) or bb.get_volume() > (wheel_bounds[corner] as AABB).get_volume():
+			wheel_bounds[corner] = bb
+	for corner in corners:
+		var pivot := Node3D.new()
+		pivot.name = corner
+		root.add_child(pivot)
+		if not wheel_bounds.has(corner):
+			continue
+		pivot.position = (wheel_bounds[corner] as AABB).get_center()
+		for e in corners[corner]:
+			var mi: MeshInstance3D = e[0]
+			mi.get_parent().remove_child(mi)
+			mi.owner = null
+			pivot.add_child(mi)
+			mi.transform = Transform3D(Basis(), -pivot.position) * (e[1] as Transform3D)
+	root.set_meta("tail_mat", tail)
+	if entry["id"].contains("police"):
+		var red := mat(Color(0.5, 0, 0), Color(1, 0.05, 0.05), 0.3)
+		var blue := mat(Color(0, 0, 0.5), Color(0.1, 0.3, 1), 0.3)
+		box(root, Vector3(0.5, 0.12, 0.3), Vector3(-0.3, bounds.size.y * k + 0.02, 0.0), red)
+		box(root, Vector3(0.5, 0.12, 0.3), Vector3(0.3, bounds.size.y * k + 0.02, 0.0), blue)
 		root.set_meta("siren_red", red)
 		root.set_meta("siren_blue", blue)
 	return root

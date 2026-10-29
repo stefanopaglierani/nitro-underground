@@ -110,3 +110,27 @@ Note: sono quasi tutti modelli low poly o "mid poly", non realistici. Le volanti
 | `assets/cars_rgsdev/*.fbx`, auto del giocatore, degli avversari, del traffico e volanti | `library/rgsdev_vehicles/` (rgsdev, CC0) | File rinominati in minuscolo. In gioco: scala 0,78, girati di 180°, materiali rifatti nel codice (vernice lucida, vetri, fari e lampeggianti luminosi) |
 | `assets/props/trees/*.fbx` e texture, pini e betulle della montagna | `library/quaternius_textured_trees/` (Quaternius, CC0 su OpenGameArt) | Solo Pine_1, 2, 3, 5 e Birch_1, 3. In gioco: ingranditi da 1,7 a 2,7 volte e foglie scurite |
 | `assets/props/grass/grass_01.png`, `grass_02.png`, `grass_04.png`, ciuffi d'erba a bordo strada | `library/yughues_grass/` (Yughues, CC0) | Solo la texture diffusa con alfa, rinominata. In gioco: due quadrati incrociati, colore più verde |
+
+## Garage della v0.5
+
+### Auto realistiche da Sketchfab — `assets/cars_sketchfab/`
+
+Scaricate da Stefano e caricate il 2026-10-29. Licenze **non commerciali**: vanno bene finché il gioco resta un prototipo o portfolio (decisione di Stefano del 2026-10-29). Prima di un'eventuale pubblicazione sugli store vanno sostituite. I marchi (McLaren, Ford, RAM) sono dei rispettivi proprietari. Dai nomi interni dei file sembrano modelli derivati da un altro videogioco: è un motivo in più per non usarli in una versione commerciale.
+
+| Cartella | Modello | Autore | Link | Licenza | Modifiche |
+|---|---|---|---|---|---|
+| `mclaren_600lt/` | McLaren 600LT | Outlaw Games™ | https://sketchfab.com/3d-models/mclaren-600lt-23d87647c2b840d99ff06215613e8788 | CC BY-NC 4.0 (`license.txt`) | Nessuna sui file; in gioco viene scalata, girata e le ruote anteriori sterzano |
+| `2024_ford_f-150_raptor_r/` | 2024 Ford F-150 Raptor R | VTX | https://sketchfab.com/3d-models/2024-ford-f-150-raptor-r-9fbd01c5acfb45e7a7bbdf4c8e2c4aa8 | CC BY-NC-SA 4.0 (`license.txt`) | Come sopra. Le versioni modificate vanno condivise con la stessa licenza |
+| `2021_ram_1500_trx/` | 2021 Ram 1500 TRX | Ddiaz Design | https://sketchfab.com/3d-models/2021-ram-1500-trx-372fbf37230c46eca1997841bfaf0758 | CC BY-NC-SA 4.0 (`license.txt`) | Come sopra; le ruote sono un unico oggetto e non sterzano |
+
+Crediti richiesti: "This work is based on "McLaren 600LT" by Outlaw Games™, "2024 Ford F-150 Raptor R" by VTX and "2021 Ram 1500 TRX" by Ddiaz Design (links above), licensed under CC-BY-NC-4.0 / CC-BY-NC-SA-4.0."
+
+### Altri veicoli del garage
+
+| File | Preso da | Licenza |
+|---|---|---|
+| `assets/cars_rgsdev/*.fbx` (ora tutti i 21 veicoli) | `library/rgsdev_vehicles/` (rgsdev) | CC0 |
+| `assets/cars_kenney/*.glb` e `Textures/` (25 veicoli, senza detriti, coni e ruote sciolte) | `library/kenney_car_kit/` (Kenney Car Kit 3.1) | CC0 (`License.txt`) |
+| `assets/kaykit_city_builder_bits/car_*.gltf` | KayKit (vedi sopra) | CC0 |
+
+In gioco i veicoli vengono scalati alla loro lunghezza reale e appoggiati a terra; le volanti Kenney ricevono lampeggianti fatti nel codice. L'elenco completo con i nomi mostrati nel menu è in `scripts/car_catalog.gd`.

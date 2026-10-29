@@ -5,6 +5,8 @@ extends Node3D
 
 static var start_mode := ""
 static var level := "mountain"
+## Position of the chosen car in the garage list (kept across scene reloads).
+static var car_index := -1
 const RIVAL_COLORS := [Color(0.1, 0.85, 0.3), Color(1, 0.55, 0.05), Color(0.1, 0.55, 1)]
 const CHECKPOINT_RADIUS := 16.0
 const AI_ADVANCE_RADIUS := 12.0
@@ -25,6 +27,10 @@ var arrow: Node3D
 var rng := RandomNumberGenerator.new()
 
 var mode := ""
+var _garage: Array = []  # CarCatalog entries available in this build
+var _preview: Node3D
+var _preview_dist := 8.0
+var _swipe := 0.0
 var state := "menu"  # menu, countdown, race, end
 var countdown := 0.0
 var race_time := 0.0
@@ -74,6 +80,8 @@ func _ready() -> void:
 			start_mode = a.substr(7)
 		if a.begins_with("--level="):
 			level = a.substr(8)
+		if a.begins_with("--car="):
+			Car.player_body = a.substr(6)
 
 	_setup_input()
 	city = City.new() if level == "city" else Mountain.new()
@@ -101,11 +109,69 @@ func _ready() -> void:
 	race_path = city.race_path()
 	_build_markers()
 
+	hud.car_step.connect(_step_car)
 	if start_mode == "":
 		hud.show_menu(true)
 		state = "menu"
+		_open_garage()
 	else:
 		_start(start_mode)
+
+
+# ---------- Garage (car choice on the title screen) ----------
+
+func _open_garage() -> void:
+	_garage = CarCatalog.available()
+	if car_index < 0 or car_index >= _garage.size():
+		car_index = 0
+		for i in _garage.size():
+			if _garage[i]["id"] == Car.player_body:
+				car_index = i
+	_show_car()
+
+
+func _step_car(dir: int) -> void:
+	if state != "menu" or _garage.is_empty():
+		return
+	car_index = posmod(car_index + dir, _garage.size())
+	_show_car()
+
+
+func _show_car() -> void:
+	var entry: Dictionary = _garage[car_index]
+	Car.player_body = entry["id"]
+	hud.set_car(entry["name"], car_index, _garage.size())
+	if _preview:
+		_preview.queue_free()
+	_preview = CarModel.build(Color(0, 0, 0, 0), entry["id"].contains("police"), entry["id"])
+	add_child(_preview)
+	var grid := city.start_grid(1)
+	_preview.global_transform = Transform3D(Basis.looking_at(grid[0][1], Vector3.UP), grid[0][0])
+	var length := 0.0
+	for mi in _preview.find_children("*", "MeshInstance3D", true, false):
+		var bb: AABB = CarModel._xf_in(mi, _preview) * (mi as MeshInstance3D).get_aabb()
+		length = maxf(length, maxf(absf(bb.position.z), absf(bb.end.z)))
+	_preview_dist = clampf(length * 2.6, 6.5, 30.0)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if state != "menu":
+		return
+	var dx := 0.0
+	if event is InputEventScreenDrag:
+		dx = (event as InputEventScreenDrag).relative.x
+	elif event is InputEventMouseMotion and (event as InputEventMouseMotion).button_mask & MOUSE_BUTTON_MASK_LEFT:
+		dx = (event as InputEventMouseMotion).relative.x
+	elif event is InputEventScreenTouch and not (event as InputEventScreenTouch).pressed:
+		_swipe = 0.0
+	elif event.is_action_pressed("steer_left"):
+		_step_car(-1)
+	elif event.is_action_pressed("steer_right"):
+		_step_car(1)
+	_swipe += dx
+	if absf(_swipe) > 90.0:
+		_step_car(-1 if _swipe > 0.0 else 1)
+		_swipe = 0.0
 
 
 func _on_mode_chosen(m: String) -> void:
@@ -211,6 +277,14 @@ func _process(delta: float) -> void:
 	match state:
 		"menu":
 			_orbit += delta * 0.08
+			if _preview:
+				# Slow turn around the chosen car, a little above it.
+				var c := _preview.global_position
+				var a := _orbit * 3.0
+				camera.global_position = c + Vector3(sin(a), 0, cos(a)) * _preview_dist + Vector3(0, _preview_dist * 0.28, 0)
+				# Aim below the car so it sits in the clear band between the title and the garage bar.
+				camera.look_at(c - Vector3(0, _preview_dist * 0.12, 0), Vector3.UP)
+				return
 			var view := city.menu_camera(_orbit)
 			camera.global_position = view[0]
 			camera.look_at(view[1], Vector3.UP)
