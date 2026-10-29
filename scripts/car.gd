@@ -92,10 +92,14 @@ var velocity: Vector3:
 		return linear_velocity
 
 # AI state
-var city: City
+var city: Track
 var waypoints: Array[Vector3] = []
 var wp_index := 0
 var lane_offset := 0.0
+## Extra sideways shift a racer takes to get round a traffic car, eased in and out.
+var _dodge := 0.0
+## Speed limit set by a traffic car blocking both sides of the road (INF when the road is clear).
+var _traffic_limit := INF
 var chase_target: Car
 var finished := false
 var _stuck := 0.0
@@ -123,7 +127,7 @@ var _hit_cooldown := 0.0
 var _time := 0.0
 
 
-func setup(kind: Driver, paint: Color, the_city: City) -> void:
+func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 	driver = kind
 	city = the_city
 	mass = 1200.0
@@ -501,6 +505,11 @@ func _steer_towards(target: Vector3, delta: float, after := Vector3.INF) -> floa
 			if dist < brake_dist and speed > corner_speed:
 				in_throttle = 0.0
 				in_brake = 1.0
+	# On winding roads the level knows the corners ahead better than the next point does.
+	if city and speed > city.advised_speed(global_position, -global_transform.basis.z):
+		in_throttle = 0.0
+		in_brake = 1.0
+		in_nitro = false
 	_handle_stuck(delta)
 	return dist
 
@@ -535,7 +544,60 @@ func _drive_racer(delta: float) -> void:
 	var prev := waypoints[wp_index - 1] if wp_index > 0 else global_position
 	var dir := (target - prev).normalized()
 	var side := Vector3(-dir.z, 0, dir.x)
-	_steer_towards(target + side * lane_offset, delta, after)
+	var want := _avoid_traffic(prev, dir, side)
+	_dodge = move_toward(_dodge, want, 9.0 * delta)
+	_steer_towards(target + side * (lane_offset + _dodge), delta, after)
+	if speed > _traffic_limit:
+		in_throttle = 0.0
+		in_brake = 1.0
+		in_nitro = false
+
+
+## Looks for traffic in the racer's way and returns the sideways shift (from the racing line) that
+## takes it through the traffic car's other lane. If that lane is blocked too, sets _traffic_limit
+## so the racer slows down behind the traffic car.
+func _avoid_traffic(prev: Vector3, dir: Vector3, side: Vector3) -> float:
+	_traffic_limit = INF
+	var flat_v := Vector3(linear_velocity.x, 0, linear_velocity.z)
+	var vdir := flat_v.normalized() if flat_v.length() > 3.0 else -global_transform.basis.z
+	var vside := Vector3(-vdir.z, 0, vdir.x)
+	var blocker: Node3D
+	var blocker_along := INF
+	var blocker_speed := 0.0
+	for tc in get_tree().get_nodes_in_group("traffic"):
+		var rel: Vector3 = tc.global_position - global_position
+		var along := rel.dot(vdir)
+		if along < 2.0 or along > 120.0:
+			continue
+		var tc_v: Vector3 = -tc.global_transform.basis.z * tc.speed
+		var closing := flat_v.length() - tc_v.dot(vdir)
+		# Look further ahead the faster we close in: about three seconds plus a margin.
+		if closing <= 0.5 or along > closing * 3.0 + 15.0:
+			continue
+		# In the way if it is near the line we are driving along, or near the line we are steering to.
+		var in_way := absf(rel.dot(vside)) < 2.8 or absf((tc.global_position - prev).dot(side) - (lane_offset + _dodge)) < 2.8
+		if in_way and along < blocker_along:
+			blocker = tc
+			blocker_along = along
+			blocker_speed = tc_v.dot(vdir)
+	if blocker == null:
+		# Ease back to the racing line once the road ahead is clear.
+		return 0.0
+	# The traffic car's other lane: mirror it across the road centre (it drives `offset` metres to the
+	# right of the centre line).
+	var b_right := blocker.global_transform.basis.x
+	var b_off: float = blocker.get("offset") if blocker.get("offset") != null else 3.0
+	if absf(b_off) < 1.0:
+		b_off = 3.0 * signf((global_position - blocker.global_position).dot(b_right) + 0.01) * -1.0
+	var pass_point := blocker.global_position - b_right * 2.0 * b_off
+	for tc in get_tree().get_nodes_in_group("traffic"):
+		if tc == blocker:
+			continue
+		if (tc.global_position - pass_point).length() < 16.0:
+			# Both lanes blocked: follow the traffic car until there is room.
+			_traffic_limit = maxf(blocker_speed - 1.0, 0.0) + maxf(blocker_along - 12.0, 0.0) * 0.5
+			return _dodge
+	return (pass_point - prev).dot(side) - lane_offset
 
 
 func _drive_police(delta: float) -> void:

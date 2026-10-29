@@ -54,3 +54,18 @@ Nota: `street_lamp_02` (20 mila triangoli) e `concrete_road_barrier_02` (42 mila
 | City Builder Bits 1.0 (solo la cartella glTF: 41 modelli + `citybits_texture.png`) | Kay Lousberg (www.kaylousberg.com) | https://github.com/KayKit-Game-Assets/KayKit-City-Builder-Bits-1.0 (commit `6397691`) | CC0 1.0 (vedi `LICENSE.txt` nella cartella) | 2026-10-28 | Nessuna |
 
 Contiene 5 auto low poly con ruote separate (berlina, hatchback, station wagon, taxi, **polizia**), edifici, strade, lampioni, semafori, cassonetti, idranti, panchine. Stile cartoon: adatto a traffico e segnaposto. Scala circa 1/5 del reale (un'auto è lunga 0,94 m): va scalata ×5 circa quando si usa. Prima di usare la volante in gioco va controllata la livrea (niente scritte di corpi di polizia reali).
+
+
+## Percorso di montagna (Poly Haven)
+
+| File e uso | Tipo | Asset | Autore | Link | Licenza | Download | Modifiche |
+|---|---|---|---|---|---|---|---|
+| `assets/hdri/kloofendal_48d_partly_cloudy_puresky_2k.hdr`, cielo della montagna | HDRI 2K | Kloofendal 48d Partly Cloudy (Pure Sky) | Greg Zaal, Jarod Guest | https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky | CC0 1.0 | 2026-10-29 | Nessuna |
+| `assets/materials/aerial_grass_rock/`, erba del terreno (colorata più verde nello shader) | Texture 1K | Aerial Grass Rock | Rob Tuytel | https://polyhaven.com/a/aerial_grass_rock | CC0 1.0 | 2026-10-29 | Nessuna |
+| `assets/materials/rocky_terrain_02/`, terreno vicino alla strada | Texture 1K | Rocky Terrain 02 | Amal Kumar | https://polyhaven.com/a/rocky_terrain_02 | CC0 1.0 | 2026-10-29 | Nessuna |
+| `assets/materials/rock_face/`, pareti di roccia | Texture 1K | Rock Face | Greg Zaal, Dario Barresi | https://polyhaven.com/a/rock_face | CC0 1.0 | 2026-10-29 | Nessuna |
+| `assets/props/rock_09/`, massi a bordo strada | Modello glTF | Rock 09 | Jenelle van Heerden | https://polyhaven.com/a/rock_09 | CC0 1.0 | 2026-10-29 | Nessuna |
+| `assets/props/moon_rock_02/`, massi a bordo strada | Modello glTF | Moon Rock 02 | Rico Cilliers, Greg Zaal, Jenelle van Heerden | https://polyhaven.com/a/moon_rock_02 | CC0 1.0 | 2026-10-29 | Nessuna |
+| `assets/props/rock_face_01/`, roccia a bordo strada | Modello glTF | Rock Face 01 | Dario Barresi | https://polyhaven.com/a/rock_face_01 | CC0 1.0 | 2026-10-29 | Nessuna |
+
+I pini, i guardrail e la strada della montagna sono generati dal codice (`scripts/mountain.gd`), non sono asset esterni. `clean_asphalt` (già registrato sopra) è usato anche per le banchine.

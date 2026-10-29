@@ -1,5 +1,5 @@
 class_name City
-extends Node3D
+extends Track
 ## Night city on a square grid: roads every SPACING metres, one block of buildings between them.
 ## Grid nodes (intersections) go from (0, 0) to (BLOCKS, BLOCKS).
 
@@ -9,7 +9,12 @@ const ROAD := 14.0
 const BLOCK := SPACING - ROAD
 const NEON := [Color(1, 0.12, 0.6), Color(0.1, 0.9, 1), Color(0.65, 0.25, 1), Color(1, 0.55, 0.1), Color(0.25, 1, 0.45)]
 
-var extent := BLOCKS * SPACING
+## Race route through the city, as intersections.
+const ROUTE: Array[Vector2i] = [
+	Vector2i(0, 6), Vector2i(0, 3), Vector2i(2, 3), Vector2i(2, 0),
+	Vector2i(4, 0), Vector2i(4, 4), Vector2i(6, 4), Vector2i(6, 1),
+]
+
 var _rng := RandomNumberGenerator.new()
 var _building_shader: Shader = preload("res://shaders/building.gdshader")
 var _prop_rng := RandomNumberGenerator.new()  # separate from _rng so buildings stay the same
@@ -20,6 +25,10 @@ const MAT_GROUND := preload("res://assets/materials/road_asphalt.tres")
 const MAT_ROAD := preload("res://assets/materials/road_asphalt_wet.tres")
 const MAT_WALK := preload("res://assets/materials/sidewalk_tiles.tres")
 const CLUTTER: Array[String] = ["barrel_03", "wooden_crate_02", "plastic_crate_02"]
+
+
+func _init() -> void:
+	extent = BLOCKS * SPACING
 
 
 func node_pos(n: Vector2i) -> Vector3:
@@ -219,3 +228,83 @@ func _collider(pos: Vector3, size: Vector3) -> void:
 func _static_box(pos: Vector3, size: Vector3, material: Material) -> void:
 	CarModel.box(self, size, pos, material)
 	_collider(pos, size)
+
+
+# ---------- Track interface ----------
+
+func setup_environment(parent: Node) -> void:
+	var env := Environment.new()
+	env.background_mode = Environment.BG_COLOR
+	env.background_color = Color(0.02, 0.02, 0.06)
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_color = Color(0.35, 0.38, 0.6)
+	env.ambient_light_energy = 0.9
+	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	env.glow_enabled = true
+	env.glow_intensity = 0.9
+	env.glow_bloom = 0.05
+	env.glow_hdr_threshold = 0.9
+	env.fog_enabled = true
+	env.fog_light_color = Color(0.08, 0.05, 0.15)
+	env.fog_density = 0.004
+	var we := WorldEnvironment.new()
+	we.environment = env
+	parent.add_child(we)
+	var moon := DirectionalLight3D.new()
+	moon.rotation_degrees = Vector3(-55, 30, 0)
+	moon.light_color = Color(0.6, 0.65, 1)
+	moon.light_energy = 0.45
+	parent.add_child(moon)
+
+
+func race_path() -> Array[Vector3]:
+	return race_checkpoints()
+
+
+func race_checkpoints() -> Array[Vector3]:
+	var out: Array[Vector3] = []
+	for p in ROUTE:
+		out.append(node_pos(p))
+	return out
+
+
+func escape_start() -> Array:
+	return [node_pos(Vector2i(3, 3)) + Vector3(0, 0, -20), Vector3(0, 0, -1)]
+
+
+func police_spawn(player_pos: Vector3, player_fwd: Vector3, behind: bool, min_d: float, max_d: float, rng: RandomNumberGenerator) -> Array:
+	var best := Vector2i(-1, -1)
+	var best_score := -INF
+	for i in BLOCKS + 1:
+		for j in BLOCKS + 1:
+			var n := Vector2i(i, j)
+			var to := node_pos(n) - player_pos
+			var d := to.length()
+			if d < min_d or d > max_d:
+				continue
+			var score := -to.normalized().dot(player_fwd) if behind else rng.randf()
+			if score > best_score:
+				best_score = score
+				best = n
+	if best.x < 0:
+		best = snap(player_pos + Vector3(90, 0, 0))
+	var spawn := node_pos(best)
+	return [spawn, player_pos - spawn]
+
+
+func autopilot_goal(_pos: Vector3, goal: Vector3) -> Vector3:
+	return node_pos(Vector2i(6, 6)) if goal.x < 1.0 else node_pos(Vector2i(0, 0))
+
+
+## Civilian cars drive straight along one road lane and wrap around at the city edge.
+func traffic_lane(rng: RandomNumberGenerator) -> Dictionary:
+	var along_x := rng.randf() < 0.5
+	var dir := 1.0 if rng.randf() < 0.5 else -1.0
+	var line := rng.randi_range(0, BLOCKS) * SPACING
+	var a := -ROAD / 2.0 + 2.5
+	var b := extent + ROAD / 2.0 - 2.5
+	var curve := Curve3D.new()
+	curve.add_point(Vector3(a, 0, line) if along_x else Vector3(line, 0, a))
+	curve.add_point(Vector3(b, 0, line) if along_x else Vector3(line, 0, b))
+	return {"curve": curve, "offset": 3.5, "dir": dir, "loop": false}
+

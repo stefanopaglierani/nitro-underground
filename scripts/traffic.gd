@@ -1,28 +1,30 @@
 class_name TrafficCar
 extends AnimatableBody3D
-## Civilian car that drives straight along one road lane and wraps around at the city edge.
+## Civilian car that drives along one lane of the track at a steady speed. On an open lane it
+## wraps around to the start when it reaches the end.
 
 const BODIES := ["car_sedan", "car_hatchback", "car_stationwagon", "car_taxi"]
 
-var along_x := true
-var line := 0.0
+var curve: Curve3D
+var offset := 3.5
 var dir := 1.0
+var loop := false
 var speed := 11.0
 var t := 0.0
-var _min := 0.0
-var _max := 0.0
+var _length := 0.0
 
 
-func setup(city: City, rng: RandomNumberGenerator) -> void:
+func setup(track: Track, rng: RandomNumberGenerator) -> void:
 	add_to_group("traffic")
 	sync_to_physics = false
-	along_x = rng.randf() < 0.5
-	dir = 1.0 if rng.randf() < 0.5 else -1.0
-	line = rng.randi_range(0, City.BLOCKS) * City.SPACING + 3.5 * dir * (1.0 if along_x else -1.0)
+	var lane := track.traffic_lane(rng)
+	curve = lane["curve"]
+	offset = lane["offset"]
+	dir = lane["dir"]
+	loop = lane["loop"]
+	_length = curve.get_baked_length()
 	speed = rng.randf_range(8.0, 13.0)
-	_min = -City.ROAD / 2.0 + 2.5
-	_max = city.extent + City.ROAD / 2.0 - 2.5
-	t = rng.randf_range(_min, _max)
+	t = rng.randf_range(0.0, _length)
 	var shape := BoxShape3D.new()
 	shape.size = Vector3(1.9, 1.5, 4.2)
 	var col := CollisionShape3D.new()
@@ -34,15 +36,23 @@ func setup(city: City, rng: RandomNumberGenerator) -> void:
 
 
 func _apply() -> void:
-	var pos := Vector3(t, 0, line) if along_x else Vector3(line, 0, t)
-	var facing := Vector3(dir, 0, 0) if along_x else Vector3(0, 0, dir)
-	global_transform = Transform3D(Basis.looking_at(facing, Vector3.UP), pos)
+	var pos := curve.sample_baked(t)
+	var ahead := curve.sample_baked(clampf(t + dir * 2.0, 0.0, _length)) if not loop else curve.sample_baked(fposmod(t + dir * 2.0, _length))
+	var facing := ahead - pos
+	var flat := Vector3(facing.x, 0, facing.z)
+	if flat.length() < 0.01:
+		return
+	var right := flat.normalized().cross(Vector3.UP)
+	# Pitch with the road so the car sits on slopes.
+	global_transform = Transform3D(Basis.looking_at(facing.normalized(), Vector3.UP), pos + right * offset)
 
 
 func _physics_process(delta: float) -> void:
 	t += dir * speed * delta
-	if t > _max:
-		t = _min
-	elif t < _min:
-		t = _max
+	if loop:
+		t = fposmod(t, _length)
+	elif t > _length:
+		t = 0.0
+	elif t < 0.0:
+		t = _length
 	_apply()
