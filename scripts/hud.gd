@@ -5,6 +5,8 @@ extends CanvasLayer
 signal mode_chosen(mode: String)
 signal restart_pressed
 signal menu_pressed
+## Garage: the player asked for the previous (-1) or next (+1) car.
+signal car_step(dir: int)
 
 const ACCENT := Color(1, 0.18, 0.55)
 const CYAN := Color(0.1, 0.9, 1)
@@ -22,6 +24,9 @@ var menu_panel: Control
 var end_panel: Control
 var end_title: Label
 var end_text: Label
+var car_name_label: Label
+var pause: Button
+var car_index_label: Label
 var _buttons: Dictionary = {}
 var _message_t := 0.0
 
@@ -75,7 +80,7 @@ func _ready() -> void:
 	escape_bar.offset_bottom = 76
 	escape_bar.visible = false
 
-	var pause := Button.new()
+	pause = Button.new()
 	pause.text = "MENU"
 	pause.add_theme_font_size_override("font_size", 22)
 	pause.set_anchors_preset(Control.PRESET_TOP_RIGHT)
@@ -253,31 +258,87 @@ func _big_button(parent: Control, text: String, color: Color) -> Button:
 	return b
 
 
+## Title screen with the garage: the chosen car turns on the road behind the menu (main.gd);
+## arrows or a sideways swipe change it, the two buttons start a race with it.
 func _build_menu() -> void:
-	var box := _panel_base()
-	menu_panel = box.get_parent()
+	menu_panel = Control.new()
+	menu_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	menu_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(menu_panel)
+
+	var top := ColorRect.new()
+	top.color = Color(0.02, 0.01, 0.06, 0.6)
+	top.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	top.offset_bottom = 130
+	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	menu_panel.add_child(top)
 	var title := Label.new()
 	title.text = "NITRO UNDERGROUND"
+	title.set_anchors_preset(Control.PRESET_FULL_RECT)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 64)
 	title.add_theme_color_override("font_color", ACCENT)
 	title.add_theme_color_override("font_outline_color", CYAN)
 	title.add_theme_constant_override("outline_size", 4)
-	box.add_child(title)
-	var sub := Label.new()
-	sub.text = "Prototipo di prova"
-	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	sub.add_theme_font_size_override("font_size", 24)
-	sub.add_theme_color_override("font_color", Color(0.75, 0.8, 0.95))
-	box.add_child(sub)
-	_big_button(box, "GARA SPRINT", ACCENT).pressed.connect(func(): mode_chosen.emit("sprint"))
-	_big_button(box, "FUGA DALLA POLIZIA", CYAN).pressed.connect(func(): mode_chosen.emit("escape"))
-	var help := Label.new()
-	help.text = "Accelerazione automatica.  Frecce: sterzo.  DERAPA: freno a mano.\nNITRO si ricarica col tempo e derapando.  Ogni urto attira la polizia."
-	help.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	help.add_theme_font_size_override("font_size", 18)
-	help.add_theme_color_override("font_color", Color(0.7, 0.72, 0.8))
-	box.add_child(help)
+	top.add_child(title)
+
+	var bottom := ColorRect.new()
+	bottom.color = Color(0.02, 0.01, 0.06, 0.65)
+	bottom.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	bottom.offset_top = -270
+	bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	menu_panel.add_child(bottom)
+	var box := VBoxContainer.new()
+	box.set_anchors_preset(Control.PRESET_FULL_RECT)
+	box.offset_left = 40
+	box.offset_right = -40
+	box.offset_top = 14
+	box.offset_bottom = -18
+	box.add_theme_constant_override("separation", 14)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bottom.add_child(box)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 24)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(row)
+	var prev := _big_button(row, "<", CYAN)
+	prev.custom_minimum_size = Vector2(120, 96)
+	prev.pressed.connect(func(): car_step.emit(-1))
+	var names := VBoxContainer.new()
+	names.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	names.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(names)
+	car_name_label = Label.new()
+	car_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	car_name_label.add_theme_font_size_override("font_size", 44)
+	car_name_label.add_theme_color_override("font_color", Color.WHITE)
+	names.add_child(car_name_label)
+	car_index_label = Label.new()
+	car_index_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	car_index_label.add_theme_font_size_override("font_size", 22)
+	car_index_label.add_theme_color_override("font_color", Color(0.7, 0.75, 0.9))
+	names.add_child(car_index_label)
+	var next := _big_button(row, ">", CYAN)
+	next.custom_minimum_size = Vector2(120, 96)
+	next.pressed.connect(func(): car_step.emit(1))
+
+	var modes := HBoxContainer.new()
+	modes.add_theme_constant_override("separation", 24)
+	modes.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(modes)
+	var sprint := _big_button(modes, "GARA SPRINT", ACCENT)
+	sprint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sprint.pressed.connect(func(): mode_chosen.emit("sprint"))
+	var escape := _big_button(modes, "FUGA DALLA POLIZIA", CYAN)
+	escape.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	escape.pressed.connect(func(): mode_chosen.emit("escape"))
+
+
+func set_car(car_name: String, index: int, total: int) -> void:
+	car_name_label.text = car_name
+	car_index_label.text = "%d / %d   (scorri o usa le frecce)" % [index + 1, total]
 
 
 func _build_end() -> void:
@@ -299,6 +360,7 @@ func _build_end() -> void:
 
 func show_menu(on: bool) -> void:
 	menu_panel.visible = on
+	pause.visible = not on
 	show_controls(not on)
 	info_label.visible = not on
 	heat_label.visible = not on

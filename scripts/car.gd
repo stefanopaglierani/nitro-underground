@@ -21,6 +21,8 @@ const JUMP_MIN_AIR := 0.15
 ## Car models (assets/cars_rgsdev) for the AI racers and the police.
 const RACER_BODIES := ["muscle", "roadster", "muscle_2", "hatchback"]
 const POLICE_BODIES := ["police_sedan", "police_sports", "police_muscle", "police_suv"]
+## Car the player picked in the garage (CarCatalog id); it keeps its own colours.
+static var player_body := "mclaren_600lt"
 
 var driver: Driver = Driver.PLAYER
 var frozen := true:
@@ -114,6 +116,7 @@ var _wheel_pos: Array[Vector3] = [
 ]
 var _rays: Array[RayCast3D] = []
 var _wheel_nodes: Array[Node3D] = []
+var _wheel_base_y: Array[float] = []  # height of each wheel pivot in the model (its tyre radius)
 var _susp_len: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var _steer := 0.0
 var _upside_down_t := 0.0
@@ -169,15 +172,17 @@ func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 		_rays.append(ray)
 		_susp_len[i] = spring_rest
 
-	var body := "sports"
+	var body := player_body
+	var model_paint := Color(0, 0, 0, 0) if kind == Driver.PLAYER else paint
 	if kind == Driver.RACER:
 		body = RACER_BODIES[absi(hash(paint)) % RACER_BODIES.size()]
 	elif kind == Driver.POLICE:
 		body = POLICE_BODIES[get_instance_id() % POLICE_BODIES.size()]
-	_model = CarModel.build(paint, kind == Driver.POLICE, body)
+	_model = CarModel.build(model_paint, kind == Driver.POLICE, body)
 	add_child(_model)
 	for n in ["WheelFL", "WheelFR", "WheelRL", "WheelRR"]:
 		_wheel_nodes.append(_model.get_node(n))
+		_wheel_base_y.append((_model.get_node(n) as Node3D).position.y)
 	_tail_mat = _model.get_meta("tail_mat")
 
 	_smoke = _make_particles(Color(0.75, 0.75, 0.8, 0.35), Vector3(0, 0.3, 1.6), 0.9, 48)
@@ -464,7 +469,9 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 func _update_visuals(delta: float) -> void:
 	for i in 4:
 		var w := _wheel_nodes[i]
-		w.position.y = MOUNT_Y - _susp_len[i]
+		# The physics wheel has radius wheel_radius; models with bigger or smaller tyres keep
+		# their own height and only follow the suspension travel.
+		w.position.y = _wheel_base_y[i] + MOUNT_Y - _susp_len[i] - wheel_radius
 		if i < 2:
 			w.rotation.y = -_steer
 	_smoke.emitting = drifting and not frozen
