@@ -1,6 +1,6 @@
 # Nitro Underground
 
-Gioco mobile di corse clandestine in 3D con telecamera dall'alto, fatto con **Godot 4.7** (renderer Mobile/Vulkan, fisica Jolt).
+Gioco mobile di corse clandestine in 3D con telecamera di inseguimento, fatto con **Godot 4.7** (renderer Mobile/Vulkan, fisica Jolt).
 Questa è la prima versione di prova (passo 2 del piano): serve a capire se guidare è divertente.
 La grafica low poly è provvisoria; dal passo 3 si passa a una grafica realistica.
 
@@ -27,7 +27,8 @@ La grafica low poly è provvisoria; dal passo 3 si passa a una grafica realistic
 - `scenes/main.tscn`: scena principale; tutto il resto è costruito da codice.
 - `scripts/main.gd`: regole di gara, checkpoint, polizia, telecamera.
 - `scripts/car.gd`: auto `RigidBody3D` su quattro ruote a raggio (sospensioni a molla, aderenza per ruota, assistenze arcade), salti con controllo in volo (sterzo = avvitamento, freno = muso su, freno a mano = muso giù) e conteggio delle rotazioni, e guida del computer (avversari e polizia).
-- `scripts/ramp.gd`: rampa da salto con raccordo curvo all'inizio.
+- `scripts/ramp.gd`: rampa da salto con raccordo curvo all'inizio (anche a doppio senso); `city.gd` ne mette quattro in mezzo ad alcune strade.
+- `scripts/car_model.gd`: modelli delle auto KayKit (CC0) con carrozzeria riverniciabile (`shaders/car_paint.gdshader`) e luci aggiunte.
 - `scripts/city.gd`: generazione della città e percorsi lungo le strade.
 - `scripts/traffic.gd`: auto civili.
 - `scripts/hud.gd`: comandi touch, menu, schermate di fine gara.

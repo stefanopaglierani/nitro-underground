@@ -4,12 +4,13 @@ extends StaticBody3D
 ## The first half of the ramp is a curved transition from flat to the full slope, so cars roll
 ## onto it instead of being kicked into the air at the bottom edge.
 ## The node's origin is the middle of the low edge: place it where the ramp starts and turn it to
-## face the direction of travel.
+## face the direction of travel. A two-way ramp comes back down the same way on the far side of the
+## lip, so it can be jumped from both ends (it is then 2 x length long).
 
 const SEGMENTS := 8
 
 
-static func create(length: float, width: float, angle_deg: float, material: Material = null) -> Ramp:
+static func create(length: float, width: float, angle_deg: float, material: Material = null, two_way := false) -> Ramp:
 	var ramp := Ramp.new()
 	var k := tan(deg_to_rad(angle_deg))
 	var a := length * 0.5
@@ -19,6 +20,9 @@ static func create(length: float, width: float, angle_deg: float, material: Mate
 		profile.append(Vector2(x, k * x * x / (2.0 * a)))
 	profile.append(Vector2(length, k * a / 2.0 + k * (length - a)))
 	var height := profile[-1].y
+	if two_way:
+		for i in range(profile.size() - 2, -1, -1):
+			profile.append(Vector2(2.0 * length - profile[i].x, profile[i].y))
 	var w := width / 2.0
 
 	var st := SurfaceTool.new()
@@ -36,8 +40,9 @@ static func create(length: float, width: float, angle_deg: float, material: Mate
 		_tri(st, Vector3(-w, 0, -p.x), l1, l0)
 		_tri(st, Vector3(w, 0, -p.x), r1, Vector3(w, 0, -q.x))
 		_tri(st, Vector3(w, 0, -p.x), r0, r1)
-	var top := Vector3(0, height, -length)
-	_quad(st, Vector3(-w, 0, top.z), Vector3(w, 0, top.z), Vector3(w, height, top.z), Vector3(-w, height, top.z))
+	if not two_way:
+		var z := -length
+		_quad(st, Vector3(-w, 0, z), Vector3(w, 0, z), Vector3(w, height, z), Vector3(-w, height, z))
 	st.generate_normals()
 	var mesh := st.commit()
 

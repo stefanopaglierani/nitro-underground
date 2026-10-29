@@ -2,7 +2,7 @@ class_name TrafficCar
 extends AnimatableBody3D
 ## Civilian car that drives straight along one road lane and wraps around at the city edge.
 
-const COLORS := [Color(0.6, 0.6, 0.62), Color(0.15, 0.2, 0.45), Color(0.45, 0.1, 0.1), Color(0.85, 0.85, 0.8), Color(0.1, 0.3, 0.15)]
+const BODIES := ["car_sedan", "car_hatchback", "car_stationwagon", "car_taxi"]
 
 var along_x := true
 var line := 0.0
@@ -24,12 +24,12 @@ func setup(city: City, rng: RandomNumberGenerator) -> void:
 	_max = city.extent + City.ROAD / 2.0 - 2.5
 	t = rng.randf_range(_min, _max)
 	var shape := BoxShape3D.new()
-	shape.size = Vector3(1.9, 1.2, 4.2)
+	shape.size = Vector3(1.9, 1.5, 4.2)
 	var col := CollisionShape3D.new()
 	col.shape = shape
-	col.position.y = 0.6
+	col.position.y = 0.85
 	add_child(col)
-	add_child(CarModel.build(COLORS[rng.randi() % COLORS.size()]))
+	add_child(CarModel.build(Color(0, 0, 0, 0), false, BODIES[rng.randi() % BODIES.size()]))
 	_apply()
 
 

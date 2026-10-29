@@ -81,6 +81,7 @@ func build() -> void:
 		CarModel.box(self, Vector3(extent + ROAD, 0.02, ROAD), Vector3(mid, 0.01, c), road)
 		CarModel.box(self, Vector3(ROAD, 0.022, extent + ROAD), Vector3(c, 0.011, mid), road)
 	_lane_marks()
+	_ramps()
 
 	for bx in BLOCKS:
 		for bz in BLOCKS:
@@ -104,6 +105,24 @@ func build() -> void:
 	_static_box(Vector3(mid, 0.6, e), Vector3(extent + ROAD + 4, 1.2, 2), barrier)
 	_static_box(Vector3(s, 0.6, mid), Vector3(2, 1.2, extent + ROAD + 4), barrier)
 	_static_box(Vector3(e, 0.6, mid), Vector3(2, 1.2, extent + ROAD + 4), barrier)
+
+
+## Two-way jump ramps in the middle of a few roads, between the two traffic lanes (traffic drives
+## at 3.5 m from the centre line, so a 5 m wide ramp leaves both lanes free).
+func _ramps() -> void:
+	var mat: Material = load("res://assets/materials/wall_metal_sheet.tres") if ResourceLoader.exists("res://assets/materials/wall_metal_sheet.tres") else null
+	var length := 14.0
+	# [along_x, road index, block index along the road]
+	for r in [[true, 1, 2], [true, 5, 3], [false, 2, 4], [false, 4, 1]]:
+		var ramp := Ramp.create(length, 5.0, 15.0, mat, true)
+		var mid: float = (r[2] + 0.5) * SPACING
+		if r[0]:
+			ramp.position = Vector3(mid - length, 0, r[1] * SPACING)
+			ramp.rotation.y = -PI / 2
+		else:
+			ramp.position = Vector3(r[1] * SPACING, 0, mid - length)
+			ramp.rotation.y = PI
+		add_child(ramp)
 
 
 func _lane_marks() -> void:

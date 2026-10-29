@@ -145,10 +145,11 @@ func setup(kind: Driver, paint: Color, the_city: City) -> void:
 	physics_material_override = phys
 
 	var shape := BoxShape3D.new()
-	shape.size = Vector3(1.9, 0.75, 4.2)
+	# Covers the body from the sills to the roof, so a car on its roof rests on it.
+	shape.size = Vector3(1.9, 1.15, 4.2)
 	var col := CollisionShape3D.new()
 	col.shape = shape
-	col.position.y = 0.8
+	col.position.y = 1.0
 	add_child(col)
 
 	for i in 4:
@@ -161,7 +162,10 @@ func setup(kind: Driver, paint: Color, the_city: City) -> void:
 		_rays.append(ray)
 		_susp_len[i] = spring_rest
 
-	_model = CarModel.build(paint, kind == Driver.POLICE)
+	var body := "car_sedan"
+	if kind == Driver.RACER:
+		body = ["car_hatchback", "car_stationwagon", "car_sedan"][absi(hash(paint)) % 3]
+	_model = CarModel.build(paint, kind == Driver.POLICE, "car_police" if kind == Driver.POLICE else body)
 	add_child(_model)
 	for n in ["WheelFL", "WheelFR", "WheelRL", "WheelRR"]:
 		_wheel_nodes.append(_model.get_node(n))
