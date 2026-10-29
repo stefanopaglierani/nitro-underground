@@ -8,9 +8,9 @@ const ROUTE: Array[Vector2i] = [
 	Vector2i(0, 6), Vector2i(0, 3), Vector2i(2, 3), Vector2i(2, 0),
 	Vector2i(4, 0), Vector2i(4, 4), Vector2i(6, 4), Vector2i(6, 1),
 ]
-const RIVAL_COLORS := [Color(0.1, 0.85, 0.3), Color(1, 0.55, 0.05), Color(0.6, 0.2, 1)]
+const RIVAL_COLORS := [Color(0.1, 0.85, 0.3), Color(1, 0.55, 0.05), Color(0.1, 0.55, 1)]
 const CHECKPOINT_RADIUS := 16.0
-const AI_ADVANCE_RADIUS := 9.0
+const AI_ADVANCE_RADIUS := 12.0
 const PRIZE := 5000
 const ESCAPE_DISTANCE := 110.0
 const ESCAPE_TIME := 10.0
@@ -37,6 +37,14 @@ var bust_t := 0.0
 var escape_t := 0.0
 var police_called := false
 var cam_yaw := 0.0
+var _cam_dist := CAM_DIST
+var _cam_ray := PhysicsRayQueryParameters3D.new()
+# Chase camera: behind the car and a little above it, looking down the road.
+const CAM_DIST := 6.8
+const CAM_HEIGHT := 2.5
+const CAM_LOOK_AHEAD := 8.0
+const CAM_FOV := 68.0
+const CAM_FOV_FAST := 84.0
 var _orbit := 0.0
 
 var autotest := false
@@ -52,6 +60,11 @@ func _ready() -> void:
 	DisplayServer.screen_set_keep_on(true)
 	var args := OS.get_cmdline_user_args()
 	autotest = args.has("--autotest")
+	if autotest:
+		rng.seed = 1234  # same city traffic and rivals on every test run
+	for a in args:
+		if a.begins_with("--seed="):
+			rng.seed = int(a.substr(7))
 	for a in args:
 		if a.begins_with("--shots="):
 			screenshot_dir = a.substr(8)
@@ -72,8 +85,9 @@ func _ready() -> void:
 		t.setup(city, rng)
 
 	camera = Camera3D.new()
-	camera.fov = 55
-	camera.far = 800
+	camera.fov = CAM_FOV
+	camera.near = 0.1
+	camera.far = 900
 	add_child(camera)
 
 	hud = Hud.new()
@@ -202,7 +216,7 @@ func _start(m: String) -> void:
 			r.waypoints = checkpoints
 			r.wp_index = 1
 			r.lane_offset = rng.randf_range(-3.0, 3.0)
-			r.max_speed = 37.5 + i * 1.2
+			r.max_speed = 39.0 + i * 1.2
 			racers.append(r)
 		player = _make_car(Car.Driver.PLAYER, Color(0.95, 0.1, 0.5))
 		var ps: Vector2 = slots[3]
@@ -215,7 +229,7 @@ func _start(m: String) -> void:
 		player.place(city.node_pos(Vector2i(3, 3)) + Vector3(0, 0, -20), Vector3(0, 0, -1))
 		heat = 3.0
 		police_called = true
-	cam_yaw = player.rotation.y
+	cam_yaw = player.heading()
 	_snap_camera()
 	hud.set_heat(heat)
 
@@ -401,13 +415,36 @@ func _snap_camera() -> void:
 
 
 func _update_camera(delta: float) -> void:
-	var target := player.global_position + Vector3(player.velocity.x, 0, player.velocity.z) * 0.2
-	if player.speed > -1.0:
-		cam_yaw = lerp_angle(cam_yaw, player.rotation.y, clampf(2.0 * delta, 0.0, 1.0))
-	var height := 30.0 + absf(player.speed) * 0.3
-	var offset := Basis(Vector3.UP, cam_yaw) * Vector3(0, height, height * 0.42)
-	camera.global_position = camera.global_position.lerp(target + offset, clampf(6.0 * delta, 0.0, 1.0))
-	camera.look_at(target, Vector3.UP)
+	var car_pos := player.global_position
+	var flat_v := Vector3(player.velocity.x, 0, player.velocity.z)
+	# Follow the nose, leaning towards the direction of travel in a drift; hold still when the car
+	# is in the air or on its roof so spins and flips stay readable.
+	var want := player.heading()
+	if flat_v.length() > 8.0 and player.speed > 0.0:
+		want = lerp_angle(want, atan2(-flat_v.x, -flat_v.z), 0.35)
+	if player.wheels_on_ground > 0 and player.speed > -2.0:
+		cam_yaw = lerp_angle(cam_yaw, want, clampf(5.0 * delta, 0.0, 1.0))
+	var speed_t := clampf(flat_v.length() / player.max_speed, 0.0, 1.3)
+	var back := Basis(Vector3.UP, cam_yaw) * Vector3(0, 0, 1)
+	# Pull back a little at speed and with nitro.
+	var dist := CAM_DIST + speed_t * 1.6 + (0.8 if player.using_nitro else 0.0)
+	var pivot := car_pos + Vector3(0, 1.2, 0)
+	var desired := pivot + back * dist + Vector3(0, CAM_HEIGHT - 1.2 + speed_t * 0.4, 0)
+	# Keep the camera out of buildings: stop it short of anything between it and the car.
+	_cam_ray.from = pivot
+	_cam_ray.to = desired
+	_cam_ray.exclude = [player.get_rid()]
+	var hit := player.get_world_3d().direct_space_state.intersect_ray(_cam_ray)
+	var max_dist := pivot.distance_to(desired)
+	if not hit.is_empty():
+		max_dist = maxf(pivot.distance_to(hit.position) - 0.4, 1.5)
+	_cam_dist = minf(lerpf(_cam_dist, max_dist, clampf(4.0 * delta, 0.0, 1.0)), max_dist)
+	var cam_pos := pivot + (desired - pivot).normalized() * _cam_dist
+	camera.global_position = camera.global_position.lerp(cam_pos, clampf(12.0 * delta, 0.0, 1.0))
+	var look := car_pos + Vector3(0, 1.0, 0) - back * CAM_LOOK_AHEAD
+	camera.look_at(look, Vector3.UP)
+	var fov := lerpf(CAM_FOV, CAM_FOV_FAST, clampf(speed_t, 0.0, 1.0)) + (6.0 if player.using_nitro else 0.0)
+	camera.fov = lerpf(camera.fov, fov, clampf(3.0 * delta, 0.0, 1.0))
 
 
 func _update_hud() -> void:
@@ -424,7 +461,7 @@ func _update_hud() -> void:
 		var to := t - player.global_position
 		to.y = 0
 		if to.length() > 1.0:
-			arrow.global_position = player.global_position + to.normalized() * 5.5 + Vector3(0, 2.5, 0)
+			arrow.global_position = player.global_position + to.normalized() * 9.0 + Vector3(0, 3.4, 0)
 			arrow.look_at(arrow.global_position + to, Vector3.UP)
 
 
@@ -474,7 +511,10 @@ func _autotest_tick(delta: float) -> void:
 		img.save_png("%s/shot_%s_%d.png" % [screenshot_dir, mode, _shots_taken])
 		_shots_taken += 1
 	if int(_test_t * 2.0) != int((_test_t - delta) * 2.0):
-		print("[autotest] t=%.1f state=%s speed=%.1f cp=%d heat=%.1f police=%d pos=%s" % [_test_t, state, player.speed, player_cp, heat, police.size(), player.global_position.round()])
+		print("[autotest] t=%.1f state=%s speed=%.1f cp=%d heat=%.1f police=%d pos=%s wheels=%d up=%.2f in=(%.1f,%.1f,%.1f,%s)" % [_test_t, state, player.speed, player_cp, heat, police.size(), player.global_position.round(), player.wheels_on_ground, player.global_transform.basis.y.y, player.in_throttle, player.in_brake, player.in_steer, player.in_handbrake])
+	if int(_test_t / 5.0) != int((_test_t - delta) / 5.0):
+		for r in racers:
+			print("[autotest]   racer wp=%d speed=%.1f pos=%s up=%.2f" % [r.wp_index, r.speed, r.global_position.round(), r.global_transform.basis.y.y])
 	if state == "end" or _test_t > 90.0:
 		print("[autotest] END state=%s title=%s text=%s" % [state, hud.end_title.text, hud.end_text.text.replace("\n", " | ")])
 		for r in racers:

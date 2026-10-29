@@ -12,6 +12,14 @@ const NEON := [Color(1, 0.12, 0.6), Color(0.1, 0.9, 1), Color(0.65, 0.25, 1), Co
 var extent := BLOCKS * SPACING
 var _rng := RandomNumberGenerator.new()
 var _building_shader: Shader = preload("res://shaders/building.gdshader")
+var _prop_rng := RandomNumberGenerator.new()  # separate from _rng so buildings stay the same
+var _props := {}
+
+# CC0 materials and props: see assets/LICENSES.md.
+const MAT_GROUND := preload("res://assets/materials/road_asphalt.tres")
+const MAT_ROAD := preload("res://assets/materials/road_asphalt_wet.tres")
+const MAT_WALK := preload("res://assets/materials/sidewalk_tiles.tres")
+const CLUTTER: Array[String] = ["barrel_03", "wooden_crate_02", "plastic_crate_02"]
 
 
 func node_pos(n: Vector2i) -> Vector3:
@@ -59,9 +67,10 @@ func route_point(pos: Vector3, target: Vector3) -> Vector3:
 
 func build() -> void:
 	_rng.seed = 2077
-	var asphalt := CarModel.mat(Color(0.09, 0.09, 0.11), Color.BLACK, 0.0, 0.3, 0.35)
-	var road := CarModel.mat(Color(0.13, 0.13, 0.15), Color.BLACK, 0.0, 0.4, 0.25)
-	var walk := CarModel.mat(Color(0.22, 0.22, 0.25), Color.BLACK, 0.0, 0.0, 0.9)
+	_prop_rng.seed = 1977
+	var asphalt: Material = MAT_GROUND
+	var road: Material = MAT_ROAD
+	var walk: Material = MAT_WALK
 	var mid := extent / 2.0
 
 	# Ground with collision.
@@ -72,6 +81,7 @@ func build() -> void:
 		CarModel.box(self, Vector3(extent + ROAD, 0.02, ROAD), Vector3(mid, 0.01, c), road)
 		CarModel.box(self, Vector3(ROAD, 0.022, extent + ROAD), Vector3(c, 0.011, mid), road)
 	_lane_marks()
+	_ramps()
 
 	for bx in BLOCKS:
 		for bz in BLOCKS:
@@ -83,6 +93,9 @@ func build() -> void:
 	for i in BLOCKS + 1:
 		for j in BLOCKS + 1:
 			_street_lamp(node_pos(Vector2i(i, j)) + Vector3(ROAD / 2.0 + 1.0, 0, ROAD / 2.0 + 1.0))
+			# Utility box on the opposite corner, every other intersection, only where there is a sidewalk.
+			if i < BLOCKS and j > 0 and (i + j) % 2 == 0:
+				_prop("utility_box_01", node_pos(Vector2i(i, j)) + Vector3(ROAD / 2.0 + 1.0, 0.3, -ROAD / 2.0 - 1.0), PI)
 
 	# Barriers around the city edge.
 	var barrier := CarModel.mat(Color(0.15, 0.12, 0.1), Color(1, 0.45, 0.05), 1.2)
@@ -92,6 +105,24 @@ func build() -> void:
 	_static_box(Vector3(mid, 0.6, e), Vector3(extent + ROAD + 4, 1.2, 2), barrier)
 	_static_box(Vector3(s, 0.6, mid), Vector3(2, 1.2, extent + ROAD + 4), barrier)
 	_static_box(Vector3(e, 0.6, mid), Vector3(2, 1.2, extent + ROAD + 4), barrier)
+
+
+## Two-way jump ramps in the middle of a few roads, between the two traffic lanes (traffic drives
+## at 3.5 m from the centre line, so a 5 m wide ramp leaves both lanes free).
+func _ramps() -> void:
+	var mat: Material = load("res://assets/materials/wall_metal_sheet.tres") if ResourceLoader.exists("res://assets/materials/wall_metal_sheet.tres") else null
+	var length := 14.0
+	# [along_x, road index, block index along the road]
+	for r in [[true, 1, 2], [true, 5, 3], [false, 2, 4], [false, 4, 1]]:
+		var ramp := Ramp.create(length, 5.0, 15.0, mat, true)
+		var mid: float = (r[2] + 0.5) * SPACING
+		if r[0]:
+			ramp.position = Vector3(mid - length, 0, r[1] * SPACING)
+			ramp.rotation.y = -PI / 2
+		else:
+			ramp.position = Vector3(r[1] * SPACING, 0, mid - length)
+			ramp.rotation.y = PI
+		add_child(ramp)
 
 
 func _lane_marks() -> void:
@@ -124,6 +155,7 @@ func _buildings(center: Vector3) -> void:
 	for ix in 2:
 		for iz in 2:
 			if _rng.randf() < 0.12:
+				_parking(center + Vector3((ix - 0.5) * lot, 0.3, (iz - 0.5) * lot))
 				continue  # empty lot: parking
 			var w := lot - _rng.randf_range(1.0, 4.0)
 			var d := lot - _rng.randf_range(1.0, 4.0)
@@ -142,6 +174,29 @@ func _buildings(center: Vector3) -> void:
 			if _rng.randf() < 0.35:
 				var sign_col: Color = NEON[_rng.randi() % NEON.size()]
 				CarModel.box(self, Vector3(w * 0.5, 1.6, 0.3), pos + Vector3(0, h / 2.0 + 1.2, 0), CarModel.mat(sign_col * 0.4, sign_col, 4.0))
+
+
+## Empty lot: a couple of parked covered cars and some clutter (visual only, the block collider covers it).
+func _parking(pos: Vector3) -> void:
+	for k in _prop_rng.randi_range(1, 2):
+		_prop("covered_car", pos + Vector3((k - 0.5) * 3.2, 0.0, _prop_rng.randf_range(-2.0, 2.0)), _prop_rng.randf_range(-0.15, 0.15))
+	for k in _prop_rng.randi_range(2, 4):
+		var spot := pos + Vector3(_prop_rng.randf_range(-8.0, 8.0), 0.0, _prop_rng.randf_range(6.0, 8.0) * (1 if _prop_rng.randf() < 0.5 else -1))
+		_prop(CLUTTER[k % CLUTTER.size()], spot, _prop_rng.randf() * TAU)
+
+
+## Instances a glTF prop from assets/props/<name>/. Does nothing if the asset is missing.
+func _prop(prop_name: String, pos: Vector3, yaw: float) -> void:
+	if not _props.has(prop_name):
+		var path := "res://assets/props/%s/%s.gltf" % [prop_name, prop_name]
+		_props[prop_name] = load(path) if ResourceLoader.exists(path) else null
+	var scene: PackedScene = _props[prop_name]
+	if scene == null:
+		return
+	var inst := scene.instantiate() as Node3D
+	inst.position = pos
+	inst.rotation.y = yaw
+	add_child(inst)
 
 
 func _street_lamp(pos: Vector3) -> void:
