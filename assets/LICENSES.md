@@ -69,3 +69,36 @@ Contiene 5 auto low poly con ruote separate (berlina, hatchback, station wagon, 
 | `assets/props/rock_face_01/`, roccia a bordo strada | Modello glTF | Rock Face 01 | Dario Barresi | https://polyhaven.com/a/rock_face_01 | CC0 1.0 | 2026-10-29 | Nessuna |
 
 I pini, i guardrail e la strada della montagna sono generati dal codice (`scripts/mountain.gd`), non sono asset esterni. `clean_asphalt` (già registrato sopra) è usato anche per le banchine.
+
+## Libreria di modelli da OpenGameArt — `assets/library/`
+
+Scaricati il 2026-10-29 da https://opengameart.org (dominio aperto da Stefano). Tutti i pacchetti sono marcati **CC0** sulla loro pagina OpenGameArt (verificato pagina per pagina al download). La cartella ha un file `.gdignore`: Godot non la importa e non finisce nell'APK. Per usare un modello, si copia fuori dalla libreria (per esempio in `assets/props/`) e si annota l'uso qui.
+
+Modifiche comuni a tutti i pacchetti: tenuti solo i formati che Godot legge (glTF/GLB, FBX, OBJ). Tolti i file `.blend`, i collegamenti `.url`/`.html` e i doppioni in altri formati. Le immagini di anteprima sono state ridotte a 960 px in JPG. Le texture `.tga` sono state convertite in PNG (le diffuse e le speculari delle barriere Yughues in JPG), e i `.mtl` sono stati aggiornati di conseguenza.
+
+| Cartella | Contenuto | Autore | Pagina | Licenza |
+|---|---|---|---|---|
+| `kenney_car_kit/` | 50 veicoli GLB (berline, sportive, polizia, ambulanza, camion, furgoni) e ruote | Kenney | https://opengameart.org/content/car-kit | CC0 (`License.txt`) |
+| `kenney_racing_kit/` | 71 pezzi di pista glTF (rettilinei, curve, barriere, gomme, bandiere, tribune, auto da corsa) | Kenney | https://opengameart.org/content/racing-kit | CC0 (`License.txt`) |
+| `kenney_city_kit_roads/` | 95 pezzi GLB di strade, incroci, ponti, segnaletica, lampioni | Kenney | https://opengameart.org/content/city-kit-roads | CC0 (`License.txt`) |
+| `kenney_nature_kit/` | 329 modelli glTF di natura (alberi, pini, rocce, cespugli, erba, sentieri, staccionate) | Kenney | https://opengameart.org/content/nature-kit | CC0 (`License.txt`) |
+| `rgsdev_vehicles/` | 21 veicoli FBX: berlina, hatchback, sportiva, 2 muscle, roadster, SUV, pickup, van, taxi, limousine, bus, camion, ambulanza, pompieri, monster truck e 4 volanti (berlina, sportiva, muscle, SUV) | rgsdev | https://opengameart.org/content/free-low-poly-vehicles-pack | CC0 (`License.txt`) |
+| `street_racing_car/` | Auto da strada FBX con texture | Alexander123 | https://opengameart.org/content/street-racing-car | CC0 |
+| `red_car/` | Auto rossa GLB con ruote separate | mabaci | https://opengameart.org/content/3d-car-model-for-unity-unreal-engine-ready-for-car-controller-%F0%9F%9A%97 | CC0 |
+| `ggbotnet_psx_cars/` | 8 auto stile PSX (OBJ con texture) e ombra | GGBotNet | https://opengameart.org/content/psx-style-cars | CC0 |
+| `byzmod3d_cars/` | Auto FBX (versione normale ed effetto) | byzmod3d | https://opengameart.org/content/low-poly-car-update-pack | CC0 |
+| `lyricsz_cars/` | 20 auto GLB con interni e animazioni | Lyricsz | https://opengameart.org/content/ultimate-3d-car-assets-pack-w-interiors-and-animations | CC0 |
+| `quaternius_textured_trees/` | 45 alberi FBX con texture (pini, betulle, aceri, alberi secchi) | Quaternius | https://opengameart.org/content/lowpoly-textured-trees | CC0 (versione pubblicata su OpenGameArt nel 2020, prima del cambio di licenza di Quaternius) |
+| `emaceart_meadows/` | 276 GLB di prato: erba, fiori, cespugli, sassi, alberi | EmacEArt | https://opengameart.org/content/free-remastered-free-mid-poly-meadows | CC0 |
+| `yughues_grass/` | Ciuffi d'erba realistici con texture alfa, una sottocartella per pacchetto | Yughues (Nobiax) | https://opengameart.org/content/grass-pack-01 , -02 , -03 | CC0 (`readme.txt`; l'autore chiede, senza obbligo, un link al risultato) |
+| `yughues_concrete_barriers/` | 5 barriere di cemento realistiche FBX/OBJ con texture | Yughues (Nobiax) | https://opengameart.org/content/concrete-barriers | CC0 (`readme.txt`) |
+| `calinou_concrete_barrier/` | Barriera di cemento OBJ con texture | Calinou | https://opengameart.org/content/concrete-barrier | CC0 |
+| `lucianpavel_concrete_barrier/` | Barriera di cemento FBX (senza texture) | Lucian Pavel | https://opengameart.org/content/concrete-barrier-pbrunity-unreal | CC0 |
+| `calinou_traffic_cone/` | Cono stradale OBJ con texture | Calinou | https://opengameart.org/content/traffic-cone-0 | CC0 |
+| `milkandbanana_traffic_road/` | 132 GLB: coni, transenne, blocchi stradali, tombini, lampioni, idranti | MilkAndBanana | https://opengameart.org/content/traffic-road-assets | CC0 (`License.txt`) |
+| `hernandack_steel_fence/` | Recinzione modulare acciaio e cemento OBJ | hernandack | https://opengameart.org/content/low-poly-steel-fence-with-concrete-modular | CC0 |
+| `eracoon_landscape_v1/`, `eracoon_landscape_v2/` | 86 OBJ di paesaggio (rocce, alberi, erba, cespugli) | eracoon | https://opengameart.org/content/landscape-asset-v1 , https://opengameart.org/content/landscape-asset-v2 | CC0 (`license.txt`) |
+| `elnineo_racing_circuit/` | Circuito completo FBX con texture | elnineo | https://opengameart.org/content/racing-circuit | CC0 |
+| `fsp_modular_racetrack/` | 20 pezzi di pista OBJ | Keith at Fertile Soil Productions | https://opengameart.org/content/modular-racetrack-3d-models | CC0 |
+
+Note: sono quasi tutti modelli low poly o "mid poly", non realistici. Le volanti (Kenney, rgsdev) vanno controllate prima dell'uso: niente scritte o stemmi di corpi di polizia reali. Non scaricati perché troppo pesanti per un telefono: le rocce fotogrammetriche di Yughues (120–165 MB l'una) e il Mossy Rock Environment Pack (237 MB); sono comunque CC0 e si possono prendere se servono. Non scaricato perché esiste solo in formato `.blend` (qui non c'è Blender per convertirlo): Spruce Deforestation Models (abeti, CC0).
