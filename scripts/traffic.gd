@@ -3,7 +3,7 @@ extends AnimatableBody3D
 ## Civilian car that drives along one lane of the track at a steady speed. On an open lane it
 ## wraps around to the start when it reaches the end.
 
-const BODIES := ["car_sedan", "car_hatchback", "car_stationwagon", "car_taxi"]
+const BODIES := ["sedan", "hatchback", "suv", "van", "taxi", "pickup"]
 
 var curve: Curve3D
 var offset := 3.5

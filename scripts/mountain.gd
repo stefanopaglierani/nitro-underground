@@ -19,6 +19,11 @@ const DECEL := 8.0  # braking used to plan corner speeds, m/s^2
 const PATH_STRIDE := 10  # race path: one point every PATH_STRIDE samples (20 m)
 const CHECKPOINTS := 8
 
+## Tree models (Quaternius textured trees, CC0) and how often each is picked.
+const TREES := {"Pine_1": 3, "Pine_2": 3, "Pine_3": 3, "Pine_5": 3, "Birch_1": 1, "Birch_3": 1}
+const TREE_DIR := "res://assets/props/trees/"
+## Grass clump textures (Yughues grass packs, CC0).
+const GRASS := ["grass_01", "grass_02", "grass_04"]
 const SKY := "res://assets/hdri/kloofendal_48d_partly_cloudy_puresky_2k.hdr"
 const TEX := "res://assets/materials/%s/%s_%s_1k.jpg"
 
@@ -52,6 +57,7 @@ func build() -> void:
 	_build_road()
 	_build_rails()
 	_build_trees()
+	_build_grass()
 	_build_rocks()
 	_build_ramps()
 
@@ -510,10 +516,58 @@ func _pine_mesh() -> ArrayMesh:
 	return mesh
 
 
+## Tree meshes with the model's own transform baked in: {name: [mesh, transform]}. Empty if the
+## models are missing; the procedural pine is used then.
+func _tree_models() -> Dictionary:
+	var out := {}
+	var leaves_mats := {}
+	for tname in TREES:
+		var path: String = TREE_DIR + tname + ".fbx"
+		if not ResourceLoader.exists(path):
+			continue
+		var scene := (load(path) as PackedScene).instantiate() as Node3D
+		var mi := scene.find_children("*", "MeshInstance3D", true, false)[0] as MeshInstance3D
+		var xf := mi.transform
+		var n := mi.get_parent() as Node3D
+		while n != scene:
+			xf = n.transform * xf
+			n = n.get_parent() as Node3D
+		var mesh := mi.mesh.duplicate() as ArrayMesh
+		var birch: bool = tname.begins_with("Birch")
+		var bark := StandardMaterial3D.new()
+		bark.albedo_texture = load(TREE_DIR + ("Birch_Bark.png" if birch else "Tree_Bark.jpg"))
+		bark.roughness = 0.95
+		var leaf_tex: String = "Birch_Leaves_Green.png" if birch else "Pine_Leaves.png"
+		if not leaves_mats.has(leaf_tex):
+			var leaves := StandardMaterial3D.new()
+			leaves.albedo_texture = load(TREE_DIR + leaf_tex)
+			# Darker, less saturated than the cartoon texture, closer to real conifers.
+			leaves.albedo_color = Color(0.5, 0.66, 0.5) if not birch else Color(0.6, 0.75, 0.55)
+			leaves.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+			leaves.alpha_scissor_threshold = 0.5
+			leaves.cull_mode = BaseMaterial3D.CULL_DISABLED
+			leaves.roughness = 0.9
+			leaves_mats[leaf_tex] = leaves
+		mesh.surface_set_material(0, bark)
+		if mesh.get_surface_count() > 1:
+			mesh.surface_set_material(1, leaves_mats[leaf_tex])
+		out[tname] = [mesh, xf]
+		scene.free()
+	return out
+
+
 func _build_trees() -> void:
-	var pine := _pine_mesh()
+	var models := _tree_models()
+	var names: Array = []
+	for tname in models:
+		for k in TREES[tname]:
+			names.append(tname)
+	if names.is_empty():
+		models = {"pine": [_pine_mesh(), Transform3D.IDENTITY]}
+		names = ["pine"]
 	var chunk_size := CHUNK * CELL
-	var per_chunk := {}
+	var per_chunk := {}  # Vector3i(chunk x, chunk z, model) -> transforms
+	var trunks: Array[Vector3] = []
 	var size := (_gw - 1) * CELL
 	for i in 9000:
 		var x := _min.x + _rng.randf() * size
@@ -528,38 +582,105 @@ func _build_trees() -> void:
 		# Woods in patches.
 		if _noise.get_noise_2d(x * 3.0 + 500.0, z * 3.0) < -0.05:
 			continue
-		var key := Vector2i(floori((x - _min.x) / chunk_size), floori((z - _min.y) / chunk_size))
+		var m := _rng.randi() % names.size()
+		var key := Vector3i(floori((x - _min.x) / chunk_size), floori((z - _min.y) / chunk_size), names.find(names[m]))
 		if not per_chunk.has(key):
 			per_chunk[key] = []
-		var s := _rng.randf_range(0.8, 1.5)
-		var basis := Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3(s, s * _rng.randf_range(0.9, 1.25), s))
+		# The models are about 7 m tall; mountain conifers are 12 to 20 m.
+		var s := _rng.randf_range(1.7, 2.7)
+		var basis := Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3(s, s * _rng.randf_range(0.9, 1.2), s))
 		per_chunk[key].append(Transform3D(basis, Vector3(x, h - 0.2, z)))
+		if d < 40.0:
+			trunks.append(Vector3(x, h, z))
+	for key in per_chunk:
+		var model: Array = models[names[key.z]]
+		var list: Array = per_chunk[key]
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.mesh = model[0]
+		mm.instance_count = list.size()
+		for i in list.size():
+			mm.set_instance_transform(i, list[i] * (model[1] as Transform3D))
+		var mmi := MultiMeshInstance3D.new()
+		mmi.multimesh = mm
+		mmi.visibility_range_end = 700.0
+		add_child(mmi)
+	# Trunks block cars that leave the road.
+	var body := StaticBody3D.new()
+	add_child(body)
+	for t in trunks:
+		var shape := CylinderShape3D.new()
+		shape.radius = 0.5
+		shape.height = 3.0
+		var col := CollisionShape3D.new()
+		col.shape = shape
+		col.position = t + Vector3(0, 1.5, 0)
+		body.add_child(col)
+
+
+## Two crossed quads with a grass texture, rooted at y = 0.
+func _grass_mesh(tex_name: String) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for a in [0.0, PI / 2.0]:
+		var r := Vector3(cos(a), 0, sin(a)) * 0.8
+		var hgt := Vector3(0, 1.1, 0)
+		var quad := [[-r, Vector2(0, 1)], [r, Vector2(1, 1)], [r + hgt, Vector2(1, 0)], [-r + hgt, Vector2(0, 0)]]
+		for idx in [0, 1, 2, 0, 2, 3]:
+			st.set_normal(Vector3.UP)
+			st.set_uv(quad[idx][1])
+			st.add_vertex(quad[idx][0])
+	var m := StandardMaterial3D.new()
+	m.albedo_texture = load("res://assets/props/grass/%s.png" % tex_name)
+	m.albedo_color = Color(0.95, 1.15, 0.75)
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+	m.alpha_scissor_threshold = 0.4
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	m.roughness = 1.0
+	st.set_material(m)
+	return st.commit()
+
+
+## Tall grass clumps in the fields near the road, where the camera sees them up close.
+func _build_grass() -> void:
+	var meshes: Array[ArrayMesh] = []
+	for g in GRASS:
+		if ResourceLoader.exists("res://assets/props/grass/%s.png" % g):
+			meshes.append(_grass_mesh(g))
+	if meshes.is_empty():
+		return
+	var chunk_size := CHUNK * CELL
+	var per_chunk := {}
+	for i in pts.size() * 6:
+		var p := pts[_rng.randi() % pts.size()]
+		var x := p.x + _rng.randf_range(-70.0, 70.0)
+		var z := p.z + _rng.randf_range(-70.0, 70.0)
+		var d := _road_dist_at(x, z)
+		if d < RAIL_OFFSET + 0.8 or d > 70.0:
+			continue
+		var h := ground_height(x, z)
+		var slope := absf(ground_height(x + 2.0, z) - h) + absf(ground_height(x, z + 2.0) - h)
+		if slope > 0.9:
+			continue
+		var m := _rng.randi() % meshes.size()
+		var key := Vector3i(floori((x - _min.x) / chunk_size), floori((z - _min.y) / chunk_size), m)
+		if not per_chunk.has(key):
+			per_chunk[key] = []
+		var s := _rng.randf_range(0.7, 1.4)
+		per_chunk[key].append(Transform3D(Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3(s, s, s)), Vector3(x, h - 0.05, z)))
 	for key in per_chunk:
 		var list: Array = per_chunk[key]
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
-		mm.mesh = pine
+		mm.mesh = meshes[key.z]
 		mm.instance_count = list.size()
 		for i in list.size():
 			mm.set_instance_transform(i, list[i])
 		var mmi := MultiMeshInstance3D.new()
 		mmi.multimesh = mm
-		mmi.visibility_range_end = 700.0
+		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mmi.visibility_range_end = 160.0
 		add_child(mmi)
-		# Trunks block cars that leave the road.
-		var body := StaticBody3D.new()
-		add_child(body)
-		for t in list:
-			var tr: Transform3D = t
-			if _road_dist_at(tr.origin.x, tr.origin.z) > 40.0:
-				continue
-			var shape := CylinderShape3D.new()
-			shape.radius = 0.35
-			shape.height = 3.0
-			var col := CollisionShape3D.new()
-			col.shape = shape
-			col.position = tr.origin + Vector3(0, 1.5, 0)
-			body.add_child(col)
 
 
 func _build_rocks() -> void:
