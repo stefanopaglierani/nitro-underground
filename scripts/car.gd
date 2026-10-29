@@ -18,6 +18,9 @@ const WHEEL_X := 0.86
 const WHEEL_Z := 1.35
 const MOUNT_Y := 0.55
 const JUMP_MIN_AIR := 0.15
+## Car models (assets/cars_rgsdev) for the AI racers and the police.
+const RACER_BODIES := ["muscle", "roadster", "muscle_2", "hatchback"]
+const POLICE_BODIES := ["police_sedan", "police_sports", "police_muscle", "police_suv"]
 
 var driver: Driver = Driver.PLAYER
 var frozen := true:
@@ -166,10 +169,12 @@ func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 		_rays.append(ray)
 		_susp_len[i] = spring_rest
 
-	var body := "car_sedan"
+	var body := "sports"
 	if kind == Driver.RACER:
-		body = ["car_hatchback", "car_stationwagon", "car_sedan"][absi(hash(paint)) % 3]
-	_model = CarModel.build(paint, kind == Driver.POLICE, "car_police" if kind == Driver.POLICE else body)
+		body = RACER_BODIES[absi(hash(paint)) % RACER_BODIES.size()]
+	elif kind == Driver.POLICE:
+		body = POLICE_BODIES[get_instance_id() % POLICE_BODIES.size()]
+	_model = CarModel.build(paint, kind == Driver.POLICE, body)
 	add_child(_model)
 	for n in ["WheelFL", "WheelFR", "WheelRL", "WheelRR"]:
 		_wheel_nodes.append(_model.get_node(n))

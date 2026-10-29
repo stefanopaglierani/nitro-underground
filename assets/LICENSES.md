@@ -102,3 +102,11 @@ Modifiche comuni a tutti i pacchetti: tenuti solo i formati che Godot legge (glT
 | `fsp_modular_racetrack/` | 20 pezzi di pista OBJ | Keith at Fertile Soil Productions | https://opengameart.org/content/modular-racetrack-3d-models | CC0 |
 
 Note: sono quasi tutti modelli low poly o "mid poly", non realistici. Le volanti (Kenney, rgsdev) vanno controllate prima dell'uso: niente scritte o stemmi di corpi di polizia reali. Non scaricati perché troppo pesanti per un telefono: le rocce fotogrammetriche di Yughues (120–165 MB l'una) e il Mossy Rock Environment Pack (237 MB); sono comunque CC0 e si possono prendere se servono. Non scaricato perché esiste solo in formato `.blend` (qui non c'è Blender per convertirlo): Spruce Deforestation Models (abeti, CC0).
+
+### Modelli della libreria usati nel gioco (v0.4)
+
+| File e uso | Preso da | Modifiche |
+|---|---|---|
+| `assets/cars_rgsdev/*.fbx`, auto del giocatore, degli avversari, del traffico e volanti | `library/rgsdev_vehicles/` (rgsdev, CC0) | File rinominati in minuscolo. In gioco: scala 0,78, girati di 180°, materiali rifatti nel codice (vernice lucida, vetri, fari e lampeggianti luminosi) |
+| `assets/props/trees/*.fbx` e texture, pini e betulle della montagna | `library/quaternius_textured_trees/` (Quaternius, CC0 su OpenGameArt) | Solo Pine_1, 2, 3, 5 e Birch_1, 3. In gioco: ingranditi da 1,7 a 2,7 volte e foglie scurite |
+| `assets/props/grass/grass_01.png`, `grass_02.png`, `grass_04.png`, ciuffi d'erba a bordo strada | `library/yughues_grass/` (Yughues, CC0) | Solo la texture diffusa con alfa, rinominata. In gioco: due quadrati incrociati, colore più verde |
