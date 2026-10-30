@@ -27,8 +27,13 @@ const TYRE_WIDTH := 0.18
 ## the wheel ignores it and the body collides instead.
 const MIN_GROUND_NORMAL := 0.25
 ## Engine and gearbox, for the dashboard and the gear changes. Each gear tops out at this share of
-## max_speed (the last one a little past it, for nitro).
-const GEAR_TOPS := [0.3, 0.47, 0.63, 0.78, 0.9, 1.05]
+## max_speed (the last one a little past it, for nitro). Long gears: on a 220 km/h car first runs
+## to about 70 km/h and sixth cruises at 150 km/h near 5500 rpm.
+const GEAR_TOPS := [0.32, 0.5, 0.66, 0.8, 0.92, 1.04]
+## Pull in the higher gears drops like a real gearbox (force ~ ratio^GEAR_PULL), so each gear lasts.
+const GEAR_PULL := 0.55
+## Steering narrows from walking pace up to this speed (m/s), then stays at max_steer_high.
+const STEER_FADE_SPEED := 45.0
 const IDLE_RPM := 900.0
 const REDLINE_RPM := 7800.0
 const SHIFT_TIME := 0.12
@@ -46,12 +51,12 @@ var frozen := true:
 		frozen = value
 		freeze = value
 
-# ---- Tuning (SI units: kg, m, s, N). 42 m/s is about 150 km/h. ----
-var max_speed := 42.0
+# ---- Tuning (SI units: kg, m, s, N). 60 m/s is about 215 km/h. ----
+var max_speed := 60.0
 var engine_force := 11000.0
 var brake_force := 15000.0
 var reverse_max := 10.0
-var nitro_mult := 1.35
+var nitro_mult := 1.2
 var nitro_force_mult := 1.8
 var gravity_mult := 1.5
 var spring_rest := 0.3
@@ -219,6 +224,9 @@ func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 	elif kind == Driver.POLICE:
 		body = POLICE_BODIES[get_instance_id() % POLICE_BODIES.size()]
 	set_drivetrain(CarCatalog.drivetrain(body))
+	if kind == Driver.PLAYER:
+		# Air drag holds the car about 5% under max_speed, so aim a little higher.
+		max_speed = CarCatalog.top_speed(body) / 3.6 * 1.05
 	_model = CarModel.build(model_paint, kind == Driver.POLICE, body)
 	add_child(_model)
 	for n in ["WheelFL", "WheelFR", "WheelRL", "WheelRR"]:
@@ -256,9 +264,9 @@ func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 			glow.light_color = paint.lightened(0.3)
 			add_child(glow)
 		Driver.RACER:
-			max_speed = 40.0
+			max_speed = 57.0
 		Driver.POLICE:
-			max_speed = 41.0
+			max_speed = 59.0
 			engine_force = 11500.0
 			_siren_red = _model.get_meta("siren_red")
 			_siren_blue = _model.get_meta("siren_blue")
@@ -350,7 +358,7 @@ func _apply_vehicle_forces(delta: float) -> void:
 		nitro = minf(1.0, nitro + nitro_refill * delta + (0.15 * delta if drifting else 0.0))
 
 	# Steering gets smaller as speed grows, like an arcade racer.
-	var speed_t := clampf((absf(speed) - 8.0) / (max_speed - 8.0), 0.0, 1.0)
+	var speed_t := clampf((absf(speed) - 8.0) / (STEER_FADE_SPEED - 8.0), 0.0, 1.0)
 	var max_steer := lerpf(max_steer_low, max_steer_high, pow(speed_t, 0.75))
 	_steer = move_toward(_steer, in_steer * max_steer, steer_rate * max_steer * delta)
 	_update_gearbox(delta)
@@ -364,7 +372,8 @@ func _apply_vehicle_forces(delta: float) -> void:
 		drive = -in_brake * 0.6 if speed > -reverse_max else 0.0
 	else:
 		drive = in_throttle * (nitro_force_mult if using_nitro else 1.0)
-		drive *= clampf(1.0 - pow(maxf(speed, 0.0) / top, 3.0), 0.0, 1.0)
+		drive *= clampf(1.0 - pow(maxf(speed, 0.0) / top, 6.0), 0.0, 1.0)
+		drive *= pow(GEAR_TOPS[0] / GEAR_TOPS[clampi(gear, 1, GEAR_TOPS.size()) - 1], GEAR_PULL)
 		if _shift_t > 0.0:
 			drive *= 0.6  # clutch slipping through the gear change
 
