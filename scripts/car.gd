@@ -262,6 +262,9 @@ func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 			_siren_light.omni_range = 12
 			_siren_light.light_energy = 3.0
 			add_child(_siren_light)
+	var audio := CarAudio.new()
+	add_child(audio)
+	audio.setup(self)
 	freeze = frozen
 
 
