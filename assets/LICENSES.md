@@ -167,3 +167,21 @@ Tutte **CC0 1.0**, licenza verificata sulla pagina di ogni suono il 2026-10-30. 
 | `gear_1.wav`, `gear_2.wav` | Elantra Gear Shift | mrmccormack | https://freesound.org/people/mrmccormack/sounds/116598/ | CC0 1.0 | Due cambiate ritagliate |
 | `tyre_squeal.wav` | Chrysler LHS tire squeal 03 | audible-edge | https://freesound.org/people/audible-edge/sounds/71738/ | CC0 1.0 | 8,3–9,35 s, reso un loop |
 | `handbrake.wav` | Car Parking Brake (Car Sound Effects Pack) | ggbotnet | https://opengameart.org/content/car-sound-effects-pack-low-quality | CC0 1.0 | Normalizzato |
+
+### Auto Sketchfab aggiunte nella v0.6 — `assets/cars_sketchfab/*.glb`
+
+Scaricate il 30/10/2026 con l'API di Sketchfab (file GLB non modificati). In gioco vengono scalate alla lunghezza reale, girate col muso in avanti e appoggiate a terra; dove le ruote sono oggetti separati sterzano. Skyline, Silvia e M3 hanno le quattro ruote in un unico oggetto, quindi restano ferme.
+Le auto di marchi reali (Nissan, Toyota, BMW, Ford) vanno bene per il prototipo e il portfolio, da rivedere prima di pubblicare sugli store. La Mustang è non commerciale.
+
+| File | Modello | Autore | Licenza | Pagina |
+|---|---|---|---|---|
+| `nissan-skyline-r34.glb` | Low Poly Nissan Skyline GT-R R34 | Arifido._ | CC BY 4.0 | https://sketchfab.com/3d-models/8ecbe8e4e432439fa7159d2e61f6bc9b |
+| `toyota-mr2-w20.glb` | 1996 Toyota MR2 W20 | _shobh19 | CC BY 4.0 | https://sketchfab.com/3d-models/f66020ee62d741ebb0adc1ba351300db |
+| `kiri-86.glb` | Kiri '86 (inventata) | Daniel Zhabotinsky | CC BY 4.0 | https://sketchfab.com/3d-models/5c17c582ef9549798f694b660feea42a |
+| `doutrive-78-pickup.glb` | Doutrive '78 (inventata) | Daniel Zhabotinsky | CC BY 4.0 | https://sketchfab.com/3d-models/30700a84311c4bea9ef722f0773ce92a |
+| `eugene-mk6-65-suv.glb` | Eugene MK6 '65 (inventata) | Daniel Zhabotinsky | CC BY 4.0 | https://sketchfab.com/3d-models/22732575b0644cc9b65cf21857288189 |
+| `furgone-francese.glb` | French delivery van (inventato) | Daniel Zhabotinsky | CC BY 4.0 | https://sketchfab.com/3d-models/a350a422d200485ea57778dc42139edc |
+| `classic-muscle-car.glb` | Classic Muscle car | Lexyc16 | CC BY 4.0 | https://sketchfab.com/3d-models/641efc889e5f4543bae51d0922e6f4b3 |
+| `nissan-silvia-s15-drift.glb` | Nissan Silvia Drift Tuned (S15) | VuckyZ | CC BY 4.0 | https://sketchfab.com/3d-models/84b63a057e36488589392a19b9313e2b |
+| `bmw-m3-e36.glb` | Low poly BMW M3 E36 | sebbelon | CC BY 4.0 | https://sketchfab.com/3d-models/84c207be5933481fa754add04f196926 |
+| `ford-mustang-gt-2013.glb` | 2013 Ford Mustang GT | Ddiaz Design | CC BY-NC-SA 4.0 | https://sketchfab.com/3d-models/1368b104aa8148a3be15f4dfc8832045 |
