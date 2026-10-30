@@ -1,9 +1,12 @@
 class_name Car
 extends RigidBody3D
 ## Car shared by the player, the AI racers and the police.
-## A rigid body carried by four raycast wheels: each wheel has a spring-damper suspension and a
-## tyre that pushes along and across the road, limited by the load on that wheel. Jumps, landings
-## and crashes come out of the physics engine; a few arcade assists keep it fun to drive.
+## A rigid body carried by four wheels. Each wheel is a short cylinder cast down from its mount
+## (so it rolls up onto a kerb instead of hitting it), with a spring-damper suspension and a tyre
+## that pushes along and across the road, limited by the load on that wheel. The engine pushes
+## through the driven wheels (front, rear or all four) and the front wheels turn by the steering
+## angle, so the car goes where its wheels point. Jumps, landings and crashes come out of the
+## physics engine; a light yaw assist keeps it fun to drive.
 ## Each frame a controller fills the in_* inputs; _physics_process turns them into forces.
 
 signal crashed(impact: float, other: Object)
@@ -18,6 +21,19 @@ const WHEEL_X := 0.86
 const WHEEL_Z := 1.35
 const MOUNT_Y := 0.55
 const JUMP_MIN_AIR := 0.15
+## Tyre width, for the wheel cylinder.
+const TYRE_WIDTH := 0.18
+## A contact whose normal is flatter than this is the side of a wall or a guardrail, not ground:
+## the wheel ignores it and the body collides instead.
+const MIN_GROUND_NORMAL := 0.25
+## Engine and gearbox, for the dashboard and the gear changes. Each gear tops out at this share of
+## max_speed (the last one a little past it, for nitro).
+const GEAR_TOPS := [0.3, 0.47, 0.63, 0.78, 0.9, 1.05]
+const IDLE_RPM := 900.0
+const REDLINE_RPM := 7800.0
+const SHIFT_TIME := 0.12
+## The wheel cast starts this far above the mount.
+const CAST_LIFT := 0.25
 ## Car models (assets/cars_rgsdev) for the AI racers and the police.
 const RACER_BODIES := ["muscle", "roadster", "muscle_2", "hatchback"]
 const POLICE_BODIES := ["police_sedan", "police_sports", "police_muscle", "police_suv"]
@@ -46,18 +62,20 @@ var damper := 4200.0
 ## don't throw the car back into the air.
 var rebound_ratio := 1.8
 var bump_stop := 0.08
-var grip := 1.05
+var grip := 1.15
 var handbrake_rear_grip := 0.5
+## Share of the engine force on the front wheels: 0 rear-wheel drive, 1 front-wheel drive.
 var front_drive := 0.35
-var max_steer_low := deg_to_rad(32)
-var max_steer_high := deg_to_rad(7)
+## Front wheel angle at full lock, at walking pace and at top speed.
+var max_steer_low := deg_to_rad(38)
+var max_steer_high := deg_to_rad(9)
 var steer_rate := 4.0
 var yaw_assist := 0.55
 var downforce := 1.0
 var drag := 0.42
 var roll_reduction := 0.75
-## Air control (player only): steering spins the car, brake lifts the nose, handbrake drops it.
-var air_yaw_rate := 4.0
+## Air control (player only): brake lifts the nose, handbrake drops it. Steering does nothing in
+## the air: a car has nothing to turn against.
 var air_pitch_rate := 3.0
 var air_response := 3.0
 ## Kept for the AI corner-speed estimate: roughly the deceleration of a full brake.
@@ -78,6 +96,8 @@ var in_nitro := false
 var speed := 0.0
 var lateral := 0.0
 var drifting := false
+var gear := 1  # -1 reverse, 0 neutral, 1..6
+var rpm := IDLE_RPM
 var using_nitro := false
 var wheels_on_ground := 0
 var airborne_time := 0.0
@@ -114,11 +134,14 @@ var _wheel_pos: Array[Vector3] = [
 	Vector3(-WHEEL_X, MOUNT_Y, -WHEEL_Z), Vector3(WHEEL_X, MOUNT_Y, -WHEEL_Z),
 	Vector3(-WHEEL_X, MOUNT_Y, WHEEL_Z), Vector3(WHEEL_X, MOUNT_Y, WHEEL_Z),
 ]
-var _rays: Array[RayCast3D] = []
+var _casts: Array[ShapeCast3D] = []
 var _wheel_nodes: Array[Node3D] = []
 var _wheel_base_y: Array[float] = []  # height of each wheel pivot in the model (its tyre radius)
 var _susp_len: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var _steer := 0.0
+var _shift_t := 0.0
+var _prev_velocity := Vector3.ZERO
+var _ray_query := PhysicsRayQueryParameters3D.new()
 var _upside_down_t := 0.0
 var _body_on_ground := false
 
@@ -134,6 +157,7 @@ var _time := 0.0
 
 
 func setup(kind: Driver, paint: Color, the_city: Track) -> void:
+	add_to_group("cars")
 	driver = kind
 	city = the_city
 	mass = 1200.0
@@ -162,14 +186,25 @@ func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 	col.position.y = 1.0
 	add_child(col)
 
+	var tyre := CylinderShape3D.new()
+	tyre.radius = wheel_radius
+	tyre.height = TYRE_WIDTH
 	for i in 4:
-		var ray := RayCast3D.new()
-		ray.position = _wheel_pos[i]
-		ray.target_position = Vector3(0, -(spring_rest + wheel_radius), 0)
-		ray.add_exception(self)
-		ray.enabled = true
-		add_child(ray)
-		_rays.append(ray)
+		# The cylinder lies along the axle and drops from CAST_LIFT above the mount down to full
+		# extension. Starting higher lets a very hard landing push the wheel past full travel.
+		var cast := ShapeCast3D.new()
+		cast.shape = tyre
+		cast.rotation.z = PI / 2.0
+		# A little inboard of the wheel, so the cylinder stays inside the body's width and a
+		# guardrail along the side touches the body, not the tyre.
+		cast.position = _wheel_pos[i] + Vector3(-signf(_wheel_pos[i].x) * 0.08, CAST_LIFT, 0)
+		cast.target_position = cast.basis.inverse() * Vector3(0, -(spring_rest + CAST_LIFT), 0)
+		cast.max_results = 1
+		cast.margin = 0.0
+		cast.add_exception(self)
+		cast.enabled = false  # updated by hand in _apply_vehicle_forces
+		add_child(cast)
+		_casts.append(cast)
 		_susp_len[i] = spring_rest
 
 	var body := player_body
@@ -178,6 +213,7 @@ func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 		body = RACER_BODIES[absi(hash(paint)) % RACER_BODIES.size()]
 	elif kind == Driver.POLICE:
 		body = POLICE_BODIES[get_instance_id() % POLICE_BODIES.size()]
+	set_drivetrain(CarCatalog.drivetrain(body))
 	_model = CarModel.build(model_paint, kind == Driver.POLICE, body)
 	add_child(_model)
 	for n in ["WheelFL", "WheelFR", "WheelRL", "WheelRR"]:
@@ -300,8 +336,9 @@ func _apply_vehicle_forces(delta: float) -> void:
 
 	# Steering gets smaller as speed grows, like an arcade racer.
 	var speed_t := clampf((absf(speed) - 8.0) / (max_speed - 8.0), 0.0, 1.0)
-	var max_steer := lerpf(max_steer_low, max_steer_high, sqrt(speed_t))
+	var max_steer := lerpf(max_steer_low, max_steer_high, pow(speed_t, 0.75))
 	_steer = move_toward(_steer, in_steer * max_steer, steer_rate * max_steer * delta)
+	_update_gearbox(delta)
 
 	var top := max_speed * (nitro_mult if using_nitro else 1.0)
 	var drive := 0.0
@@ -313,25 +350,43 @@ func _apply_vehicle_forces(delta: float) -> void:
 	else:
 		drive = in_throttle * (nitro_force_mult if using_nitro else 1.0)
 		drive *= clampf(1.0 - pow(maxf(speed, 0.0) / top, 3.0), 0.0, 1.0)
+		if _shift_t > 0.0:
+			drive *= 0.6  # clutch slipping through the gear change
 
 	wheels_on_ground = 0
 	for i in 4:
-		var ray := _rays[i]
-		ray.force_raycast_update()
-		if not ray.is_colliding():
-			_susp_len[i] = spring_rest
-			continue
-		wheels_on_ground += 1
-		var hit := ray.get_collision_point()
+		var cast := _casts[i]
+		cast.force_shapecast_update()
 		var mount := global_transform * _wheel_pos[i]
-		var dist := mount.distance_to(hit)
-		# Below zero the wheel has been pushed past full travel (hard landing at a low tick rate):
-		# the bump stop keeps pushing harder instead of the force topping out.
-		var susp := minf(dist - wheel_radius, spring_rest)
+		var hit: Vector3
+		var n: Vector3
+		var susp: float
+		if cast.is_colliding() and cast.get_collision_normal(0).dot(up) >= MIN_GROUND_NORMAL:
+			hit = cast.get_collision_point(0)
+			n = cast.get_collision_normal(0)
+			# How far the wheel centre dropped below the mount before touching. Below zero the
+			# wheel has been pushed past full travel (hard landing at a low tick rate): the bump
+			# stop keeps pushing harder instead of the force topping out.
+			susp = cast.get_closest_collision_safe_fraction() * (spring_rest + CAST_LIFT) - CAST_LIFT
+		else:
+			# Nothing under the tyre, or the cylinder only touches the side of something: look
+			# straight down from the wheel centre, like a plain raycast wheel.
+			_ray_query.from = mount
+			_ray_query.to = mount - up * (spring_rest + wheel_radius)
+			_ray_query.exclude = [get_rid()]
+			var ray := get_world_3d().direct_space_state.intersect_ray(_ray_query)
+			if ray.is_empty():
+				_susp_len[i] = spring_rest
+				continue
+			hit = ray["position"]
+			n = ray["normal"]
+			susp = mount.distance_to(hit) - wheel_radius
+		wheels_on_ground += 1
+		susp = minf(susp, spring_rest)
 		var compression := spring_rest - maxf(susp, 0.0)
-		# Compression speed from the body's motion against the road surface under the wheel,
-		# which stays right at any tick rate (also when the road tilts, like on a ramp).
-		var n := ray.get_collision_normal()
+		# Compression speed from the body's motion against the surface under the wheel, which
+		# stays right at any tick rate (also when the road tilts, like on a ramp). On the edge of
+		# a kerb the normal leans forward, and the wheel climbs it.
 		var mount_v := v + angular_velocity.cross(mount - global_position)
 		var susp_speed := -mount_v.dot(n) / maxf(n.dot(up), 0.2)
 		_susp_len[i] = maxf(susp, 0.0)
@@ -365,6 +420,7 @@ func _apply_vehicle_forces(delta: float) -> void:
 		# Lateral: the force that would cancel sideways sliding this step, capped by grip.
 		var f_lat := -v_lat * (mass / 4.0) / delta
 		# Longitudinal: engine, brake, handbrake, rolling resistance.
+		# The engine pushes only through the driven wheels.
 		var share := front_drive if front else (1.0 - front_drive)
 		var f_long := drive * engine_force * share * 0.5
 		if braking > 0.0:
@@ -417,16 +473,47 @@ func _apply_vehicle_forces(delta: float) -> void:
 
 
 func _air_control(b: Basis) -> void:
-	# Pull the spin rate on each axis towards what the input asks for; with no input the car keeps
-	# the rotation it took off with.
+	# Pull the pitch rate towards what the input asks for; with no input the car keeps the
+	# rotation it took off with. No steering in the air.
 	var torque_k := mass * 1.8 * air_response
-	if absf(in_steer) > 0.05:
-		var wy := angular_velocity.dot(b.y)
-		apply_torque(b.y * (-in_steer * air_yaw_rate - wy) * torque_k)
 	var pitch_in := (1.0 if in_brake > 0.1 else 0.0) - (1.0 if in_handbrake else 0.0)
 	if pitch_in != 0.0:
 		var wx := angular_velocity.dot(b.x)
 		apply_torque(b.x * (pitch_in * air_pitch_rate - wx) * torque_k)
+
+
+## Front-, rear- or four-wheel drive: "FWD", "RWD" or "AWD".
+func set_drivetrain(kind: String) -> void:
+	match kind:
+		"FWD":
+			front_drive = 1.0
+		"RWD":
+			front_drive = 0.0
+		_:
+			front_drive = 0.4
+
+
+## Six-speed automatic gearbox: picks the gear from the speed and works out the engine revs.
+## A gear change cuts the drive for SHIFT_TIME, like a real shift.
+func _update_gearbox(delta: float) -> void:
+	_shift_t = maxf(_shift_t - delta, 0.0)
+	var v := absf(speed)
+	if speed < -0.5 and in_brake > 0.0:
+		gear = -1
+	elif gear <= 0:
+		gear = 1 if (in_throttle > 0.0 or v > 0.5) else 0
+	elif gear < GEAR_TOPS.size() and v > max_speed * GEAR_TOPS[gear - 1] * 0.94 and in_throttle > 0.0:
+		gear += 1
+		_shift_t = SHIFT_TIME
+	elif gear > 1 and v < max_speed * GEAR_TOPS[gear - 2] * 0.7:
+		gear -= 1
+	var top: float = max_speed * (GEAR_TOPS[maxi(gear, 1) - 1] if gear != -1 else 0.3)
+	var want := IDLE_RPM + (REDLINE_RPM - IDLE_RPM) * clampf(v / top, 0.0, 1.0)
+	if wheels_on_ground == 0 or drifting:
+		want = maxf(want, IDLE_RPM + (REDLINE_RPM - IDLE_RPM) * 0.8 * in_throttle)  # wheels spinning free
+	if gear == 0:
+		want = IDLE_RPM + 2500.0 * in_throttle
+	rpm = lerpf(rpm, want, clampf(12.0 * delta, 0.0, 1.0))
 
 
 func _check_recovery(delta: float) -> void:
@@ -453,17 +540,31 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 			_body_on_ground = true
 			break
 	_hit_cooldown -= state.step
-	if frozen or _hit_cooldown > 0.0:
+	if frozen:
 		return
+	# Breakable things (guardrail sections): a hard hit tears them off and the car carries on
+	# through with most of its speed instead of stopping dead.
 	for i in state.get_contact_count():
-		var n := state.get_contact_local_normal(i)
-		if n.y > 0.7:
-			continue  # ground
+		var other := state.get_contact_collider_object(i)
+		if other == null or not other.has_meta("breakable"):
+			continue
 		var impact := state.get_contact_impulse(i).length() / mass
-		if impact > 5.0:
-			_hit_cooldown = 0.6
-			crashed.emit(impact, state.get_contact_collider_object(i))
-			return
+		var breaker: Object = other.get_meta("breakable")
+		if breaker.smash(other, state.get_contact_collider_shape(i), impact, _prev_velocity):
+			state.linear_velocity = _prev_velocity * 0.75
+			break
+	var v_now := state.linear_velocity
+	if _hit_cooldown <= 0.0:
+		for i in state.get_contact_count():
+			var n := state.get_contact_local_normal(i)
+			if n.y > 0.7:
+				continue  # ground
+			var impact := state.get_contact_impulse(i).length() / mass
+			if impact > 5.0:
+				_hit_cooldown = 0.6
+				crashed.emit(impact, state.get_contact_collider_object(i))
+				break
+	_prev_velocity = v_now
 
 
 func _update_visuals(delta: float) -> void:
@@ -565,23 +666,25 @@ func _drive_racer(delta: float) -> void:
 		in_nitro = false
 
 
-## Looks for traffic in the racer's way and returns the sideways shift (from the racing line) that
-## takes it through the traffic car's other lane. If that lane is blocked too, sets _traffic_limit
-## so the racer slows down behind the traffic car.
+## Looks for traffic and other cars (the player, the other racers, the police) in the racer's way
+## and returns the sideways shift (from the racing line) that takes it past them on the side with
+## room. If there is no room, sets _traffic_limit so the racer follows behind instead of ramming.
 func _avoid_traffic(prev: Vector3, dir: Vector3, side: Vector3) -> float:
 	_traffic_limit = INF
 	var flat_v := Vector3(linear_velocity.x, 0, linear_velocity.z)
 	var vdir := flat_v.normalized() if flat_v.length() > 3.0 else -global_transform.basis.z
 	var vside := Vector3(-vdir.z, 0, vdir.x)
+	var others := get_tree().get_nodes_in_group("traffic") + get_tree().get_nodes_in_group("cars")
+	others.erase(self)
 	var blocker: Node3D
 	var blocker_along := INF
 	var blocker_speed := 0.0
-	for tc in get_tree().get_nodes_in_group("traffic"):
+	for tc: Node3D in others:
 		var rel: Vector3 = tc.global_position - global_position
 		var along := rel.dot(vdir)
 		if along < 2.0 or along > 120.0:
 			continue
-		var tc_v: Vector3 = -tc.global_transform.basis.z * tc.speed
+		var tc_v := _velocity_of(tc)
 		var closing := flat_v.length() - tc_v.dot(vdir)
 		# Look further ahead the faster we close in: about three seconds plus a margin.
 		if closing <= 0.5 or along > closing * 3.0 + 15.0:
@@ -595,21 +698,39 @@ func _avoid_traffic(prev: Vector3, dir: Vector3, side: Vector3) -> float:
 	if blocker == null:
 		# Ease back to the racing line once the road ahead is clear.
 		return 0.0
-	# The traffic car's other lane: mirror it across the road centre (it drives `offset` metres to the
-	# right of the centre line).
-	var b_right := blocker.global_transform.basis.x
-	var b_off: float = blocker.get("offset") if blocker.get("offset") != null else 3.0
-	if absf(b_off) < 1.0:
-		b_off = 3.0 * signf((global_position - blocker.global_position).dot(b_right) + 0.01) * -1.0
-	var pass_point := blocker.global_position - b_right * 2.0 * b_off
-	for tc in get_tree().get_nodes_in_group("traffic"):
+	var pass_off := 0.0
+	if blocker is TrafficCar:
+		# The traffic car's other lane: mirror it across the road centre (it drives `offset`
+		# metres to the right of the centre line).
+		var b_right := blocker.global_transform.basis.x
+		var b_off: float = (blocker as TrafficCar).offset
+		if absf(b_off) < 1.0:
+			b_off = 3.0 * signf((global_position - blocker.global_position).dot(b_right) + 0.01) * -1.0
+		pass_off = (blocker.global_position - b_right * 2.0 * b_off - prev).dot(side) - lane_offset
+	else:
+		# Another racing car: go round it on the side we are already on, unless that runs out of
+		# road, then the other side.
+		var lat := (blocker.global_position - prev).dot(side)
+		var mine := lane_offset + _dodge
+		var go := 3.2 if mine >= lat else -3.2
+		if absf(lat + go) > 4.5:
+			go = -go
+		pass_off = lat + go - lane_offset
+	var pass_point := prev + side * (lane_offset + pass_off) + dir * (blocker.global_position - prev).dot(dir)
+	for tc: Node3D in others:
 		if tc == blocker:
 			continue
-		if (tc.global_position - pass_point).length() < 16.0:
-			# Both lanes blocked: follow the traffic car until there is room.
+		if (tc.global_position - pass_point).length() < 12.0:
+			# No room to pass: follow until there is.
 			_traffic_limit = maxf(blocker_speed - 1.0, 0.0) + maxf(blocker_along - 12.0, 0.0) * 0.5
 			return _dodge
-	return (pass_point - prev).dot(side) - lane_offset
+	return pass_off
+
+
+func _velocity_of(n: Node3D) -> Vector3:
+	if n is Car:
+		return (n as Car).linear_velocity
+	return -n.global_transform.basis.z * float(n.get("speed"))
 
 
 func _drive_police(delta: float) -> void:
@@ -622,8 +743,11 @@ func _drive_police(delta: float) -> void:
 	var target := city.route_point(global_position, aim)
 	var after := city.route_point(target, aim) if target != aim else Vector3.INF
 	_steer_towards(target, delta, after)
-	# Police ram at full speed when close.
+	# Police close in hard, but only a little faster than the target, so they shove and box it
+	# in instead of T-boning it at full speed.
 	if global_position.distance_to(tp) < 30.0 and _reverse_t <= 0.0:
-		in_brake = 0.0
-		in_throttle = 1.0
-		in_nitro = nitro > 0.2
+		var to_target := (tp - global_position).normalized()
+		var closing := (linear_velocity - chase_target.linear_velocity).dot(to_target)
+		in_brake = 1.0 if closing > 14.0 else 0.0  # head-on: slow down, block the road
+		in_throttle = 1.0 if closing < 6.0 else 0.0
+		in_nitro = nitro > 0.2 and closing < 3.0

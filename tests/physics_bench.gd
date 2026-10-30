@@ -12,7 +12,7 @@ var start_pos := Vector3.ZERO
 var mark_t := 0.0
 var max_yaw_rate := 0.0
 var prev_yaw := 0.0
-var queue: Array[String] = ["accel", "brake", "turn_low", "turn_high", "drift", "nitro", "reverse", "wall", "jump_15", "jump_25", "jump_spin", "jump_flip", "drop"]
+var queue: Array[String] = ["accel", "brake", "turn_low", "turn_high", "drift", "nitro", "reverse", "wall", "jump_15", "jump_25", "jump_spin", "jump_flip", "drop", "kerb_40", "kerb_90"]
 var wall: StaticBody3D
 var jump_parts: Array[Node] = []
 var jump_speed := 0.0
@@ -85,6 +85,23 @@ func _next() -> void:
 			wall.add_child(c)
 			wall.position = Vector3(0, 2, -150)
 			root.add_child(wall)
+		"kerb_40", "kerb_90":
+			# A 15 cm step across the road, hit square on: the car should climb it.
+			for n in jump_parts:
+				n.queue_free()
+			jump_parts.clear()
+			jump_data = {}
+			var step := StaticBody3D.new()
+			var s := BoxShape3D.new()
+			s.size = Vector3(40, 0.15, 200)
+			var c := CollisionShape3D.new()
+			c.shape = s
+			step.add_child(c)
+			step.position = Vector3(0, 0.075, -130)
+			root.add_child(step)
+			jump_parts.append(step)
+			jump_speed = 11.1 if phase == "kerb_40" else 25.0
+			_reset(jump_speed)
 		"drop":
 			for n in jump_parts:
 				n.queue_free()
@@ -199,6 +216,26 @@ func _step() -> void:
 				_next()
 		"jump_15", "jump_25", "jump_spin", "jump_flip":
 			_jump_step()
+		"kerb_40", "kerb_90":
+			car.in_throttle = 0.0
+			var z := car.global_position.z
+			if z > -27.0:
+				car.linear_velocity.z = -jump_speed  # hold the approach speed
+			elif z > -28.0:
+				jump_data["v_before"] = absf(car.speed)
+			else:
+				jump_data["max_up"] = maxf(jump_data.get("max_up", 0.0), car.linear_velocity.y)
+				jump_data["max_pitch"] = maxf(jump_data.get("max_pitch", 0.0), absf(car.rotation.x))
+			if z < -45.0 and not results.has(phase + "_speed_loss_pct"):
+				results[phase + "_speed_loss_pct"] = snappedf(100.0 * (1.0 - absf(car.speed) / jump_data["v_before"]), 0.1)
+				results[phase + "_on_top"] = car.global_position.y > 0.1
+			if z < -50.0:
+				results[phase + "_max_up_ms"] = snappedf(jump_data.get("max_up", 0.0), 0.01)
+				results[phase + "_max_pitch_deg"] = snappedf(rad_to_deg(jump_data.get("max_pitch", 0.0)), 0.1)
+				_next()
+			if t > 10.0:
+				results[phase + "_timeout"] = true
+				_next()
 		"drop":
 			# Level drop from 8 m at 72 km/h: the suspension should soak it up without a big bounce.
 			car.in_throttle = 0.0

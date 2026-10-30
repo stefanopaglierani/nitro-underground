@@ -62,6 +62,23 @@ const CARS := [
 ]
 
 
+## Driven wheels for each car: "RWD" (rear), "FWD" (front) or "AWD" (all four).
+const RWD := ["mclaren_600lt", "sports", "muscle", "muscle_2", "roadster", "police_sports", "police_muscle",
+	"limousine", "truck", "truck_with_trailer", "bus", "firetruck", "k_race", "k_race_future", "k_sedan_sports",
+	"k_truck", "k_truck_flat", "k_garbage_truck", "k_firetruck", "k_tractor", "k_tractor_police",
+	"k_tractor_shovel", "k_kart_oobi", "k_kart_oodi", "k_kart_ooli", "k_kart_oopi", "k_kart_oozi"]
+const AWD := ["ford_raptor_r", "ram_1500_trx", "suv", "pickup", "monster_truck", "police_suv", "k_suv",
+	"k_suv_luxury"]
+
+
+static func drivetrain(id: String) -> String:
+	if id in RWD:
+		return "RWD"
+	if id in AWD:
+		return "AWD"
+	return "FWD"
+
+
 static func find(id: String) -> Dictionary:
 	for c in CARS:
 		if c["id"] == id:

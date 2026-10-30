@@ -30,6 +30,8 @@ const TEX := "res://assets/materials/%s/%s_%s_1k.jpg"
 var pts: Array[Vector3] = []  # road centre, every SAMPLE_STEP m, closed loop
 var tangents: Array[Vector3] = []
 var limits: PackedFloat32Array  # corner speed at each sample, m/s
+var line_off := PackedFloat32Array()  # racing line: offset to the right of the centre at each sample
+var line_speed := PackedFloat32Array()  # speed along the racing line, braking and accelerating
 var start_i := 0
 var _buckets := {}
 var _lane_curve: Curve3D
@@ -47,24 +49,32 @@ func _init() -> void:
 
 
 func build() -> void:
-	_rng.seed = 4242
-	_noise.seed = 7
-	_noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
-	_noise.frequency = 0.0035
-	_noise.fractal_octaves = 4
-	_make_road_line()
-	_build_terrain()
-	_build_road()
-	_build_rails()
-	_build_trees()
-	_build_grass()
-	_build_rocks()
-	_build_ramps()
+	for step in build_steps():
+		(step[1] as Callable).call()
+
+
+func build_steps() -> Array:
+	return [
+		["Tracciato", _make_road_line],
+		["Montagne", _build_terrain],
+		["Asfalto", _build_road],
+		["Guardrail", _build_rails],
+		["Alberi", _build_trees],
+		["Erba", _build_grass],
+		["Rocce e cartelli", _build_rocks],
+		["Rampe", _build_ramps],
+		["Traiettoria", _build_racing_line],
+	]
 
 
 # ---------- Road line ----------
 
 func _make_road_line() -> void:
+	_rng.seed = 4242
+	_noise.seed = 7
+	_noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+	_noise.frequency = 0.0035
+	_noise.fractal_octaves = 4
 	# Closed loop around the origin: the radius wobbles to make bends, the height follows a grade
 	# profile (at most about 12 %) that adds up to zero over the lap.
 	var raw: Array[Vector2] = []
@@ -414,59 +424,17 @@ func _markings() -> void:
 # ---------- Guardrails ----------
 
 func _build_rails() -> void:
+	# Straight 4 m sections on both sides; each one can be torn off by a hard hit (GuardRails).
 	var steel := CarModel.mat(Color(0.72, 0.74, 0.76), Color.BLACK, 0.0, 0.85, 0.35)
-	var body := StaticBody3D.new()
-	add_child(body)
 	var n := pts.size()
-	var post_mesh := BoxMesh.new()
-	post_mesh.size = Vector3(0.12, 0.9, 0.12)
-	post_mesh.material = steel
-	var posts: Array[Transform3D] = []
+	var sections := []
 	for side: float in [-1.0, 1.0]:
-		# Rail band: a vertical strip from 0.5 to 0.85 m. Each face has its own vertices, so the
-		# road side and the outer side are both lit correctly.
-		var st := SurfaceTool.new()
-		st.begin(Mesh.PRIMITIVE_TRIANGLES)
-		for k in n + 1:
-			var i := k % n
-			var p := pts[i] + _right(i) * side * RAIL_OFFSET
-			for _face in 2:
-				st.add_vertex(p + Vector3(0, 0.5, 0))
-				st.add_vertex(p + Vector3(0, 0.85, 0))
-		for k in n:
-			var i0 := k * 4
-			var j0 := i0 + 4
-			for tri in [[i0, j0, i0 + 1], [i0 + 1, j0, j0 + 1], [i0 + 2, i0 + 3, j0 + 2], [i0 + 3, j0 + 3, j0 + 2]]:
-				for v in tri:
-					st.add_index(v)
-		st.generate_normals()
-		var mi := MeshInstance3D.new()
-		mi.mesh = st.commit()
-		mi.material_override = steel
-		add_child(mi)
-		# Posts every 4 m, collision boxes every 8 m.
 		for k in range(0, n, 2):
-			var p := pts[k] + _right(k) * side * (RAIL_OFFSET + 0.08)
-			posts.append(Transform3D(Basis(), p + Vector3(0, 0.45, 0)))
-		for k in range(0, n, 4):
-			var a := pts[k] + _right(k) * side * (RAIL_OFFSET + 0.15)
-			var k2 := (k + 4) % n
-			var b := pts[k2] + _right(k2) * side * (RAIL_OFFSET + 0.15)
-			var shape := BoxShape3D.new()
-			shape.size = Vector3(0.3, 1.2, a.distance_to(b) + 0.6)
-			var col := CollisionShape3D.new()
-			col.shape = shape
-			col.transform = Transform3D(Basis.looking_at(b - a, Vector3.UP), (a + b) / 2.0 + Vector3(0, 0.6, 0))
-			body.add_child(col)
-	var mm := MultiMesh.new()
-	mm.transform_format = MultiMesh.TRANSFORM_3D
-	mm.mesh = post_mesh
-	mm.instance_count = posts.size()
-	for i in posts.size():
-		mm.set_instance_transform(i, posts[i])
-	var mmi := MultiMeshInstance3D.new()
-	mmi.multimesh = mm
-	add_child(mmi)
+			var k2 := (k + 2) % n
+			sections.append([pts[k] + _right(k) * side * RAIL_OFFSET, pts[k2] + _right(k2) * side * RAIL_OFFSET])
+	var rails := GuardRails.new()
+	add_child(rails)
+	rails.build(sections, steel)
 
 
 # ---------- Trees and rocks ----------
@@ -683,7 +651,78 @@ func _build_grass() -> void:
 		add_child(mmi)
 
 
+## Chevron signs on the outer verge of the tight bends. They are loose bodies resting in place:
+## a car knocks them flying.
+func _build_signs() -> void:
+	var n := pts.size()
+	var tex := _chevron_texture()
+	var panel_mat := StandardMaterial3D.new()
+	panel_mat.albedo_texture = tex
+	panel_mat.roughness = 0.6
+	var post_mat := CarModel.mat(Color(0.75, 0.75, 0.75), Color.BLACK, 0.0, 0.6, 0.4)
+	var post_mesh := BoxMesh.new()
+	post_mesh.size = Vector3(0.08, 1.5, 0.08)
+	post_mesh.material = post_mat
+	var panel_mesh := BoxMesh.new()
+	panel_mesh.size = Vector3(0.8, 0.6, 0.04)
+	panel_mesh.material = panel_mat
+	var k := 0
+	while k < n:
+		if limits[k] > 20.0:
+			k += 1
+			continue
+		# Outer side: away from the middle of the chord across the bend.
+		var mid := (pts[(k - 12 + n) % n] + pts[(k + 12) % n]) / 2.0
+		var out_side := -signf((mid - pts[k]).dot(_right(k)))
+		var base := pts[k] + _right(k) * out_side * (ROAD_HALF + 1.4)
+		var sign := RigidBody3D.new()
+		sign.mass = 25.0
+		sign.can_sleep = true
+		var col := CollisionShape3D.new()
+		var shape := BoxShape3D.new()
+		shape.size = Vector3(0.8, 2.1, 0.12)
+		col.shape = shape
+		col.position.y = 1.05
+		sign.add_child(col)
+		var post := MeshInstance3D.new()
+		post.mesh = post_mesh
+		post.position.y = 0.75
+		sign.add_child(post)
+		var panel := MeshInstance3D.new()
+		panel.mesh = panel_mesh
+		panel.position.y = 1.75
+		# The arrow points into the bend; mirror the panel on the other side.
+		panel.scale.x = out_side
+		sign.add_child(panel)
+		add_child(sign)
+		sign.global_transform = Transform3D(Basis.looking_at(-tangents[k], Vector3.UP), base + Vector3(0, 0.02, 0))
+		sign.sleeping = true
+		k += 9
+
+
+func _chevron_texture() -> ImageTexture:
+	var w := 96
+	var h := 72
+	var img := Image.create(w, h, false, Image.FORMAT_RGBA8)
+	for y in h:
+		for x in w:
+			var u := float(x) / w
+			var v := absf(float(y) / h - 0.5)
+			# Two white chevrons pointing right on red.
+			var c := Color(0.85, 0.08, 0.06)
+			for off in [0.18, 0.5]:
+				var d: float = u - off - (0.5 - v) * 0.45
+				if d > 0.0 and d < 0.13:
+					c = Color(0.97, 0.97, 0.95)
+			if x < 3 or y < 3 or x >= w - 3 or y >= h - 3:
+				c = Color(0.97, 0.97, 0.95)
+			img.set_pixel(x, y, c)
+	img.generate_mipmaps()
+	return ImageTexture.create_from_image(img)
+
+
 func _build_rocks() -> void:
+	_build_signs()
 	var kinds := ["moon_rock_02", "rock_09", "rock_face_01"]
 	var scenes := {}
 	for kname in kinds:
@@ -756,6 +795,85 @@ func _build_ramps() -> void:
 		add_child(ramp)
 
 
+# ---------- Racing line ----------
+
+## The best line round the loop: a band pulled tight inside the road (as straight as the road
+## allows), so it swings wide before a bend, touches the inside and runs wide again. Drawn on the
+## asphalt as dashes coloured by what to do: green accelerate, yellow lift, red brake.
+func _build_racing_line() -> void:
+	var n := pts.size()
+	var room := ROAD_HALF - 1.6
+	line_off.resize(n)
+	line_off.fill(0.0)
+	var flat := PackedVector2Array()
+	var rights := PackedVector2Array()
+	flat.resize(n)
+	rights.resize(n)
+	for k in n:
+		flat[k] = Vector2(pts[k].x, pts[k].z)
+		var r := _right(k)
+		rights[k] = Vector2(r.x, r.z)
+	# Coarse passes with far neighbours shape the whole bend, fine passes smooth it.
+	for pass_i in 220:
+		var reach := 6 if pass_i < 150 else 2
+		for k in n:
+			var ka := (k - reach + n) % n
+			var kb := (k + reach) % n
+			var pa := flat[ka] + rights[ka] * line_off[ka]
+			var pb := flat[kb] + rights[kb] * line_off[kb]
+			var pk := flat[k] + rights[k] * line_off[k]
+			line_off[k] = clampf(line_off[k] + ((pa + pb) * 0.5 - pk).dot(rights[k]) * 0.8, -room, room)
+	# Speed along the line: corner limits from its own curvature, then braking (backwards) and
+	# accelerating (forwards) between them, twice round so the loop closes.
+	line_speed.resize(n)
+	for k in n:
+		var a := flat[(k - 6 + n) % n] + rights[(k - 6 + n) % n] * line_off[(k - 6 + n) % n]
+		var m := flat[k] + rights[k] * line_off[k]
+		var b := flat[(k + 6) % n] + rights[(k + 6) % n] * line_off[(k + 6) % n]
+		var ang := absf((m - a).angle_to(b - m))
+		var radius := m.distance_to(a) / maxf(2.0 * sin(ang / 2.0), 0.0001)
+		line_speed[k] = minf(sqrt(GRIP * 1.3 * 9.8 * radius), 42.0)
+	for _round in 2:
+		for j in n:
+			var k := n - 1 - j
+			line_speed[k] = minf(line_speed[k], sqrt(line_speed[(k + 1) % n] ** 2 + 2.0 * DECEL * SAMPLE_STEP))
+		for k in n:
+			line_speed[k] = minf(line_speed[k], sqrt(line_speed[(k - 1 + n) % n] ** 2 + 2.0 * 4.0 * SAMPLE_STEP))
+	# Dashes: 4 m painted every 8 m, 0.6 m wide.
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var lift := Vector3(0, 0.03, 0)
+	for k in range(0, n, 4):
+		var k2 := (k + 2) % n
+		var drop := line_speed[k] - line_speed[(k + 4) % n]
+		var col := Color(0.2, 1.0, 0.35)
+		if drop > 0.6:
+			col = Color(1.0, 0.15, 0.1)
+		elif drop > 0.05 or line_speed[k] < 30.0:
+			col = Color(1.0, 0.8, 0.1)
+		col.a = 0.9
+		var a0 := _line_point(k) - _right(k) * 0.3 + lift
+		var a1 := _line_point(k) + _right(k) * 0.3 + lift
+		var b0 := _line_point(k2) - _right(k2) * 0.3 + lift
+		var b1 := _line_point(k2) + _right(k2) * 0.3 + lift
+		for v in [a0, b0, a1, a1, b0, b1]:
+			st.set_color(col)
+			st.set_normal(Vector3.UP)
+			st.add_vertex(v)
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.vertex_color_use_as_albedo = true
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var mi := MeshInstance3D.new()
+	mi.mesh = st.commit()
+	mi.material_override = mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.visible = false
+	add_child(mi)
+	guide = mi
+
+
 # ---------- Track interface ----------
 
 func setup_environment(parent: Node) -> void:
@@ -821,11 +939,38 @@ func advised_speed(pos: Vector3, fwd: Vector3) -> float:
 
 
 func race_path() -> Array[Vector3]:
+	# Along the racing line once it is built: the AI racers then cut the corners like a driver.
 	var out: Array[Vector3] = []
 	var n := pts.size()
 	for k in range(0, n, PATH_STRIDE):
-		out.append(pts[(start_i + k) % n])
+		out.append(_line_point((start_i + k) % n))
 	out.append(pts[start_i])  # one full lap: the finish is the start line
+	return out
+
+
+func _line_point(k: int) -> Vector3:
+	return pts[k] + _right(k) * (line_off[k] if line_off.size() == pts.size() else 0.0)
+
+
+func off_track_distance(pos: Vector3) -> float:
+	var k := nearest(pos)
+	var d := Vector2(pos.x - pts[k].x, pos.z - pts[k].z).length() - RAIL_OFFSET
+	if pos.y < pts[k].y - 12.0:
+		d = maxf(d, 60.0)  # fell down a slope
+	return d
+
+
+func recovery_point(pos: Vector3) -> Array:
+	var k := nearest(pos)
+	# Back on the near lane, facing the way the race goes.
+	var side := signf((pos - pts[k]).dot(_right(k)))
+	return [pts[k] + _right(k) * side * LANE * 0.6 + Vector3(0, 0.6, 0), tangents[k]]
+
+
+func racing_line() -> Array[Vector3]:
+	var out: Array[Vector3] = []
+	for k in pts.size():
+		out.append(_line_point(k))
 	return out
 
 
