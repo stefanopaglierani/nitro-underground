@@ -100,9 +100,14 @@ static func _toon(m: Material, ink: bool) -> Material:
 				var c := b.albedo_color
 				b.albedo_color = Color.from_hsv(c.h, minf(c.s * 1.1, 1.0), minf(c.v * 1.05, 1.0), c.a)
 			b.metallic = minf(b.metallic, 0.4)
-			b.rim_enabled = true
-			b.rim = 0.35
-			b.rim_tint = 0.6
+			# Rim light and shine on solid things only: on leaf cards they turn whole trees white.
+			if b.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED:
+				b.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
+				b.normal_enabled = false
+			else:
+				b.rim_enabled = true
+				b.rim = 0.35
+				b.rim_tint = 0.6
 		if ink and b.transparency == BaseMaterial3D.TRANSPARENCY_DISABLED:
 			b.next_pass = _outline_material()
 		out = b

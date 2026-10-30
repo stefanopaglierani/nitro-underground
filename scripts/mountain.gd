@@ -22,6 +22,9 @@ const CHECKPOINTS := 8
 ## Tree models (Quaternius textured trees, CC0) and how often each is picked.
 const TREES := {"Pine_1": 3, "Pine_2": 3, "Pine_3": 3, "Pine_5": 3, "Birch_1": 1, "Birch_3": 1}
 const TREE_DIR := "res://assets/props/trees/"
+## Realistic conifers from assets/scenery (see Scenery). All of them line the road; the light
+## first one also fills the far slopes. Used instead of TREES when present.
+const SCENERY_TREES := ["pine", "spruce", "scots_pine", "pine_scan"]
 ## Grass clump textures (Yughues grass packs, CC0).
 const GRASS := ["grass_01", "grass_02", "grass_04"]
 const SKY := "res://assets/hdri/kloofendal_48d_partly_cloudy_puresky_2k.hdr"
@@ -67,6 +70,7 @@ func build_steps() -> Array:
 		["Alberi", _build_trees],
 		["Erba", _build_grass],
 		["Rocce e cartelli", _build_rocks],
+		["Case, coni e segnali", func(): Scenery.dress_road(self, true)],
 		["Rampe", _build_ramps],
 		["Traiettoria", _build_racing_line],
 	]
@@ -548,12 +552,13 @@ func _tree_models() -> Dictionary:
 
 
 func _build_trees() -> void:
-	var models := _tree_models()
+	var real := Scenery.exists(SCENERY_TREES[0])
+	var models := {} if real else _tree_models()
 	var names: Array = []
 	for tname in models:
 		for k in TREES[tname]:
 			names.append(tname)
-	if names.is_empty():
+	if names.is_empty() and not real:
 		models = {"pine": [_pine_mesh(), Transform3D.IDENTITY]}
 		names = ["pine"]
 	var chunk_size := CHUNK * CELL
@@ -573,19 +578,28 @@ func _build_trees() -> void:
 		# Woods in patches.
 		if _noise.get_noise_2d(x * 3.0 + 500.0, z * 3.0) < -0.05:
 			continue
-		var m := _rng.randi() % names.size()
-		var key := Vector3i(floori((x - _min.x) / chunk_size), floori((z - _min.y) / chunk_size), names.find(names[m]))
+		var model_i: int
+		var s: float
+		if real:
+			model_i = _rng.randi() % SCENERY_TREES.size() if d < 90.0 else 0
+			s = _rng.randf_range(12.0, 22.0)  # Scenery models are 1 m tall
+		else:
+			model_i = names.find(names[_rng.randi() % names.size()])
+			# The models are about 7 m tall; mountain conifers are 12 to 20 m.
+			s = _rng.randf_range(1.7, 2.7)
+		var key := Vector3i(floori((x - _min.x) / chunk_size), floori((z - _min.y) / chunk_size), model_i)
 		if not per_chunk.has(key):
 			per_chunk[key] = []
-		# The models are about 7 m tall; mountain conifers are 12 to 20 m.
-		var s := _rng.randf_range(1.7, 2.7)
 		var basis := Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3(s, s * _rng.randf_range(0.9, 1.2), s))
 		per_chunk[key].append(Transform3D(basis, Vector3(x, h - 0.2, z)))
 		if d < 40.0:
 			trunks.append(Vector3(x, h, z))
 	for key in per_chunk:
-		var model: Array = models[names[key.z]]
 		var list: Array = per_chunk[key]
+		if real:
+			Scenery.scatter(self, SCENERY_TREES[key.z], 1.0, list, 700.0)
+			continue
+		var model: Array = models[names[key.z]]
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
 		mm.mesh = model[0]

@@ -728,6 +728,7 @@ func _autotest_tick(delta: float) -> void:
 	if OS.get_cmdline_user_args().has("--ram") and int(_test_t / 4.0) != int((_test_t - delta) / 4.0):
 		_ram_traffic()
 	if int(_test_t / 5.0) != int((_test_t - delta) / 5.0):
+		print("[autotest]   render: %d triangles, %d draw calls, %.0f fps" % [RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME), RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME), Engine.get_frames_per_second()])
 		var wrecks := 0
 		for tc: TrafficCar in get_tree().get_nodes_in_group("traffic"):
 			wrecks += 1 if tc.crashed else 0
