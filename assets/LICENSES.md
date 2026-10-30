@@ -134,3 +134,36 @@ Crediti richiesti: "This work is based on "McLaren 600LT" by Outlaw Games™, "2
 | `assets/kaykit_city_builder_bits/car_*.gltf` | KayKit (vedi sopra) | CC0 |
 
 In gioco i veicoli vengono scalati alla loro lunghezza reale e appoggiati a terra; le volanti Kenney ricevono lampeggianti fatti nel codice. L'elenco completo con i nomi mostrati nel menu è in `scripts/car_catalog.gd`.
+
+## Audio delle auto — `assets/audio/`
+
+Usati da `scripts/car_audio.gd`. Stesso set di suoni per tutte le auto.
+
+### Suoni generati da noi (CC0)
+
+Creati da zero con `tools/audio/make_engine_sounds.py` (nessun campione esterno), quindi rilasciati CC0 come il resto del codice audio.
+
+| File | Cos'è |
+|---|---|
+| `engine_on_*.wav`, `engine_off_*.wav` | Motore V8 a 1000, 2000, 3200, 4500, 6000 e 7600 giri, con gas aperto (on) e chiuso (off). Loop senza stacco. |
+| `wind.wav` | Vento e rotolamento, sale con la velocità |
+| `nitro_loop.wav` | Soffio del nitro |
+| `blowoff.wav` | "Pssh" della valvola del turbo quando si molla il gas o si cambia marcia |
+| `pop_0..2.wav` | Scoppiettii dello scarico in rilascio |
+| `starter.wav` | Motorino di avviamento |
+| `siren.wav` | Sirena della polizia |
+
+### Registrazioni scaricate
+
+Tutte **CC0 1.0**, licenza verificata sulla pagina di ogni suono il 2026-10-30. Da Freesound abbiamo usato l'anteprima MP3 di alta qualità (stesso suono, stessa licenza). Tagli fatti con `tools/audio/slice_recordings.py`: ritaglio, mono 32 kHz, normalizzazione, dissolvenze.
+
+| File | Suono originale | Autore | Link | Licenza | Modifiche |
+|---|---|---|---|---|---|
+| `crash_heavy.wav` | Car Crash | squareal | https://freesound.org/people/squareal/sounds/237375/ | CC0 1.0 | Tagliato 0,37–3,6 s |
+| `crash_medium.wav` | Hood Impact | LPA134 | https://freesound.org/people/LPA134/sounds/329516/ | CC0 1.0 | Tagliato 0,13–2,0 s |
+| `land_thud.wav` | Hood Impact | LPA134 | https://freesound.org/people/LPA134/sounds/329516/ | CC0 1.0 | 0,13–0,9 s, filtrato sotto 700 Hz (tonfo dell'atterraggio) |
+| `crash_metal.wav` | Metal Hit 2 | dslrguide | https://freesound.org/people/dslrguide/sounds/321482/ | CC0 1.0 | Tagliato 0,13–1,3 s |
+| `crash_light.wav` | Fast Collision | qubodup | https://freesound.org/people/qubodup/sounds/332056/ | CC0 1.0 | Normalizzato |
+| `gear_1.wav`, `gear_2.wav` | Elantra Gear Shift | mrmccormack | https://freesound.org/people/mrmccormack/sounds/116598/ | CC0 1.0 | Due cambiate ritagliate |
+| `tyre_squeal.wav` | Chrysler LHS tire squeal 03 | audible-edge | https://freesound.org/people/audible-edge/sounds/71738/ | CC0 1.0 | 8,3–9,35 s, reso un loop |
+| `handbrake.wav` | Car Parking Brake (Car Sound Effects Pack) | ggbotnet | https://opengameart.org/content/car-sound-effects-pack-low-quality | CC0 1.0 | Normalizzato |

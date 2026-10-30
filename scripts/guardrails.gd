@@ -110,6 +110,7 @@ func _break_section(i: int, car_velocity: Vector3) -> void:
 	var length: float = (_ends[i][0] as Vector3).distance_to(_ends[i][1])
 	_spawn_piece(_rail_mesh, Vector3(THICK, HEIGHT, length), Transform3D(rail_xf.basis.orthonormalized(), rail_xf.origin), 60.0, car_velocity)
 	_spawn_piece(_post_mesh, POST, post_xf, 15.0, car_velocity * 0.8)
+	CarAudio.play_at(self, to_global(rail_xf.origin), "crash_metal.wav", 2.0, randf_range(0.85, 1.0))
 
 
 func _spawn_piece(mesh: BoxMesh, size: Vector3, xf: Transform3D, kg: float, car_velocity: Vector3) -> void:
