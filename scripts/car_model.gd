@@ -25,7 +25,10 @@ const RGSDEV_SCALE := 0.78
 const RGSDEV_WHEELS := {"WheelFL": " wheel front left", "WheelFR": " wheel front right", "WheelRL": " wheel rear left", "WheelRR": " wheel rear right"}
 ## Materials whose meshes belong to a wheel in the detailed glTF cars (tyres, rims, brakes).
 ## "rim" only at a word start, so "Trim" does not count.
-const WHEEL_PARTS := ["wheel", "_rim", "calliper", "tire", "breaks"]
+const WHEEL_PARTS := ["wheel", "_rim", "calliper", "caliper", "tire", "tyre", "breaks", "disc"]
+## Mesh or material names that mark the back and the front of a model, to find which way it faces.
+const REAR_PARTS := ["tail", "brakelight", "brake_light", "rear", "reverse", "trunk", "exhaust"]
+const FRONT_PARTS := ["headlight", "head_light", "front", "hood", "grill", "windshield"]
 static var _scenes := {}
 static var _paint_shader: Shader = preload("res://shaders/car_paint.gdshader")
 
@@ -216,18 +219,48 @@ static func build_generic(paint: Color, entry: Dictionary) -> Node3D:
 		pm.clearcoat = 1.0
 		pm.clearcoat_roughness = 0.05
 		paint_mat = pm
+	# Bounds of the car body, leaving out flat ground planes (shadow cards), which are hidden.
 	var meshes: Array[MeshInstance3D] = []
+	var boxes: Array[AABB] = []
 	var bounds := AABB()
 	for node in model.find_children("*", "MeshInstance3D", true, false):
 		var mi := node as MeshInstance3D
-		meshes.append(mi)
 		var bb: AABB = _xf_in(mi, model) * mi.get_aabb()
+		if bb.size.y < 0.02 * maxf(bb.size.x, bb.size.z) and bb.size.x * bb.size.z > 0.0:
+			var flat := bb.size.x * bb.size.z
+			if bounds.size == Vector3.ZERO or flat > 0.5 * bounds.size.x * bounds.size.z:
+				mi.visible = false
+				continue
+		meshes.append(mi)
+		boxes.append(bb)
 		bounds = bb if meshes.size() == 1 else bounds.merge(bb)
-	# Facing +Z in the file: turn to -Z, scale to the wanted length, wheels on the ground.
-	var k: float = entry["len"] / maxf(bounds.size.z, 0.001)
-	model.scale = Vector3.ONE * k
-	model.rotation.y = PI
-	model.position = Vector3(bounds.get_center().x * k, -bounds.position.y * k, bounds.get_center().z * k)
+	# Turn the model so its length runs along Z and its front points to -Z. Models are expected to
+	# face +Z; one that is longer across X is turned a quarter, and then lights or parts named
+	# rear/front tell which end is which. A catalog "yaw" (degrees) overrides the guess.
+	var turn := PI
+	if entry.has("yaw"):
+		turn += deg_to_rad(entry["yaw"])
+	else:
+		if bounds.size.x > bounds.size.z:
+			turn += PI / 2.0
+		var rear := 0.0
+		var front := 0.0
+		for i in meshes.size():
+			var label := (String(meshes[i].name) + " " + _material_names(meshes[i])).to_lower()
+			var z := (Basis(Vector3.UP, turn) * boxes[i].get_center()).z
+			for part in REAR_PARTS:
+				if label.contains(part):
+					rear += z
+			for part in FRONT_PARTS:
+				if label.contains(part):
+					front += z
+		if bounds.size.x > bounds.size.z and rear < front:
+			turn += PI  # the back of the car would end up at the front
+	var r := Basis(Vector3.UP, turn)
+	var rb: AABB = Transform3D(r, Vector3.ZERO) * bounds
+	var k: float = entry["len"] / maxf(rb.size.z, 0.001)
+	model.transform = Transform3D(r.scaled(Vector3.ONE * k), Vector3(-rb.get_center().x * k, -rb.position.y * k, -rb.get_center().z * k))
+	bounds = AABB(Vector3.ZERO, rb.size)  # only its size is used below
 
 	var corners := {"WheelFL": [], "WheelFR": [], "WheelRL": [], "WheelRR": []}
 	var wheel_bounds := {}
@@ -250,11 +283,14 @@ static func build_generic(paint: Color, entry: Dictionary) -> Node3D:
 					if low.contains(part) or low.begins_with(part.trim_prefix("_")):
 						is_wheel = true
 				all_wheel = all_wheel and is_wheel
-		if not all_wheel:
-			continue
 		var xf := model.transform * _xf_in(mi, model)
 		var bb: AABB = xf * mi.get_aabb()
 		var c := bb.get_center()
+		if not all_wheel:
+			# Unnamed parts: a wheel is a round, narrow part low in a corner of the car.
+			var round := absf(bb.size.y - bb.size.z) < 0.25 * bb.size.y
+			if not (round and bb.size.y > 0.35 and bb.size.y < 1.3 and bb.size.x < 0.5):
+				continue
 		# A mesh holding several wheels at once cannot steer, and parts near the middle or up high
 		# (badges, trims sharing a material) are not wheels: leave them on the body.
 		if bb.size.x > 0.8 or bb.size.z > 1.6 or absf(c.x) < bounds.size.x * k * 0.25 or c.y > 0.9:
@@ -286,6 +322,15 @@ static func build_generic(paint: Color, entry: Dictionary) -> Node3D:
 		root.set_meta("siren_red", red)
 		root.set_meta("siren_blue", blue)
 	return root
+
+
+static func _material_names(mi: MeshInstance3D) -> String:
+	var out := PackedStringArray()
+	for i in mi.mesh.get_surface_count():
+		var m := mi.mesh.surface_get_material(i)
+		if m:
+			out.append(m.resource_name)
+	return " ".join(out)
 
 
 static func _rgsdev_material(key: String, src: BaseMaterial3D, main_body: bool, paint: Color, tail: StandardMaterial3D, head: StandardMaterial3D, glass: StandardMaterial3D, red: StandardMaterial3D, blue: StandardMaterial3D) -> Material:

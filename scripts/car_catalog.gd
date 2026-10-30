@@ -8,6 +8,16 @@ const CARS := [
 	{"id": "mclaren_600lt", "name": "McLaren 600LT", "kind": "hd", "path": "res://assets/cars_sketchfab/mclaren_600lt/scene.gltf", "len": 4.6, "paint": "mM_CarPaint_Max1", "tail": "mM_LightGlass_Red_Low1"},
 	{"id": "ford_raptor_r", "name": "Ford F-150 Raptor R", "kind": "hd", "path": "res://assets/cars_sketchfab/2024_ford_f-150_raptor_r/scene.gltf", "len": 5.9, "paint": "RaptorPaaint", "tail": ""},
 	{"id": "ram_1500_trx", "name": "RAM 1500 TRX", "kind": "hd", "path": "res://assets/cars_sketchfab/2021_ram_1500_trx/scene.gltf", "len": 5.9, "paint": "RAM_1500TRX_2021Paint_Material", "tail": "RED_GLASS"},
+	{"id": "skyline_r34", "name": "Nissan Skyline GT-R R34", "kind": "hd", "path": "res://assets/cars_sketchfab/nissan-skyline-r34.glb", "len": 4.6},
+	{"id": "silvia_s15", "name": "Nissan Silvia S15 Drift", "kind": "hd", "path": "res://assets/cars_sketchfab/nissan-silvia-s15-drift.glb", "len": 4.45, "paint": "CAR_BODY_PAINT"},
+	{"id": "mr2_w20", "name": "Toyota MR2 W20", "kind": "hd", "path": "res://assets/cars_sketchfab/toyota-mr2-w20.glb", "len": 4.2, "paint": "body_paint"},
+	{"id": "bmw_m3_e36", "name": "BMW M3 E36", "kind": "hd", "path": "res://assets/cars_sketchfab/bmw-m3-e36.glb", "len": 4.4, "paint": "yellow"},
+	{"id": "mustang_gt", "name": "Ford Mustang GT 2013", "kind": "hd", "path": "res://assets/cars_sketchfab/ford-mustang-gt-2013.glb", "len": 4.8},
+	{"id": "kiri_86", "name": "Kiri '86", "kind": "hd", "path": "res://assets/cars_sketchfab/kiri-86.glb", "len": 4.3, "paint": "kiri86_Bodymat"},
+	{"id": "classic_muscle", "name": "Muscle car classica", "kind": "hd", "path": "res://assets/cars_sketchfab/classic-muscle-car.glb", "len": 4.9},
+	{"id": "doutrive_78", "name": "Doutrive '78 pickup", "kind": "hd", "path": "res://assets/cars_sketchfab/doutrive-78-pickup.glb", "len": 5.2, "paint": "DOUTRIVE78_bodymat"},
+	{"id": "eugene_mk6", "name": "Eugene MK6 '65", "kind": "hd", "path": "res://assets/cars_sketchfab/eugene-mk6-65-suv.glb", "len": 4.4},
+	{"id": "furgone_francese", "name": "Furgone francese", "kind": "hd", "path": "res://assets/cars_sketchfab/furgone-francese.glb", "len": 4.6},
 	{"id": "sports", "name": "Sportiva", "kind": "rgsdev"},
 	{"id": "muscle", "name": "Muscle car", "kind": "rgsdev"},
 	{"id": "muscle_2", "name": "Muscle car 2", "kind": "rgsdev"},
@@ -63,11 +73,12 @@ const CARS := [
 
 
 ## Driven wheels for each car: "RWD" (rear), "FWD" (front) or "AWD" (all four).
-const RWD := ["mclaren_600lt", "sports", "muscle", "muscle_2", "roadster", "police_sports", "police_muscle",
+const RWD := ["mclaren_600lt", "silvia_s15", "mr2_w20", "bmw_m3_e36", "mustang_gt", "kiri_86", "classic_muscle",
+	"doutrive_78", "sports", "muscle", "muscle_2", "roadster", "police_sports", "police_muscle",
 	"limousine", "truck", "truck_with_trailer", "bus", "firetruck", "k_race", "k_race_future", "k_sedan_sports",
 	"k_truck", "k_truck_flat", "k_garbage_truck", "k_firetruck", "k_tractor", "k_tractor_police",
 	"k_tractor_shovel", "k_kart_oobi", "k_kart_oodi", "k_kart_ooli", "k_kart_oopi", "k_kart_oozi"]
-const AWD := ["ford_raptor_r", "ram_1500_trx", "suv", "pickup", "monster_truck", "police_suv", "k_suv",
+const AWD := ["skyline_r34", "ford_raptor_r", "ram_1500_trx", "suv", "pickup", "monster_truck", "police_suv", "k_suv",
 	"k_suv_luxury"]
 
 
