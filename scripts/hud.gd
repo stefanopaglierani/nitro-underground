@@ -7,6 +7,10 @@ signal restart_pressed
 signal menu_pressed
 ## Garage: the player asked for the previous (-1) or next (+1) car.
 signal car_step(dir: int)
+## Title screen: the player picked a circuit (id from main.gd TRACKS).
+signal track_chosen(id: String)
+## Title screen: moved between the car page and the circuit page.
+signal page_changed(page: String)
 
 const ACCENT := Color(1, 0.18, 0.55)
 const CYAN := Color(0.1, 0.9, 1)
@@ -29,6 +33,9 @@ var loading_panel: Control
 var loading_bar: ProgressBar
 var loading_label: Label
 var car_index_label: Label
+var car_page: Control
+var track_page: Control
+var track_row: HBoxContainer
 var speed_lines: ColorRect
 var _buttons: Dictionary = {}
 var _message_t := 0.0
@@ -321,10 +328,15 @@ func _build_menu() -> void:
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bottom.add_child(box)
 
+	# Page 1: the car. Arrows or a swipe change it, then on to the circuit.
+	car_page = VBoxContainer.new()
+	car_page.add_theme_constant_override("separation", 14)
+	car_page.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(car_page)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 24)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_child(row)
+	car_page.add_child(row)
 	var prev := _big_button(row, "<", CYAN)
 	prev.custom_minimum_size = Vector2(120, 96)
 	prev.pressed.connect(func(): car_step.emit(-1))
@@ -345,17 +357,59 @@ func _build_menu() -> void:
 	var next := _big_button(row, ">", CYAN)
 	next.custom_minimum_size = Vector2(120, 96)
 	next.pressed.connect(func(): car_step.emit(1))
+	var go := _big_button(car_page, "AVANTI: SCEGLI IL CIRCUITO  >", ACCENT)
+	go.pressed.connect(func(): _show_page("track"))
 
+	# Page 2: the circuit, then the race mode.
+	track_page = VBoxContainer.new()
+	track_page.add_theme_constant_override("separation", 14)
+	track_page.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(track_page)
+	track_row = HBoxContainer.new()
+	track_row.add_theme_constant_override("separation", 18)
+	track_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	track_page.add_child(track_row)
 	var modes := HBoxContainer.new()
 	modes.add_theme_constant_override("separation", 24)
 	modes.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_child(modes)
+	track_page.add_child(modes)
 	var sprint := _big_button(modes, "GARA SPRINT", ACCENT)
 	sprint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sprint.pressed.connect(func(): mode_chosen.emit("sprint"))
 	var escape := _big_button(modes, "FUGA DALLA POLIZIA", CYAN)
 	escape.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	escape.pressed.connect(func(): mode_chosen.emit("escape"))
+	track_page.visible = false
+
+
+## Circuit buttons: `tracks` is main.gd TRACKS, `current` the circuit built behind the menu.
+func set_tracks(tracks: Array, current: String) -> void:
+	for c in track_row.get_children():
+		c.queue_free()
+	var back := _big_button(track_row, "< AUTO", CYAN)
+	back.custom_minimum_size = Vector2(150, 104)
+	back.add_theme_font_size_override("font_size", 24)
+	back.pressed.connect(func(): _show_page("car"))
+	for t in tracks:
+		var id: String = t[0]
+		var chosen := id == current
+		var b := _big_button(track_row, t[1] + "\n" + t[2], ACCENT if chosen else CYAN)
+		b.custom_minimum_size = Vector2(0, 104)
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		b.add_theme_font_size_override("font_size", 22)
+		if chosen:
+			var sb := (b.get_theme_stylebox("normal") as StyleBoxFlat).duplicate() as StyleBoxFlat
+			sb.bg_color = Color(ACCENT.r, ACCENT.g, ACCENT.b, 0.6)
+			sb.set_border_width_all(5)
+			b.add_theme_stylebox_override("normal", sb)
+			b.add_theme_stylebox_override("focus", sb)
+		b.pressed.connect(func(): track_chosen.emit(id))
+
+
+func _show_page(page: String) -> void:
+	car_page.visible = page == "car"
+	track_page.visible = page == "track"
+	page_changed.emit(page)
 
 
 ## Full-screen loading page with a progress bar, shown while the level and the cars are built.
@@ -442,8 +496,10 @@ func _build_end() -> void:
 	end_panel.visible = false
 
 
-func show_menu(on: bool) -> void:
+func show_menu(on: bool, page := "car") -> void:
 	menu_panel.visible = on
+	if on:
+		_show_page(page)
 	pause.visible = not on
 	show_controls(not on)
 	info_label.visible = not on

@@ -1,10 +1,19 @@
 extends Node3D
 ## Sets up the level, cars, camera and HUD, and runs the race and police rules.
 ## Modes: "sprint" (race against 3 rivals, police join after a while) and "escape" (lose the police).
-## Levels: "mountain" (daytime mountain road, default) and "city" (night city), see Track.
+## Levels (circuits): "mountain" (daytime mountain pass, default), "coast" (seaside road),
+## "night" (lit-up night city circuit) and the old grid "city" (tests only), see Track.
 
 static var start_mode := ""
 static var level := "mountain"
+## Circuits offered on the title screen, after the car: [id, name, short description].
+const TRACKS := [
+	["mountain", "MONTAGNA", "Passo di montagna, di giorno"],
+	["coast", "COSTA", "Strada sul mare tra le palme"],
+	["night", "CITTÀ DI NOTTE", "Circuito cittadino tra le luci"],
+]
+## Which page of the title screen to open after a reload: "car" or "track".
+static var menu_page := "car"
 ## Position of the chosen car in the garage list (kept across scene reloads).
 static var car_index := -1
 const RIVAL_COLORS := [Color(0.1, 0.85, 0.3), Color(1, 0.55, 0.05), Color(0.1, 0.55, 1)]
@@ -104,13 +113,23 @@ func _ready() -> void:
 	hud.restart_pressed.connect(func(): _reload(mode))
 	hud.menu_pressed.connect(func(): _reload(""))
 	hud.car_step.connect(_step_car)
+	hud.page_changed.connect(func(page: String): menu_page = page)
+	hud.track_chosen.connect(_choose_track)
 	camera = Camera3D.new()
 	camera.fov = CAM_FOV
 	camera.near = 0.1
 	add_child(camera)
 
 	# Build the level one step at a time, drawing the loading bar in between.
-	city = City.new() if level == "city" else Mountain.new()
+	match level:
+		"city":
+			city = City.new()
+		"coast":
+			city = Coast.new()
+		"night":
+			city = NightCity.new()
+		_:
+			city = Mountain.new()
 	add_child(city)
 	var steps := city.build_steps()
 	var total := steps.size() + 4
@@ -119,7 +138,7 @@ func _ready() -> void:
 		(steps[i][1] as Callable).call()
 	await _loading("Cielo e luce", float(steps.size()) / total)
 	city.setup_environment(self)
-	ComicStyle.setup_environment(self)
+	ComicStyle.setup_environment(self, city.night)
 	ComicStyle.add_stylize_pass(camera)
 	ComicStyle.install(get_tree())
 	camera.far = city.view_distance
@@ -142,7 +161,16 @@ func _ready() -> void:
 		_open_garage()
 		await _loading("Pronto", 1.0)
 		hud.hide_loading()
-		hud.show_menu(true)
+		hud.set_tracks(TRACKS, level)
+		hud.show_menu(true, menu_page)
+		for a in args:
+			if a.begins_with("--menushot="):
+				# Test aid: picture of the title screen (--page=track for the circuit page).
+				if args.has("--page=track"):
+					hud._show_page("track")
+				await get_tree().create_timer(3.0).timeout
+				get_viewport().get_texture().get_image().save_png(a.substr(11))
+				get_tree().quit()
 	else:
 		await _begin_race(start_mode, float(steps.size() + 2) / total)
 
@@ -206,7 +234,7 @@ func _open_garage() -> void:
 
 
 func _step_car(dir: int) -> void:
-	if state != "menu" or _garage.is_empty():
+	if state != "menu" or _garage.is_empty() or menu_page != "car":
 		return
 	car_index = posmod(car_index + dir, _garage.size())
 	_show_car()
@@ -248,6 +276,16 @@ func _unhandled_input(event: InputEvent) -> void:
 	if absf(_swipe) > 90.0:
 		_step_car(-1 if _swipe > 0.0 else 1)
 		_swipe = 0.0
+
+
+## A circuit was picked on the title screen: build it (the menu stays on the circuit page, with
+## the new circuit behind it).
+func _choose_track(id: String) -> void:
+	if state != "menu" or id == level:
+		return
+	level = id
+	menu_page = "track"
+	_reload("")
 
 
 ## Restart or back to the menu: rebuild the scene (the loading page shows while it does).
