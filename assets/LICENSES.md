@@ -62,6 +62,7 @@ Contiene 5 auto low poly con ruote separate (berlina, hatchback, station wagon, 
 |---|---|---|---|---|---|---|---|
 | `assets/hdri/kloofendal_48d_partly_cloudy_puresky_2k.hdr`, cielo della montagna | HDRI 2K | Kloofendal 48d Partly Cloudy (Pure Sky) | Greg Zaal, Jarod Guest | https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky | CC0 1.0 | 2026-10-29 | Nessuna |
 | `assets/materials/aerial_grass_rock/`, erba del terreno (colorata più verde nello shader) | Texture 1K | Aerial Grass Rock | Rob Tuytel | https://polyhaven.com/a/aerial_grass_rock | CC0 1.0 | 2026-10-29 | Nessuna |
+| `assets/materials/aerial_beach_01/`, sabbia della spiaggia (circuito Costa) | Texture 1K | Aerial Beach 01 | Rob Tuytel | https://polyhaven.com/a/aerial_beach_01 | CC0 1.0 | 2026-10-30 | Nessuna |
 | `assets/materials/rocky_terrain_02/`, terreno vicino alla strada | Texture 1K | Rocky Terrain 02 | Amal Kumar | https://polyhaven.com/a/rocky_terrain_02 | CC0 1.0 | 2026-10-29 | Nessuna |
 | `assets/materials/rock_face/`, pareti di roccia | Texture 1K | Rock Face | Greg Zaal, Dario Barresi | https://polyhaven.com/a/rock_face | CC0 1.0 | 2026-10-29 | Nessuna |
 | `assets/props/rock_09/`, massi a bordo strada | Modello glTF | Rock 09 | Jenelle van Heerden | https://polyhaven.com/a/rock_09 | CC0 1.0 | 2026-10-29 | Nessuna |

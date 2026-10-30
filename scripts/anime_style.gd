@@ -186,7 +186,8 @@ static func _outline_material() -> ShaderMaterial:
 
 
 ## Painted sky, light shadows, vivid colours. Called after Track.setup_environment().
-static func setup_environment(parent: Node) -> void:
+## A night level keeps its own sky, ambient and moon: only the colours get the drawn look.
+static func setup_environment(parent: Node, night := false) -> void:
 	var we: WorldEnvironment = null
 	var sun: DirectionalLight3D = null
 	for c in parent.get_children():
@@ -194,6 +195,15 @@ static func setup_environment(parent: Node) -> void:
 			we = c
 		elif c is DirectionalLight3D:
 			sun = c
+	if night:
+		if we and we.environment:
+			var env := we.environment
+			env.tonemap_exposure *= 1.1
+			env.glow_intensity = maxf(env.glow_intensity, 0.9)
+			env.adjustment_enabled = true
+			env.adjustment_saturation = 1.45 if style == "comic" else 1.35
+			env.adjustment_contrast = 1.12
+		return
 	if we and we.environment:
 		var env := we.environment
 		var sky_mat := ShaderMaterial.new()

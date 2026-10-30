@@ -41,6 +41,11 @@ var _min := Vector2.ZERO  # terrain grid origin (x, z)
 var _gw := 0  # terrain vertices per side
 var _heights := PackedFloat32Array()
 var _road_d := PackedFloat32Array()  # distance from each terrain vertex to the road centre
+## Height of the lowest point of the road; -INF keeps the loop where the grade profile puts it.
+var road_floor := -INF
+var rng_seed := 4242
+var noise_seed := 7
+var tree_tries := 9000
 
 
 func _init() -> void:
@@ -70,8 +75,8 @@ func build_steps() -> Array:
 # ---------- Road line ----------
 
 func _make_road_line() -> void:
-	_rng.seed = 4242
-	_noise.seed = 7
+	_rng.seed = rng_seed
+	_noise.seed = noise_seed
 	_noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
 	_noise.frequency = 0.0035
 	_noise.fractal_octaves = 4
@@ -80,9 +85,7 @@ func _make_road_line() -> void:
 	var raw: Array[Vector2] = []
 	var n := 1400
 	for i in n:
-		var th := TAU * i / n
-		var r := 330.0 + 110.0 * sin(3.0 * th + 0.5) + 45.0 * sin(5.0 * th + 1.3) + 20.0 * sin(8.0 * th + 0.2)
-		raw.append(Vector2(r * cos(th), r * sin(th)))
+		raw.append(_loop_point(TAU * i / n))
 	# Resample evenly.
 	var total := 0.0
 	for i in n:
@@ -104,11 +107,15 @@ func _make_road_line() -> void:
 	for k in count:
 		var u := TAU * k / count
 		pts.append(Vector3(flat[k].x, h, flat[k].y))
-		var grade := 0.085 * sin(2.0 * u) + 0.04 * sin(5.0 * u + 1.0)
-		h += grade * step
-	# Spread the tiny closing error over the lap.
+		h += _loop_grade(u) * step
+	# Spread the tiny closing error over the lap, then lift the whole loop to the level's base.
+	var lowest := INF
 	for k in count:
 		pts[k].y -= h * k / count
+		lowest = minf(lowest, pts[k].y)
+	if road_floor > -INF:
+		for k in count:
+			pts[k].y += road_floor - lowest
 	for k in count:
 		tangents.append((pts[(k + 1) % count] - pts[(k - 1 + count) % count]).normalized())
 	# Corner speed from the curvature over +-10 m.
@@ -133,6 +140,17 @@ func _make_road_line() -> void:
 		if worst > best:
 			best = worst
 			start_i = k
+
+
+## Point of the loop (seen from above) at angle th: the radius wobbles to make bends.
+func _loop_point(th: float) -> Vector2:
+	var r := 330.0 + 110.0 * sin(3.0 * th + 0.5) + 45.0 * sin(5.0 * th + 1.3) + 20.0 * sin(8.0 * th + 0.2)
+	return Vector2(r * cos(th), r * sin(th))
+
+
+## Road grade (rise per metre) at u, from 0 to TAU round the lap. Must average to zero.
+func _loop_grade(u: float) -> float:
+	return 0.085 * sin(2.0 * u) + 0.04 * sin(5.0 * u + 1.0)
 
 
 func _bucket_key(p: Vector3) -> Vector2i:
@@ -219,11 +237,7 @@ func _build_terrain() -> void:
 				var bed := road_h[i] - 0.4
 				_heights[i] = lerpf(bed, nat, smoothstep(flat_r, BLEND, d))
 
-	var mat := ShaderMaterial.new()
-	mat.shader = preload("res://shaders/terrain.gdshader")
-	mat.set_shader_parameter("grass_albedo", _tex("aerial_grass_rock", "diff"))
-	mat.set_shader_parameter("rock_albedo", _tex("rock_face", "diff"))
-	mat.set_shader_parameter("gravel_albedo", _tex("rocky_terrain_02", "diff"))
+	var mat := _terrain_material()
 	var body := StaticBody3D.new()
 	add_child(body)
 	var chunks := cells / CHUNK
@@ -236,6 +250,15 @@ func _build_terrain() -> void:
 			var col := CollisionShape3D.new()
 			col.shape = mesh.create_trimesh_shape()
 			body.add_child(col)
+
+
+func _terrain_material() -> Material:
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://shaders/terrain.gdshader")
+	mat.set_shader_parameter("grass_albedo", _tex("aerial_grass_rock", "diff"))
+	mat.set_shader_parameter("rock_albedo", _tex("rock_face", "diff"))
+	mat.set_shader_parameter("gravel_albedo", _tex("rocky_terrain_02", "diff"))
+	return mat
 
 
 func _terrain_chunk(x0: int, z0: int, mat: Material) -> ArrayMesh:
@@ -537,7 +560,7 @@ func _build_trees() -> void:
 	var per_chunk := {}  # Vector3i(chunk x, chunk z, model) -> transforms
 	var trunks: Array[Vector3] = []
 	var size := (_gw - 1) * CELL
-	for i in 9000:
+	for i in tree_tries:
 		var x := _min.x + _rng.randf() * size
 		var z := _min.y + _rng.randf() * size
 		var d := _road_dist_at(x, z)
@@ -545,7 +568,7 @@ func _build_trees() -> void:
 			continue
 		var h := ground_height(x, z)
 		var slope := absf(ground_height(x + 2.0, z) - h) + absf(ground_height(x, z + 2.0) - h)
-		if slope > 1.3:
+		if slope > 1.3 or not _plant_ok(x, z, h):
 			continue  # too steep: rock
 		# Woods in patches.
 		if _noise.get_noise_2d(x * 3.0 + 500.0, z * 3.0) < -0.05:
@@ -584,6 +607,11 @@ func _build_trees() -> void:
 		col.shape = shape
 		col.position = t + Vector3(0, 1.5, 0)
 		body.add_child(col)
+
+
+## Whether trees and grass may grow at (x, z), ground height h.
+func _plant_ok(_x: float, _z: float, _h: float) -> bool:
+	return true
 
 
 ## Two crossed quads with a grass texture, rooted at y = 0.
@@ -628,7 +656,7 @@ func _build_grass() -> void:
 			continue
 		var h := ground_height(x, z)
 		var slope := absf(ground_height(x + 2.0, z) - h) + absf(ground_height(x, z + 2.0) - h)
-		if slope > 0.9:
+		if slope > 0.9 or not _plant_ok(x, z, h):
 			continue
 		var m := _rng.randi() % meshes.size()
 		var key := Vector3i(floori((x - _min.x) / chunk_size), floori((z - _min.y) / chunk_size), m)
