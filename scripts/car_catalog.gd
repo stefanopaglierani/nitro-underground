@@ -9,6 +9,10 @@ const CARS := [
 	{"id": "ford_raptor_r", "name": "Ford F-150 Raptor R", "kind": "hd", "path": "res://assets/cars_sketchfab/2024_ford_f-150_raptor_r/scene.gltf", "len": 5.9, "paint": "RaptorPaaint", "tail": ""},
 	{"id": "ram_1500_trx", "name": "RAM 1500 TRX", "kind": "hd", "path": "res://assets/cars_sketchfab/2021_ram_1500_trx/scene.gltf", "len": 5.9, "paint": "RAM_1500TRX_2021Paint_Material", "tail": "RED_GLASS"},
 	{"id": "skyline_r34", "name": "Nissan Skyline GT-R R34", "kind": "hd", "path": "res://assets/cars_sketchfab/nissan-skyline-r34.glb", "len": 4.6},
+	{"id": "skyline_r34_brian", "name": "Nissan Skyline R34 \"Brian\"", "kind": "hd", "path": "res://assets/cars_sketchfab/nissan_r34_brian/scene.gltf", "len": 4.6, "tail": "red_glass"},
+	{"id": "charger_1970", "name": "Dodge Charger R/T 1970", "kind": "hd", "path": "res://assets/cars_sketchfab/dodge_charger_1970/scene.gltf", "len": 5.3, "tail": "GlassRed"},
+	{"id": "porsche_911_gt3", "name": "Porsche 911 GT3", "kind": "hd", "path": "res://assets/cars_sketchfab/porsche_911_gt3/scene.gltf", "len": 4.6, "paint": "Porsche_911GT3_2022Paint_Material", "tail": "RED_GLASS"},
+	{"id": "mustang_1969", "name": "Ford Mustang 1969 John Bowe", "kind": "hd", "path": "res://assets/cars_sketchfab/ford-mustang-1969-john-bowe.glb", "len": 4.8, "tail": "redglass"},
 	{"id": "silvia_s15", "name": "Nissan Silvia S15 Drift", "kind": "hd", "path": "res://assets/cars_sketchfab/nissan-silvia-s15-drift.glb", "len": 4.45, "paint": "CAR_BODY_PAINT"},
 	{"id": "mr2_w20", "name": "Toyota MR2 W20", "kind": "hd", "path": "res://assets/cars_sketchfab/toyota-mr2-w20.glb", "len": 4.2, "paint": "body_paint"},
 	{"id": "bmw_m3_e36", "name": "BMW M3 E36", "kind": "hd", "path": "res://assets/cars_sketchfab/bmw-m3-e36.glb", "len": 4.4, "paint": "yellow"},
@@ -73,12 +77,12 @@ const CARS := [
 
 
 ## Driven wheels for each car: "RWD" (rear), "FWD" (front) or "AWD" (all four).
-const RWD := ["mclaren_600lt", "silvia_s15", "mr2_w20", "bmw_m3_e36", "mustang_gt", "kiri_86", "classic_muscle",
+const RWD := ["mclaren_600lt", "charger_1970", "porsche_911_gt3", "mustang_1969", "silvia_s15", "mr2_w20", "bmw_m3_e36", "mustang_gt", "kiri_86", "classic_muscle",
 	"doutrive_78", "sports", "muscle", "muscle_2", "roadster", "police_sports", "police_muscle",
 	"limousine", "truck", "truck_with_trailer", "bus", "firetruck", "k_race", "k_race_future", "k_sedan_sports",
 	"k_truck", "k_truck_flat", "k_garbage_truck", "k_firetruck", "k_tractor", "k_tractor_police",
 	"k_tractor_shovel", "k_kart_oobi", "k_kart_oodi", "k_kart_ooli", "k_kart_oopi", "k_kart_oozi"]
-const AWD := ["skyline_r34", "ford_raptor_r", "ram_1500_trx", "suv", "pickup", "monster_truck", "police_suv", "k_suv",
+const AWD := ["skyline_r34", "skyline_r34_brian", "ford_raptor_r", "ram_1500_trx", "suv", "pickup", "monster_truck", "police_suv", "k_suv",
 	"k_suv_luxury"]
 
 
@@ -90,7 +94,8 @@ const TOP_SPEED := {
 	"sports": 240.0, "k_race": 245.0, "k_race_future": 250.0, "roadster": 225.0, "muscle": 225.0,
 	"muscle_2": 225.0, "k_sedan_sports": 225.0, "k_hatchback_sports": 215.0, "police_sports": 235.0,
 	"ford_raptor_r": 210.0, "ram_1500_trx": 210.0, "doutrive_78": 210.0, "eugene_mk6": 210.0,
-	"furgone_francese": 210.0, "monster_truck": 210.0,
+	"furgone_francese": 210.0, "monster_truck": 210.0, "charger_1970": 230.0, "skyline_r34_brian": 240.0,
+	"porsche_911_gt3": 250.0, "mustang_1969": 225.0,
 }
 
 
@@ -113,11 +118,22 @@ static func find(id: String) -> Dictionary:
 	return {}
 
 
-## Cars whose model files are in this build.
+## The 20 cars in the garage, in the order the garage shows them (Stefano's pick, 2026-10-30).
+## The other CARS stay in the catalog for rivals, police and traffic.
+const GARAGE := [
+	"mclaren_600lt", "charger_1970", "skyline_r34_brian", "porsche_911_gt3", "mustang_1969",
+	"skyline_r34", "silvia_s15", "mr2_w20", "bmw_m3_e36", "mustang_gt", "kiri_86", "classic_muscle",
+	"ford_raptor_r", "ram_1500_trx", "doutrive_78", "eugene_mk6",
+	"sports", "muscle", "k_race", "k_race_future",
+]
+
+
+## Garage cars whose model files are in this build.
 static func available() -> Array:
 	var out := []
-	for c in CARS:
-		if ResourceLoader.exists(model_path(c)):
+	for id in GARAGE:
+		var c := find(id)
+		if not c.is_empty() and ResourceLoader.exists(model_path(c)):
 			out.append(c)
 	return out
 

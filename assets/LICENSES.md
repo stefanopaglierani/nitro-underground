@@ -186,3 +186,15 @@ Le auto di marchi reali (Nissan, Toyota, BMW, Ford) vanno bene per il prototipo 
 | `nissan-silvia-s15-drift.glb` | Nissan Silvia Drift Tuned (S15) | VuckyZ | CC BY 4.0 | https://sketchfab.com/3d-models/84b63a057e36488589392a19b9313e2b |
 | `bmw-m3-e36.glb` | Low poly BMW M3 E36 | sebbelon | CC BY 4.0 | https://sketchfab.com/3d-models/84c207be5933481fa754add04f196926 |
 | `ford-mustang-gt-2013.glb` | 2013 Ford Mustang GT | Ddiaz Design | CC BY-NC-SA 4.0 | https://sketchfab.com/3d-models/1368b104aa8148a3be15f4dfc8832045 |
+
+### Auto scaricate da Stefano (30/10/2026) — `assets/cars_sketchfab/`
+
+Scaricate a mano da Stefano su Sketchfab. Charger, Skyline "Brian" e Porsche sono la versione glTF di Sketchfab (non modificata, con il suo `license.txt`); la Mustang è il GLB originale dello zip "source". In gioco vengono scalate, girate e appoggiate a terra come le altre.
+Marchi reali e auto dei film: vanno bene per il prototipo e il portfolio, da rivedere prima di pubblicare sugli store. Charger e Porsche sono non commerciali.
+
+| File | Modello | Autore | Licenza | Pagina |
+|---|---|---|---|---|
+| `dodge_charger_1970/` | 1970 Dodge Charger R/T Fast And Furious Edition | OUTPISTON | CC BY-NC-SA 4.0 (`license.txt`) | https://sketchfab.com/3d-models/fd195aaa9dad4aefbace532050b7fca6 |
+| `nissan_r34_brian/` | Nissan R34 Brians Fast Furious \| www.vecarz.com | vecarz | CC BY 4.0 (`license.txt`) | https://sketchfab.com/3d-models/412aa249c2f548eebf64bdb35f3553af |
+| `porsche_911_gt3/` | Porsche 911 GT3 | Outlaw Games™ | CC BY-NC 4.0 (`license.txt`) | https://sketchfab.com/3d-models/593c83f3662a4a45a016f95dedd9f243 |
+| `ford-mustang-1969-john-bowe.glb` | Ford Mustang John Bowe 1969 \| www.vecarz.com | vecarz | CC BY 4.0 (dalla pagina Sketchfab, lo zip non ha license.txt) | https://sketchfab.com/3d-models/91a5454aaf02492a9c7e959b8eb6db9f |
