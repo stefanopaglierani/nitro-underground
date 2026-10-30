@@ -561,7 +561,8 @@ func _build_trees() -> void:
 	if names.is_empty() and not real:
 		models = {"pine": [_pine_mesh(), Transform3D.IDENTITY]}
 		names = ["pine"]
-	var chunk_size := CHUNK * CELL
+	# Realistic trees come in two meshes (trunk and leaves): bigger groups keep draw calls down.
+	var chunk_size := CHUNK * CELL * (2.0 if real else 1.0)
 	var per_chunk := {}  # Vector3i(chunk x, chunk z, model) -> transforms
 	var trunks: Array[Vector3] = []
 	var size := (_gw - 1) * CELL
@@ -581,7 +582,7 @@ func _build_trees() -> void:
 		var model_i: int
 		var s: float
 		if real:
-			model_i = _rng.randi() % SCENERY_TREES.size() if d < 90.0 else 0
+			model_i = _rng.randi() % SCENERY_TREES.size() if d < 55.0 else 0
 			s = _rng.randf_range(12.0, 22.0)  # Scenery models are 1 m tall
 		else:
 			model_i = names.find(names[_rng.randi() % names.size()])
@@ -597,7 +598,8 @@ func _build_trees() -> void:
 	for key in per_chunk:
 		var list: Array = per_chunk[key]
 		if real:
-			Scenery.scatter(self, SCENERY_TREES[key.z], 1.0, list, 700.0)
+			# The detailed trees only show up close; far slopes keep the light one.
+			Scenery.scatter(self, SCENERY_TREES[key.z], 1.0, list, 700.0 if key.z == 0 else 260.0)
 			continue
 		var model: Array = models[names[key.z]]
 		var mm := MultiMesh.new()
