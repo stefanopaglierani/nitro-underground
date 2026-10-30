@@ -13,12 +13,11 @@ const CYAN := Color(0.1, 0.9, 1)
 
 var root: Control
 var touch: Node2D
-var speed_label: Label
+var dashboard: Dashboard
 var info_label: Label
 var message_label: Label
 var heat_label: Label
 var heat_boxes: Array[ColorRect] = []
-var nitro_bar: ProgressBar
 var escape_bar: ProgressBar
 var menu_panel: Control
 var end_panel: Control
@@ -26,6 +25,9 @@ var end_title: Label
 var end_text: Label
 var car_name_label: Label
 var pause: Button
+var loading_panel: Control
+var loading_bar: ProgressBar
+var loading_label: Label
 var car_index_label: Label
 var _buttons: Dictionary = {}
 var _message_t := 0.0
@@ -37,13 +39,8 @@ func _ready() -> void:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
 
-	speed_label = _label(56, Color.WHITE)
-	speed_label.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	speed_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	speed_label.offset_left = -200
-	speed_label.offset_right = 200
-	speed_label.offset_top = -110
-	speed_label.offset_bottom = -30
+	dashboard = Dashboard.new()
+	root.add_child(dashboard)
 
 	info_label = _label(26, Color.WHITE)
 	info_label.position = Vector2(24, 18)
@@ -95,13 +92,13 @@ func _ready() -> void:
 	add_child(touch)
 	_make_touch("steer_left", "", 0, CYAN)
 	_make_touch("steer_right", "", 1, CYAN)
-	_make_touch("brake", "FRENO", 2, Color(1, 0.3, 0.3))
-	_make_touch("handbrake", "DERAPA", 3, Color(1, 0.75, 0.2))
-	_make_touch("nitro", "NITRO", 4, Color(0.3, 0.6, 1))
-
-	nitro_bar = _bar(Color(0.3, 0.6, 1))
+	_make_touch("throttle", "GAS", 2, Color(0.3, 1, 0.45))
+	_make_touch("brake", "FRENO", 3, Color(1, 0.3, 0.3))
+	_make_touch("handbrake", "DERAPA", 4, Color(1, 0.75, 0.2))
+	_make_touch("nitro", "NITRO", 5, Color(0.3, 0.6, 1))
 	_build_menu()
 	_build_end()
+	_build_loading()
 	get_viewport().size_changed.connect(_layout)
 	_layout()
 
@@ -186,17 +183,18 @@ func _layout() -> void:
 	var bottom := s.y - d - 26.0
 	(_buttons[0] as Node2D).position = Vector2(30, bottom)
 	(_buttons[1] as Node2D).position = Vector2(30 + d + 24, bottom)
+	# Right thumb: GAS in the corner, FRENO beside it, NITRO above GAS and DERAPA above FRENO.
 	(_buttons[2] as Node2D).position = Vector2(s.x - d - 30, bottom)
 	(_buttons[3] as Node2D).position = Vector2(s.x - 2 * d - 54, bottom)
-	(_buttons[4] as Node2D).position = Vector2(s.x - d - 30, bottom - d - 30)
-	nitro_bar.position = Vector2(s.x - d - 30, bottom - 30 - 22)
-	nitro_bar.size = Vector2(d, 14)
+	(_buttons[4] as Node2D).position = Vector2(s.x - 2 * d - 54, bottom - d - 24)
+	(_buttons[5] as Node2D).position = Vector2(s.x - d - 30, bottom - d - 24)
+	dashboard.size = Vector2(260, 200)
+	dashboard.position = Vector2((s.x - dashboard.size.x) / 2.0, s.y - dashboard.size.y - 6.0)
 
 
 func show_controls(on: bool) -> void:
 	touch.visible = on
-	speed_label.visible = on
-	nitro_bar.visible = on
+	dashboard.visible = on
 
 
 func set_heat(heat: float) -> void:
@@ -334,6 +332,68 @@ func _build_menu() -> void:
 	var escape := _big_button(modes, "FUGA DALLA POLIZIA", CYAN)
 	escape.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	escape.pressed.connect(func(): mode_chosen.emit("escape"))
+
+
+## Full-screen loading page with a progress bar, shown while the level and the cars are built.
+func _build_loading() -> void:
+	var bg := ColorRect.new()
+	bg.color = Color(0.03, 0.02, 0.07)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root.add_child(bg)
+	loading_panel = bg
+	var title := Label.new()
+	title.text = "NITRO UNDERGROUND"
+	title.set_anchors_preset(Control.PRESET_CENTER)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.offset_left = -500
+	title.offset_right = 500
+	title.offset_top = -150
+	title.offset_bottom = -60
+	title.add_theme_font_size_override("font_size", 64)
+	title.add_theme_color_override("font_color", ACCENT)
+	title.add_theme_color_override("font_outline_color", CYAN)
+	title.add_theme_constant_override("outline_size", 4)
+	bg.add_child(title)
+	loading_bar = ProgressBar.new()
+	loading_bar.show_percentage = false
+	loading_bar.max_value = 1.0
+	var back := StyleBoxFlat.new()
+	back.bg_color = Color(1, 1, 1, 0.08)
+	back.border_color = Color(CYAN.r, CYAN.g, CYAN.b, 0.6)
+	back.set_border_width_all(2)
+	back.set_corner_radius_all(10)
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = ACCENT
+	fill.set_corner_radius_all(10)
+	loading_bar.add_theme_stylebox_override("background", back)
+	loading_bar.add_theme_stylebox_override("fill", fill)
+	loading_bar.set_anchors_preset(Control.PRESET_CENTER)
+	loading_bar.offset_left = -360
+	loading_bar.offset_right = 360
+	loading_bar.offset_top = -10
+	loading_bar.offset_bottom = 26
+	bg.add_child(loading_bar)
+	loading_label = Label.new()
+	loading_label.set_anchors_preset(Control.PRESET_CENTER)
+	loading_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	loading_label.offset_left = -500
+	loading_label.offset_right = 500
+	loading_label.offset_top = 40
+	loading_label.offset_bottom = 90
+	loading_label.add_theme_font_size_override("font_size", 26)
+	loading_label.add_theme_color_override("font_color", Color(0.8, 0.85, 0.95))
+	bg.add_child(loading_label)
+	bg.visible = false
+
+
+func show_loading(text: String, progress: float) -> void:
+	loading_panel.visible = true
+	loading_bar.value = progress
+	loading_label.text = "Caricamento: %s   %d%%" % [text, roundi(progress * 100.0)]
+
+
+func hide_loading() -> void:
+	loading_panel.visible = false
 
 
 func set_car(car_name: String, index: int, total: int) -> void:

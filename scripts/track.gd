@@ -7,10 +7,34 @@ extends Node3D
 var extent := 0.0
 ## Camera far plane for this level.
 var view_distance := 900.0
+## Racing line painted on the road (hidden unless the game shows it), or null.
+var guide: Node3D
 
 
 func build() -> void:
 	pass
+
+
+## The build split into steps, so the loading screen can show progress between them: an array of
+## [label, Callable]. By default one step that runs build().
+func build_steps() -> Array:
+	return [["Livello", build]]
+
+
+## How far `pos` is outside the drivable area, in metres (0 or less: inside). INF-safe default:
+## levels without a limit always answer 0.
+func off_track_distance(_pos: Vector3) -> float:
+	return 0.0
+
+
+## Where to put a car back on the road near `pos`: [position, facing].
+func recovery_point(pos: Vector3) -> Array:
+	return [pos + Vector3(0, 1, 0), Vector3.FORWARD]
+
+
+## Racing line drawn on the road, if the level has one (see Mountain).
+func racing_line() -> Array[Vector3]:
+	return []
 
 
 ## Sky, sun and fog for this level, added under `parent`.
