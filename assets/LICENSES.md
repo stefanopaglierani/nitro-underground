@@ -198,3 +198,18 @@ Marchi reali e auto dei film: vanno bene per il prototipo e il portfolio, da riv
 | `nissan_r34_brian/` | Nissan R34 Brians Fast Furious \| www.vecarz.com | vecarz | CC BY 4.0 (`license.txt`) | https://sketchfab.com/3d-models/412aa249c2f548eebf64bdb35f3553af |
 | `porsche_911_gt3/` | Porsche 911 GT3 | Outlaw Games™ | CC BY-NC 4.0 (`license.txt`) | https://sketchfab.com/3d-models/593c83f3662a4a45a016f95dedd9f243 |
 | `ford-mustang-1969-john-bowe.glb` | Ford Mustang John Bowe 1969 \| www.vecarz.com | vecarz | CC BY 4.0 (dalla pagina Sketchfab, lo zip non ha license.txt) | https://sketchfab.com/3d-models/91a5454aaf02492a9c7e959b8eb6db9f |
+
+## Paesaggio realistico (Sketchfab, CC-BY 4.0) — `assets/scenery/`
+
+Modelli scaricati il 2026-10-30 in formato glTF dall'API di Sketchfab. Licenza **CC Attribution 4.0** (uso commerciale consentito, attribuzione obbligatoria: i crediti qui sotto vanno riportati anche nei titoli di coda del gioco). Modifiche comuni a tutti: texture ridotte a 1024 px; il gioco converte le foglie in alpha scissor e le tinge (scripts/scenery.gd).
+
+| Cartella | Modello | Autore | Link | Modifiche |
+|---|---|---|---|---|
+| `pine/` | Pine Tree [Game-ready] | Wenedi | https://sketchfab.com/3d-models/pine-tree-game-ready-dc3fbd9205cf4027a4455d1f415e0478 | Bordi trasparenti delle foglie riempiti di verde (niente alone bianco) |
+| `spruce/` | Spruce tree | Georgeous (intice184) | https://sketchfab.com/3d-models/spruce-tree-7a5db417827244d98827459bce0cc944 | Come sopra |
+| `scots_pine/` | Pine Tree | evolveduk | https://sketchfab.com/3d-models/pine-tree-d45218a3fab349e5b1de040f29e7b6f9 | Come sopra |
+| `pine_scan/` | Pine tree 01 | POLYSCAN (POLYSCAN3D) | https://sketchfab.com/3d-models/pine-tree-01-ba7c8f8e1cb549b3a3a30f1221386c8c | Come sopra |
+| `alpine_chalet/` | Alpine Chalet house | Gerhald | https://sketchfab.com/3d-models/alpine-chalet-house-2ac40506a2d74e60be6e9df6657a6367 | Nessuna |
+| `traffic_cone/` | Traffic cone (Game ready) | PT34 | https://sketchfab.com/3d-models/traffic-cone-game-ready-8cdac192abd044988c314eeb6377a3a0 | Nessuna (non ancora usato: i coni vengono dal pacchetto barriere) |
+| `street_signs/` | Worn street signs | Nicolai Kilstrup (nkilstrup) | https://sketchfab.com/3d-models/worn-street-signs-e8a1cfe8e0254e4e8b9edaf96c23e259 | Nessuna |
+| `barriers/` | Barrier & Traffic Cone Pack | Sabri Ayeş (sabriayes) | https://sketchfab.com/3d-models/barrier-traffic-cone-pack-23c4dfca76a24bf0b21894847867af2a | Nessuna |
