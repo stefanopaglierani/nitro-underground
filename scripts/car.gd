@@ -153,6 +153,9 @@ var _siren_red: StandardMaterial3D
 var _siren_blue: StandardMaterial3D
 var _siren_light: OmniLight3D
 var _hit_cooldown := 0.0
+## AI only: seconds left with the driver thrown by a hit from another car. Meanwhile the tyres
+## grip less and the yaw assist is off, so the car is pushed, slides and spins like a real one.
+var _knocked := 0.0
 var _time := 0.0
 
 
@@ -173,6 +176,8 @@ func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 	continuous_cd = true
 	contact_monitor = true
 	max_contacts_reported = 6
+	collision_layer = TrafficCar.WORLD_LAYER | TrafficCar.CARS_LAYER
+	collision_mask = TrafficCar.WORLD_LAYER | TrafficCar.TRAFFIC_LAYER
 	var phys := PhysicsMaterial.new()
 	phys.friction = 0.35
 	phys.bounce = 0.15
@@ -312,11 +317,18 @@ func _physics_process(delta: float) -> void:
 	if frozen:
 		_update_visuals(delta)
 		return
-	match driver:
-		Driver.RACER:
-			_drive_racer(delta)
-		Driver.POLICE:
-			_drive_police(delta)
+	if _knocked > 0.0:
+		_knocked -= delta
+		in_throttle = 0.0
+		in_brake = 0.0
+		in_handbrake = false
+		in_nitro = false
+	else:
+		match driver:
+			Driver.RACER:
+				_drive_racer(delta)
+			Driver.POLICE:
+				_drive_police(delta)
 	_apply_vehicle_forces(delta)
 	_check_recovery(delta)
 	_update_visuals(delta)
@@ -416,7 +428,7 @@ func _apply_vehicle_forces(delta: float) -> void:
 		var v_long := pv.dot(w_fwd)
 		var v_lat := pv.dot(w_right)
 
-		var mu := grip
+		var mu := grip * (0.35 if _knocked > 0.0 else 1.0)
 		if in_handbrake and not front:
 			mu = handbrake_rear_grip
 		var max_f := mu * load
@@ -458,7 +470,7 @@ func _apply_vehicle_forces(delta: float) -> void:
 		# Yaw assist: pull the spin rate towards what the steering asks for.
 		var target_yaw := -speed * tan(_steer) / (WHEEL_Z * 2.0)
 		var yaw := angular_velocity.dot(up)
-		var assist := yaw_assist * (0.5 if in_handbrake else 1.0)
+		var assist := yaw_assist * (0.5 if in_handbrake else 1.0) * (0.0 if _knocked > 0.0 else 1.0)
 		apply_torque(up * (target_yaw - yaw) * assist * mass * 1.5 * float(wheels_on_ground) / 4.0)
 		apply_central_force(-up * downforce * v.length_squared())
 	elif not on_ground:
@@ -557,6 +569,13 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 			state.linear_velocity = _prev_velocity * 0.75
 			break
 	var v_now := state.linear_velocity
+	if driver != Driver.PLAYER:
+		for i in state.get_contact_count():
+			var other := state.get_contact_collider_object(i)
+			if other is RigidBody3D and state.get_contact_local_normal(i).y < 0.7:
+				var knock := state.get_contact_impulse(i).length() / mass
+				if knock > 2.5:
+					_knocked = maxf(_knocked, clampf(knock * 0.15, 0.6, 1.8))
 	if _hit_cooldown <= 0.0:
 		for i in state.get_contact_count():
 			var n := state.get_contact_local_normal(i)
@@ -731,8 +750,8 @@ func _avoid_traffic(prev: Vector3, dir: Vector3, side: Vector3) -> float:
 
 
 func _velocity_of(n: Node3D) -> Vector3:
-	if n is Car:
-		return (n as Car).linear_velocity
+	if n is RigidBody3D:
+		return (n as RigidBody3D).linear_velocity
 	return -n.global_transform.basis.z * float(n.get("speed"))
 
 
