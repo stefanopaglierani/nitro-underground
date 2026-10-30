@@ -219,6 +219,7 @@ static func build_generic(paint: Color, entry: Dictionary) -> Node3D:
 		pm.clearcoat = 1.0
 		pm.clearcoat_roughness = 0.05
 		paint_mat = pm
+	_unskin(model)
 	# Bounds of the car body, leaving out flat ground planes (shadow cards), which are hidden.
 	var meshes: Array[MeshInstance3D] = []
 	var boxes: Array[AABB] = []
@@ -322,6 +323,19 @@ static func build_generic(paint: Color, entry: Dictionary) -> Node3D:
 		root.set_meta("siren_red", red)
 		root.set_meta("siren_blue", blue)
 	return root
+
+
+## Some Sketchfab cars (rigged for opening doors) come as skinned meshes: in glTF their own node
+## transform is ignored and, in the rest pose, the vertices are already in the space of the model
+## root. Turn them into plain meshes placed there, so bounds and wheel pivots work as for the others.
+static func _unskin(model: Node3D) -> void:
+	for node in model.find_children("*", "MeshInstance3D", true, false):
+		var mi := node as MeshInstance3D
+		if mi.skin == null:
+			continue
+		mi.skin = null
+		mi.skeleton = NodePath("")
+		mi.transform = _xf_in(mi.get_parent() as Node3D, model).affine_inverse() if mi.get_parent() != model else Transform3D.IDENTITY
 
 
 static func _material_names(mi: MeshInstance3D) -> String:
