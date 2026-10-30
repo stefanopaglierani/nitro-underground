@@ -1,5 +1,5 @@
 class_name City
-extends Node3D
+extends Track
 ## Night city on a square grid: roads every SPACING metres, one block of buildings between them.
 ## Grid nodes (intersections) go from (0, 0) to (BLOCKS, BLOCKS).
 
@@ -9,9 +9,26 @@ const ROAD := 14.0
 const BLOCK := SPACING - ROAD
 const NEON := [Color(1, 0.12, 0.6), Color(0.1, 0.9, 1), Color(0.65, 0.25, 1), Color(1, 0.55, 0.1), Color(0.25, 1, 0.45)]
 
-var extent := BLOCKS * SPACING
+## Race route through the city, as intersections.
+const ROUTE: Array[Vector2i] = [
+	Vector2i(0, 6), Vector2i(0, 3), Vector2i(2, 3), Vector2i(2, 0),
+	Vector2i(4, 0), Vector2i(4, 4), Vector2i(6, 4), Vector2i(6, 1),
+]
+
 var _rng := RandomNumberGenerator.new()
 var _building_shader: Shader = preload("res://shaders/building.gdshader")
+var _prop_rng := RandomNumberGenerator.new()  # separate from _rng so buildings stay the same
+var _props := {}
+
+# CC0 materials and props: see assets/LICENSES.md.
+const MAT_GROUND := preload("res://assets/materials/road_asphalt.tres")
+const MAT_ROAD := preload("res://assets/materials/road_asphalt_wet.tres")
+const MAT_WALK := preload("res://assets/materials/sidewalk_tiles.tres")
+const CLUTTER: Array[String] = ["barrel_03", "wooden_crate_02", "plastic_crate_02"]
+
+
+func _init() -> void:
+	extent = BLOCKS * SPACING
 
 
 func node_pos(n: Vector2i) -> Vector3:
@@ -59,9 +76,10 @@ func route_point(pos: Vector3, target: Vector3) -> Vector3:
 
 func build() -> void:
 	_rng.seed = 2077
-	var asphalt := CarModel.mat(Color(0.09, 0.09, 0.11), Color.BLACK, 0.0, 0.3, 0.35)
-	var road := CarModel.mat(Color(0.13, 0.13, 0.15), Color.BLACK, 0.0, 0.4, 0.25)
-	var walk := CarModel.mat(Color(0.22, 0.22, 0.25), Color.BLACK, 0.0, 0.0, 0.9)
+	_prop_rng.seed = 1977
+	var asphalt: Material = MAT_GROUND
+	var road: Material = MAT_ROAD
+	var walk: Material = MAT_WALK
 	var mid := extent / 2.0
 
 	# Ground with collision.
@@ -72,6 +90,7 @@ func build() -> void:
 		CarModel.box(self, Vector3(extent + ROAD, 0.02, ROAD), Vector3(mid, 0.01, c), road)
 		CarModel.box(self, Vector3(ROAD, 0.022, extent + ROAD), Vector3(c, 0.011, mid), road)
 	_lane_marks()
+	_ramps()
 
 	for bx in BLOCKS:
 		for bz in BLOCKS:
@@ -83,6 +102,9 @@ func build() -> void:
 	for i in BLOCKS + 1:
 		for j in BLOCKS + 1:
 			_street_lamp(node_pos(Vector2i(i, j)) + Vector3(ROAD / 2.0 + 1.0, 0, ROAD / 2.0 + 1.0))
+			# Utility box on the opposite corner, every other intersection, only where there is a sidewalk.
+			if i < BLOCKS and j > 0 and (i + j) % 2 == 0:
+				_prop("utility_box_01", node_pos(Vector2i(i, j)) + Vector3(ROAD / 2.0 + 1.0, 0.3, -ROAD / 2.0 - 1.0), PI)
 
 	# Barriers around the city edge.
 	var barrier := CarModel.mat(Color(0.15, 0.12, 0.1), Color(1, 0.45, 0.05), 1.2)
@@ -92,6 +114,24 @@ func build() -> void:
 	_static_box(Vector3(mid, 0.6, e), Vector3(extent + ROAD + 4, 1.2, 2), barrier)
 	_static_box(Vector3(s, 0.6, mid), Vector3(2, 1.2, extent + ROAD + 4), barrier)
 	_static_box(Vector3(e, 0.6, mid), Vector3(2, 1.2, extent + ROAD + 4), barrier)
+
+
+## Two-way jump ramps in the middle of a few roads, between the two traffic lanes (traffic drives
+## at 3.5 m from the centre line, so a 5 m wide ramp leaves both lanes free).
+func _ramps() -> void:
+	var mat: Material = load("res://assets/materials/wall_metal_sheet.tres") if ResourceLoader.exists("res://assets/materials/wall_metal_sheet.tres") else null
+	var length := 14.0
+	# [along_x, road index, block index along the road]
+	for r in [[true, 1, 2], [true, 5, 3], [false, 2, 4], [false, 4, 1]]:
+		var ramp := Ramp.create(length, 5.0, 15.0, mat, true)
+		var mid: float = (r[2] + 0.5) * SPACING
+		if r[0]:
+			ramp.position = Vector3(mid - length, 0, r[1] * SPACING)
+			ramp.rotation.y = -PI / 2
+		else:
+			ramp.position = Vector3(r[1] * SPACING, 0, mid - length)
+			ramp.rotation.y = PI
+		add_child(ramp)
 
 
 func _lane_marks() -> void:
@@ -124,6 +164,7 @@ func _buildings(center: Vector3) -> void:
 	for ix in 2:
 		for iz in 2:
 			if _rng.randf() < 0.12:
+				_parking(center + Vector3((ix - 0.5) * lot, 0.3, (iz - 0.5) * lot))
 				continue  # empty lot: parking
 			var w := lot - _rng.randf_range(1.0, 4.0)
 			var d := lot - _rng.randf_range(1.0, 4.0)
@@ -142,6 +183,29 @@ func _buildings(center: Vector3) -> void:
 			if _rng.randf() < 0.35:
 				var sign_col: Color = NEON[_rng.randi() % NEON.size()]
 				CarModel.box(self, Vector3(w * 0.5, 1.6, 0.3), pos + Vector3(0, h / 2.0 + 1.2, 0), CarModel.mat(sign_col * 0.4, sign_col, 4.0))
+
+
+## Empty lot: a couple of parked covered cars and some clutter (visual only, the block collider covers it).
+func _parking(pos: Vector3) -> void:
+	for k in _prop_rng.randi_range(1, 2):
+		_prop("covered_car", pos + Vector3((k - 0.5) * 3.2, 0.0, _prop_rng.randf_range(-2.0, 2.0)), _prop_rng.randf_range(-0.15, 0.15))
+	for k in _prop_rng.randi_range(2, 4):
+		var spot := pos + Vector3(_prop_rng.randf_range(-8.0, 8.0), 0.0, _prop_rng.randf_range(6.0, 8.0) * (1 if _prop_rng.randf() < 0.5 else -1))
+		_prop(CLUTTER[k % CLUTTER.size()], spot, _prop_rng.randf() * TAU)
+
+
+## Instances a glTF prop from assets/props/<name>/. Does nothing if the asset is missing.
+func _prop(prop_name: String, pos: Vector3, yaw: float) -> void:
+	if not _props.has(prop_name):
+		var path := "res://assets/props/%s/%s.gltf" % [prop_name, prop_name]
+		_props[prop_name] = load(path) if ResourceLoader.exists(path) else null
+	var scene: PackedScene = _props[prop_name]
+	if scene == null:
+		return
+	var inst := scene.instantiate() as Node3D
+	inst.position = pos
+	inst.rotation.y = yaw
+	add_child(inst)
 
 
 func _street_lamp(pos: Vector3) -> void:
@@ -164,3 +228,83 @@ func _collider(pos: Vector3, size: Vector3) -> void:
 func _static_box(pos: Vector3, size: Vector3, material: Material) -> void:
 	CarModel.box(self, size, pos, material)
 	_collider(pos, size)
+
+
+# ---------- Track interface ----------
+
+func setup_environment(parent: Node) -> void:
+	var env := Environment.new()
+	env.background_mode = Environment.BG_COLOR
+	env.background_color = Color(0.02, 0.02, 0.06)
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_color = Color(0.35, 0.38, 0.6)
+	env.ambient_light_energy = 0.9
+	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	env.glow_enabled = true
+	env.glow_intensity = 0.9
+	env.glow_bloom = 0.05
+	env.glow_hdr_threshold = 0.9
+	env.fog_enabled = true
+	env.fog_light_color = Color(0.08, 0.05, 0.15)
+	env.fog_density = 0.004
+	var we := WorldEnvironment.new()
+	we.environment = env
+	parent.add_child(we)
+	var moon := DirectionalLight3D.new()
+	moon.rotation_degrees = Vector3(-55, 30, 0)
+	moon.light_color = Color(0.6, 0.65, 1)
+	moon.light_energy = 0.45
+	parent.add_child(moon)
+
+
+func race_path() -> Array[Vector3]:
+	return race_checkpoints()
+
+
+func race_checkpoints() -> Array[Vector3]:
+	var out: Array[Vector3] = []
+	for p in ROUTE:
+		out.append(node_pos(p))
+	return out
+
+
+func escape_start() -> Array:
+	return [node_pos(Vector2i(3, 3)) + Vector3(0, 0, -20), Vector3(0, 0, -1)]
+
+
+func police_spawn(player_pos: Vector3, player_fwd: Vector3, behind: bool, min_d: float, max_d: float, rng: RandomNumberGenerator) -> Array:
+	var best := Vector2i(-1, -1)
+	var best_score := -INF
+	for i in BLOCKS + 1:
+		for j in BLOCKS + 1:
+			var n := Vector2i(i, j)
+			var to := node_pos(n) - player_pos
+			var d := to.length()
+			if d < min_d or d > max_d:
+				continue
+			var score := -to.normalized().dot(player_fwd) if behind else rng.randf()
+			if score > best_score:
+				best_score = score
+				best = n
+	if best.x < 0:
+		best = snap(player_pos + Vector3(90, 0, 0))
+	var spawn := node_pos(best)
+	return [spawn, player_pos - spawn]
+
+
+func autopilot_goal(_pos: Vector3, goal: Vector3) -> Vector3:
+	return node_pos(Vector2i(6, 6)) if goal.x < 1.0 else node_pos(Vector2i(0, 0))
+
+
+## Civilian cars drive straight along one road lane and wrap around at the city edge.
+func traffic_lane(rng: RandomNumberGenerator) -> Dictionary:
+	var along_x := rng.randf() < 0.5
+	var dir := 1.0 if rng.randf() < 0.5 else -1.0
+	var line := rng.randi_range(0, BLOCKS) * SPACING
+	var a := -ROAD / 2.0 + 2.5
+	var b := extent + ROAD / 2.0 - 2.5
+	var curve := Curve3D.new()
+	curve.add_point(Vector3(a, 0, line) if along_x else Vector3(line, 0, a))
+	curve.add_point(Vector3(b, 0, line) if along_x else Vector3(line, 0, b))
+	return {"curve": curve, "offset": 3.5, "dir": dir, "loop": false}
+
