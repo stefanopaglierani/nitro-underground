@@ -832,7 +832,7 @@ func _build_racing_line() -> void:
 		var b := flat[(k + 6) % n] + rights[(k + 6) % n] * line_off[(k + 6) % n]
 		var ang := absf((m - a).angle_to(b - m))
 		var radius := m.distance_to(a) / maxf(2.0 * sin(ang / 2.0), 0.0001)
-		line_speed[k] = minf(sqrt(GRIP * 1.3 * 9.8 * radius), 42.0)
+		line_speed[k] = minf(sqrt(GRIP * 1.3 * 9.8 * radius), 64.0)
 	for _round in 2:
 		for j in n:
 			var k := n - 1 - j

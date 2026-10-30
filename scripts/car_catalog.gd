@@ -82,6 +82,22 @@ const AWD := ["skyline_r34", "ford_raptor_r", "ram_1500_trx", "suv", "pickup", "
 	"k_suv_luxury"]
 
 
+## Top speed in km/h without nitro. Cars not listed get DEFAULT_TOP_SPEED.
+const DEFAULT_TOP_SPEED := 215.0
+const TOP_SPEED := {
+	"mclaren_600lt": 255.0, "skyline_r34": 240.0, "mustang_gt": 235.0, "bmw_m3_e36": 230.0,
+	"silvia_s15": 225.0, "classic_muscle": 225.0, "kiri_86": 220.0, "mr2_w20": 220.0,
+	"sports": 240.0, "k_race": 245.0, "k_race_future": 250.0, "roadster": 225.0, "muscle": 225.0,
+	"muscle_2": 225.0, "k_sedan_sports": 225.0, "k_hatchback_sports": 215.0, "police_sports": 235.0,
+	"ford_raptor_r": 210.0, "ram_1500_trx": 210.0, "doutrive_78": 210.0, "eugene_mk6": 210.0,
+	"furgone_francese": 210.0, "monster_truck": 210.0,
+}
+
+
+static func top_speed(id: String) -> float:
+	return TOP_SPEED.get(id, DEFAULT_TOP_SPEED)
+
+
 static func drivetrain(id: String) -> String:
 	if id in RWD:
 		return "RWD"
