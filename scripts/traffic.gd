@@ -128,6 +128,10 @@ func _physics_process(delta: float) -> void:
 		_wreck_t += delta
 		if _wreck_t > WRECK_TIME and not _seen():
 			_back_on_lane()
+		elif _wreck_t > WRECK_TIME and _can_drive_off():
+			_drive_off()
+		elif _wreck_t > WRECK_TIME * 3.0:
+			_back_on_lane()  # still stuck in plain sight: clear the road anyway, or the lane jams
 		return
 	# Slow down behind a slower car on the same lane instead of driving into it.
 	var want := cruise
@@ -189,6 +193,24 @@ func _lose_control() -> void:
 	gravity_scale = 1.5
 	linear_damp = 0.3
 	angular_damp = 1.0
+	speed = 0.0
+
+
+## A wreck that came to rest upright, roughly along its lane, can simply drive on from there.
+func _can_drive_off() -> bool:
+	if linear_velocity.length() > 1.0 or global_transform.basis.y.y < 0.85:
+		return false
+	var tr := _lane_transform(curve.get_closest_offset(global_position))
+	return tr.origin.distance_to(global_position) < 3.0 and (-global_transform.basis.z).dot(-tr.basis.z) > 0.7
+
+
+func _drive_off() -> void:
+	t = curve.get_closest_offset(global_position)
+	crashed = false
+	_set_driving_layers(true)
+	gravity_scale = 0.0
+	linear_damp = 0.0
+	angular_damp = 0.6
 	speed = 0.0
 
 
