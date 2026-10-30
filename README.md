@@ -46,6 +46,12 @@ La grafica low poly è provvisoria; dal passo 3 si passa a una grafica realistic
 `godot --headless -- --autotest --mode=sprint` fa guidare l'auto da sola per tutta la gara e stampa cosa succede (seme casuale fisso, cambiabile con `--seed=N`).
 Con `--shots=<cartella>` (e un display) salva anche degli screenshot.
 
+## Provarlo su un PC Windows
+
+Copia `tools/windows/Gioca-Nitro.bat` e `tools/windows/gioca-nitro.ps1` in una cartella qualsiasi e fai doppio clic sul `.bat`.
+La prima volta scarica Godot 4.7.2 e il gioco dal ramo `prova-pc` in `%LOCALAPPDATA%\NitroUnderground`, prepara i modelli (5-10 minuti) e lo avvia.
+Le volte dopo riscarica il gioco solo se il ramo `prova-pc` è cambiato. Il mouse fa da dito sui pulsanti a schermo, e funzionano anche frecce/WASD, Spazio e Shift.
+
 ## Build Android
 
 `GODOT=/percorso/godot tools/build_android.sh` crea `build/NitroUnderground.apk`.
