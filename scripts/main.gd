@@ -57,6 +57,8 @@ const CAM_DIST := 6.8
 const CAM_HEIGHT := 2.5
 const CAM_LOOK_AHEAD := 8.0
 ## Always the same distance and the same field of view: only nitro widens the view a little.
+## Civilian cars on the road (they are real rigid bodies, so they can be shoved and wrecked).
+const TRAFFIC_CARS := 24
 const CAM_FOV := 70.0
 const CAM_FOV_NITRO := 76.0
 var _orbit := 0.0
@@ -127,10 +129,14 @@ func _ready() -> void:
 	AnimeStyle.install(get_tree())
 	camera.far = city.view_distance
 	await _loading("Traffico", float(steps.size() + 1) / total)
-	for i in 16:
+	var traffic: Array[TrafficCar] = []
+	for i in TRAFFIC_CARS:
 		var t := TrafficCar.new()
 		add_child(t)
 		t.setup(city, rng)
+		t.place_clear(rng, traffic)
+		traffic.append(t)
+	TrafficCar.link_lanes(traffic)
 	checkpoints = city.race_checkpoints()
 	race_path = city.race_path()
 	_build_markers()
@@ -661,6 +667,24 @@ func _autopilot() -> void:
 		player._steer_towards(target, dt, city.route_point(target, goal))
 
 
+## Test of the crash physics (--ram): throws the player sideways into the nearest driving
+## traffic car at 25 m/s and prints how both move off.
+func _ram_traffic() -> void:
+	var best: TrafficCar
+	for tc: TrafficCar in get_tree().get_nodes_in_group("traffic"):
+		if not tc.crashed and (best == null or tc.global_position.distance_to(player.global_position) < best.global_position.distance_to(player.global_position)):
+			best = tc
+	if best == null:
+		return
+	var side := best.global_transform.basis.x
+	# Traffic keeps right, so the open road is on its left.
+	player.place(best.global_position - side * 9.0, side)
+	player.linear_velocity = side * 25.0
+	print("[autotest] RAM traffic at %s mass=%.0f" % [best.global_position.round(), best.mass])
+	await get_tree().create_timer(0.6).timeout
+	print("[autotest] RAM after 0.6s: traffic v=%.1f crashed=%s up=%.2f | player v=%.1f up=%.2f" % [best.linear_velocity.length(), best.crashed, best.global_transform.basis.y.y, player.linear_velocity.length(), player.global_transform.basis.y.y])
+
+
 func _autotest_tick(delta: float) -> void:
 	_test_t += delta
 	if screenshot_dir != "" and _shots_taken < 6 and _test_t > 1.0 + _shots_taken * 6.0:
@@ -669,7 +693,13 @@ func _autotest_tick(delta: float) -> void:
 		_shots_taken += 1
 	if int(_test_t * 2.0) != int((_test_t - delta) * 2.0):
 		print("[autotest] t=%.1f state=%s speed=%.1f cp=%d heat=%.1f police=%d pos=%s wheels=%d up=%.2f in=(%.1f,%.1f,%.1f,%s)" % [_test_t, state, player.speed, player_cp, heat, police.size(), player.global_position.round(), player.wheels_on_ground, player.global_transform.basis.y.y, player.in_throttle, player.in_brake, player.in_steer, player.in_handbrake])
+	if OS.get_cmdline_user_args().has("--ram") and int(_test_t / 4.0) != int((_test_t - delta) / 4.0):
+		_ram_traffic()
 	if int(_test_t / 5.0) != int((_test_t - delta) / 5.0):
+		var wrecks := 0
+		for tc: TrafficCar in get_tree().get_nodes_in_group("traffic"):
+			wrecks += 1 if tc.crashed else 0
+		print("[autotest]   traffic %d cars, %d wrecked" % [get_tree().get_nodes_in_group("traffic").size(), wrecks])
 		for r in racers:
 			print("[autotest]   racer wp=%d speed=%.1f pos=%s up=%.2f" % [r.wp_index, r.speed, r.global_position.round(), r.global_transform.basis.y.y])
 	if state == "end" or _test_t > 150.0:

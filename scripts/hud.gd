@@ -97,12 +97,12 @@ func _ready() -> void:
 
 	touch = Node2D.new()
 	add_child(touch)
-	_make_touch("steer_left", "", 0, CYAN)
-	_make_touch("steer_right", "", 1, CYAN)
-	_make_touch("throttle", "GAS", 2, Color(0.3, 1, 0.45))
-	_make_touch("brake", "FRENO", 3, Color(1, 0.3, 0.3))
-	_make_touch("handbrake", "DERAPA", 4, Color(1, 0.75, 0.2))
-	_make_touch("nitro", "NITRO", 5, Color(0.3, 0.6, 1))
+	_make_touch("steer_left", 0, CYAN, BTN_BIG)
+	_make_touch("steer_right", 1, CYAN, BTN_BIG)
+	_make_touch("throttle", 2, Color(0.3, 1, 0.45), BTN_BIG)
+	_make_touch("brake", 3, Color(1, 0.3, 0.3), BTN_BIG)
+	_make_touch("handbrake", 4, Color(1, 0.75, 0.2), BTN_SMALL)
+	_make_touch("nitro", 5, Color(0.3, 0.6, 1), BTN_SMALL)
 	_build_menu()
 	_build_end()
 	_build_loading()
@@ -138,63 +138,83 @@ func _bar(color: Color) -> ProgressBar:
 	return b
 
 
-static func _circle(radius: int, color: Color, arrow: int) -> ImageTexture:
-	var size := radius * 2
-	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
-	for y in size:
-		for x in size:
-			var p := Vector2(x - radius + 0.5, y - radius + 0.5)
-			var d := p.length()
-			var c := Color(0, 0, 0, 0)
-			if d < radius - 5:
-				c = Color(color.r, color.g, color.b, 0.22)
-			elif d < radius:
-				c = Color(color.r, color.g, color.b, 0.85)
-			# Steering arrows: a triangle pointing left (-1) or right (+1).
-			if arrow != 0:
-				var ax := p.x * arrow
-				if ax > -radius * 0.3 and ax < radius * 0.35 and absf(p.y) < (radius * 0.35 - ax) * 0.9:
-					c = Color(1, 1, 1, 0.9)
-			img.set_pixel(x, y, c)
+## Touch buttons: a hexagon with a drawn icon, made from SVG at the size it is shown.
+const HEX := "M50 3 L90.7 26.5 L90.7 73.5 L50 97 L9.3 73.5 L9.3 26.5 Z"
+const ICONS := {
+	# Steering: a bold arrow.
+	"steer_left": "<path d='M64 24 L30 50 L64 76 Z' fill='#fff' stroke='#fff' stroke-width='8' stroke-linejoin='round'/>",
+	"steer_right": "<path d='M36 24 L70 50 L36 76 Z' fill='#fff' stroke='#fff' stroke-width='8' stroke-linejoin='round'/>",
+	# Accelerator: a tall narrow pedal with grooves.
+	"throttle": "<rect x='37' y='20' width='26' height='60' rx='7' fill='#fff'/>"
+		+ "<g stroke='#000' stroke-opacity='0.45' stroke-width='3.5' stroke-linecap='round'>"
+		+ "<line x1='43' y1='32' x2='57' y2='32'/><line x1='43' y1='42' x2='57' y2='42'/>"
+		+ "<line x1='43' y1='52' x2='57' y2='52'/><line x1='43' y1='62' x2='57' y2='62'/></g>",
+	# Brake: a wide pedal on its arm, with grooves.
+	"brake": "<line x1='50' y1='18' x2='50' y2='40' stroke='#fff' stroke-width='7' stroke-linecap='round'/>"
+		+ "<rect x='24' y='38' width='52' height='34' rx='8' fill='#fff'/>"
+		+ "<g stroke='#000' stroke-opacity='0.45' stroke-width='3.5' stroke-linecap='round'>"
+		+ "<line x1='32' y1='48' x2='68' y2='48'/><line x1='32' y1='56' x2='68' y2='56'/>"
+		+ "<line x1='32' y1='64' x2='68' y2='64'/></g>",
+	# Handbrake: the lever on its base, with the release button on the tip.
+	"handbrake": "<rect x='20' y='68' width='60' height='12' rx='4' fill='#fff'/>"
+		+ "<line x1='34' y1='70' x2='68' y2='32' stroke='#fff' stroke-width='12' stroke-linecap='round'/>"
+		+ "<circle cx='70' cy='29' r='7' fill='#fff' stroke='#000' stroke-opacity='0.4' stroke-width='3'/>"
+		+ "<circle cx='34' cy='70' r='6' fill='#000' fill-opacity='0.4'/>",
+	# NOS: a gas bottle with its valve and a band.
+	"nitro": "<rect x='41' y='14' width='18' height='7' rx='2' fill='#fff'/>"
+		+ "<rect x='45' y='20' width='10' height='10' fill='#fff'/>"
+		+ "<rect x='33' y='28' width='34' height='58' rx='12' fill='#fff'/>"
+		+ "<rect x='33' y='48' width='34' height='12' fill='#000' fill-opacity='0.4'/>"
+		+ "<line x1='59' y1='17' x2='72' y2='17' stroke='#fff' stroke-width='5' stroke-linecap='round'/>",
+}
+## Button size (hexagon height) in pixels at the 720 px reference height.
+const BTN_BIG := 110.0
+const BTN_SMALL := 92.0
+
+
+static func _hex_texture(action: String, color: Color, size: float, pressed: bool) -> ImageTexture:
+	var col := color.to_html(false)
+	var fill_a := 0.6 if pressed else 0.28
+	var svg := "<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'>"
+	svg += "<path d='%s' fill='#%s' fill-opacity='%.2f' stroke='#%s' stroke-width='5' stroke-linejoin='round'/>" % [HEX, col, fill_a, col]
+	svg += "<g opacity='%.2f' transform='translate(50 50) scale(0.82) translate(-50 -50)'>%s</g>" % [1.0 if pressed else 0.92, ICONS[action]]
+	svg += "</svg>"
+	var img := Image.new()
+	img.load_svg_from_string(svg, size / 100.0)
 	return ImageTexture.create_from_image(img)
 
 
-func _make_touch(action: String, text: String, slot: int, color: Color) -> void:
-	var radius := 78
-	var arrow := -1 if action == "steer_left" else (1 if action == "steer_right" else 0)
+func _make_touch(action: String, slot: int, color: Color, size: float) -> void:
 	var b := TouchScreenButton.new()
-	b.texture_normal = _circle(radius, color, arrow)
-	b.texture_pressed = _circle(radius, color.lightened(0.5), arrow)
+	b.texture_normal = _hex_texture(action, color, size, false)
+	b.texture_pressed = _hex_texture(action, color.lightened(0.35), size, true)
 	b.action = action
 	b.passby_press = true
 	b.visibility_mode = TouchScreenButton.VISIBILITY_ALWAYS
 	var shape := CircleShape2D.new()
-	shape.radius = radius
+	shape.radius = size * 0.5
 	b.shape = shape
 	b.shape_centered = true
-	if text != "":
-		var l := Label.new()
-		l.text = text
-		l.add_theme_font_size_override("font_size", 24)
-		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		l.size = Vector2(radius * 2, radius * 2)
-		b.add_child(l)
 	touch.add_child(b)
 	_buttons[slot] = b
 
 
 func _layout() -> void:
 	var s := root.get_viewport_rect().size
-	var d := 156.0
-	var bottom := s.y - d - 26.0
-	(_buttons[0] as Node2D).position = Vector2(30, bottom)
-	(_buttons[1] as Node2D).position = Vector2(30 + d + 24, bottom)
-	# Right thumb: GAS in the corner, FRENO beside it, NITRO above GAS and DERAPA above FRENO.
-	(_buttons[2] as Node2D).position = Vector2(s.x - d - 30, bottom)
-	(_buttons[3] as Node2D).position = Vector2(s.x - 2 * d - 54, bottom)
-	(_buttons[4] as Node2D).position = Vector2(s.x - 2 * d - 54, bottom - d - 24)
-	(_buttons[5] as Node2D).position = Vector2(s.x - d - 30, bottom - d - 24)
+	var big := BTN_BIG
+	var small := BTN_SMALL
+	var gap := 14.0
+	var bottom := s.y - big - 22.0
+	var raised := bottom - small - 6.0
+	# Left thumb: the two steering arrows, with NOS just above between them, so the right thumb
+	# can stay on the accelerator.
+	(_buttons[0] as Node2D).position = Vector2(28, bottom)
+	(_buttons[1] as Node2D).position = Vector2(28 + big + gap, bottom)
+	(_buttons[5] as Node2D).position = Vector2(28 + big + gap * 0.5 - small * 0.5, raised)
+	# Right thumb: accelerator in the corner, brake beside it, handbrake above between them.
+	(_buttons[2] as Node2D).position = Vector2(s.x - big - 28, bottom)
+	(_buttons[3] as Node2D).position = Vector2(s.x - 2 * big - gap - 28, bottom)
+	(_buttons[4] as Node2D).position = Vector2(s.x - big - 28 - gap * 0.5 - small * 0.5, raised)
 	dashboard.size = Vector2(260, 200)
 	dashboard.position = Vector2((s.x - dashboard.size.x) / 2.0, s.y - dashboard.size.y - 6.0)
 
