@@ -1,42 +1,64 @@
 extends Node3D
-## Sets up the city, cars, camera and HUD, and runs the race and police rules.
+## Sets up the level, cars, camera and HUD, and runs the race and police rules.
 ## Modes: "sprint" (race against 3 rivals, police join after a while) and "escape" (lose the police).
+## Levels: "mountain" (daytime mountain road, default) and "city" (night city), see Track.
 
 static var start_mode := ""
-
-const ROUTE: Array[Vector2i] = [
-	Vector2i(0, 6), Vector2i(0, 3), Vector2i(2, 3), Vector2i(2, 0),
-	Vector2i(4, 0), Vector2i(4, 4), Vector2i(6, 4), Vector2i(6, 1),
-]
-const RIVAL_COLORS := [Color(0.1, 0.85, 0.3), Color(1, 0.55, 0.05), Color(0.6, 0.2, 1)]
+static var level := "mountain"
+## Position of the chosen car in the garage list (kept across scene reloads).
+static var car_index := -1
+const RIVAL_COLORS := [Color(0.1, 0.85, 0.3), Color(1, 0.55, 0.05), Color(0.1, 0.55, 1)]
 const CHECKPOINT_RADIUS := 16.0
-const AI_ADVANCE_RADIUS := 9.0
+const AI_ADVANCE_RADIUS := 12.0
 const PRIZE := 5000
 const ESCAPE_DISTANCE := 110.0
 const ESCAPE_TIME := 10.0
+const OFF_TRACK_WARN := 1.0
+const OFF_TRACK_LIMIT := 3.0
+const OFF_TRACK_TIME := 3.0
+const OFF_TRACK_FAR := 45.0
 
-var city: City
+var city: Track
 var hud: Hud
 var camera: Camera3D
 var player: Car
 var racers: Array[Car] = []
 var police: Array[Car] = []
 var checkpoints: Array[Vector3] = []
+var race_path: Array[Vector3] = []
 var cp_marker: Node3D
+var cp_beam: Node3D
 var arrow: Node3D
 var rng := RandomNumberGenerator.new()
 
 var mode := ""
-var state := "menu"  # menu, countdown, race, end
+var _garage: Array = []  # CarCatalog entries available in this build
+var _preview: Node3D
+var _preview_dist := 8.0
+var _swipe := 0.0
+var state := "loading"  # loading, menu, countdown, race, end
 var countdown := 0.0
 var race_time := 0.0
 var player_cp := 1
+var player_wp := 1  # index in race_path, for the race position
 var finish_order: Array[Car] = []
 var heat := 0.0
 var bust_t := 0.0
 var escape_t := 0.0
 var police_called := false
+var _off_track_t := {}
+var _warn_t := 0.0
 var cam_yaw := 0.0
+var _cam_dist := CAM_DIST
+var _cam_y := 0.0
+var _cam_ray := PhysicsRayQueryParameters3D.new()
+# Chase camera: behind the car and a little above it, looking down the road.
+const CAM_DIST := 6.8
+const CAM_HEIGHT := 2.5
+const CAM_LOOK_AHEAD := 8.0
+## Always the same distance and the same field of view: only nitro widens the view a little.
+const CAM_FOV := 70.0
+const CAM_FOV_NITRO := 76.0
 var _orbit := 0.0
 
 var autotest := false
@@ -52,6 +74,11 @@ func _ready() -> void:
 	DisplayServer.screen_set_keep_on(true)
 	var args := OS.get_cmdline_user_args()
 	autotest = args.has("--autotest")
+	if autotest:
+		rng.seed = 1234  # same city traffic and rivals on every test run
+	for a in args:
+		if a.begins_with("--seed="):
+			rng.seed = int(a.substr(7))
 	for a in args:
 		if a.begins_with("--shots="):
 			screenshot_dir = a.substr(8)
@@ -60,41 +87,165 @@ func _ready() -> void:
 	for a in args:
 		if a.begins_with("--mode="):
 			start_mode = a.substr(7)
+		if a.begins_with("--level="):
+			level = a.substr(8)
+		if a.begins_with("--car="):
+			Car.player_body = a.substr(6)
 
 	_setup_input()
-	_setup_environment()
-	city = City.new()
+	hud = Hud.new()
+	add_child(hud)
+	hud.show_menu(false)
+	hud.show_controls(false)
+	hud.pause.visible = false
+	hud.mode_chosen.connect(_begin_race)
+	hud.restart_pressed.connect(func(): _reload(mode))
+	hud.menu_pressed.connect(func(): _reload(""))
+	hud.car_step.connect(_step_car)
+	camera = Camera3D.new()
+	camera.fov = CAM_FOV
+	camera.near = 0.1
+	add_child(camera)
+
+	# Build the level one step at a time, drawing the loading bar in between.
+	city = City.new() if level == "city" else Mountain.new()
 	add_child(city)
-	city.build()
+	var steps := city.build_steps()
+	var total := steps.size() + 4
+	for i in steps.size():
+		await _loading(steps[i][0], float(i) / total)
+		(steps[i][1] as Callable).call()
+	await _loading("Cielo e luce", float(steps.size()) / total)
+	city.setup_environment(self)
+	camera.far = city.view_distance
+	await _loading("Traffico", float(steps.size() + 1) / total)
 	for i in 16:
 		var t := TrafficCar.new()
 		add_child(t)
 		t.setup(city, rng)
-
-	camera = Camera3D.new()
-	camera.fov = 55
-	camera.far = 800
-	add_child(camera)
-
-	hud = Hud.new()
-	add_child(hud)
-	hud.mode_chosen.connect(_on_mode_chosen)
-	hud.restart_pressed.connect(func(): _on_mode_chosen(mode))
-	hud.menu_pressed.connect(func(): _on_mode_chosen(""))
-
-	for p in ROUTE:
-		checkpoints.append(city.node_pos(p))
+	checkpoints = city.race_checkpoints()
+	race_path = city.race_path()
 	_build_markers()
 
 	if start_mode == "":
-		hud.show_menu(true)
+		await _loading("Garage", float(steps.size() + 2) / total)
 		state = "menu"
+		_open_garage()
+		await _loading("Pronto", 1.0)
+		hud.hide_loading()
+		hud.show_menu(true)
 	else:
-		_start(start_mode)
+		await _begin_race(start_mode, float(steps.size() + 2) / total)
 
 
-func _on_mode_chosen(m: String) -> void:
+## Shows the loading page and waits for it to be drawn before the next (blocking) step.
+func _loading(text: String, progress: float) -> void:
+	hud.show_loading(text, progress)
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+
+## Loads the cars for a race with the loading bar running (from `from` to 100 %), then starts it.
+## The level is already built, so leaving the menu doesn't rebuild it.
+func _begin_race(m: String, from := 0.0) -> void:
+	if state != "menu" and state != "loading":
+		return
+	state = "loading"
+	hud.show_menu(false)
+	hud.show_controls(false)
+	hud.pause.visible = false
+	if _preview:
+		_preview.queue_free()
+		_preview = null
+	# Read the car models from disk in the background, with the bar following the progress.
+	var paths: Array[String] = []
+	for id in [Car.player_body] + Car.RACER_BODIES + Car.POLICE_BODIES:
+		var entry := CarCatalog.find(id)
+		var path: String = CarModel.RGSDEV_DIR + id + ".fbx" if entry.is_empty() else CarCatalog.model_path(entry)
+		if ResourceLoader.exists(path) and not ResourceLoader.has_cached(path) and not paths.has(path):
+			paths.append(path)
+			ResourceLoader.load_threaded_request(path)
+	var span := (1.0 - from) * 0.8
+	while true:
+		var done := 0.0
+		for path in paths:
+			var progress := []
+			var status := ResourceLoader.load_threaded_get_status(path, progress)
+			done += 1.0 if status != ResourceLoader.THREAD_LOAD_IN_PROGRESS else float(progress[0])
+		await _loading("Auto", from + span * (done / maxf(paths.size(), 1.0)))
+		if done >= paths.size():
+			break
+	for path in paths:
+		ResourceLoader.load_threaded_get(path)
+	await _loading("Griglia di partenza", from + span)
+	_start(m)
+	await _loading("Pronto", 1.0)
+	hud.hide_loading()
+	hud.show_menu(false)
+
+
+# ---------- Garage (car choice on the title screen) ----------
+
+func _open_garage() -> void:
+	_garage = CarCatalog.available()
+	if car_index < 0 or car_index >= _garage.size():
+		car_index = 0
+		for i in _garage.size():
+			if _garage[i]["id"] == Car.player_body:
+				car_index = i
+	_show_car()
+
+
+func _step_car(dir: int) -> void:
+	if state != "menu" or _garage.is_empty():
+		return
+	car_index = posmod(car_index + dir, _garage.size())
+	_show_car()
+
+
+func _show_car() -> void:
+	var entry: Dictionary = _garage[car_index]
+	Car.player_body = entry["id"]
+	hud.set_car(entry["name"], car_index, _garage.size())
+	if _preview:
+		_preview.queue_free()
+	_preview = CarModel.build(Color(0, 0, 0, 0), entry["id"].contains("police"), entry["id"])
+	add_child(_preview)
+	var grid := city.start_grid(1)
+	_preview.global_transform = Transform3D(Basis.looking_at(grid[0][1], Vector3.UP), grid[0][0])
+	var length := 0.0
+	for mi in _preview.find_children("*", "MeshInstance3D", true, false):
+		var bb: AABB = CarModel._xf_in(mi, _preview) * (mi as MeshInstance3D).get_aabb()
+		length = maxf(length, maxf(absf(bb.position.z), absf(bb.end.z)))
+	_preview_dist = clampf(length * 2.6, 6.5, 30.0)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if state != "menu":
+		return
+	var dx := 0.0
+	if event is InputEventScreenDrag:
+		dx = (event as InputEventScreenDrag).relative.x
+	elif event is InputEventMouseMotion and (event as InputEventMouseMotion).button_mask & MOUSE_BUTTON_MASK_LEFT:
+		dx = (event as InputEventMouseMotion).relative.x
+	elif event is InputEventScreenTouch and not (event as InputEventScreenTouch).pressed:
+		_swipe = 0.0
+	elif event.is_action_pressed("steer_left"):
+		_step_car(-1)
+	elif event.is_action_pressed("steer_right"):
+		_step_car(1)
+	_swipe += dx
+	if absf(_swipe) > 90.0:
+		_step_car(-1 if _swipe > 0.0 else 1)
+		_swipe = 0.0
+
+
+## Restart or back to the menu: rebuild the scene (the loading page shows while it does).
+func _reload(m: String) -> void:
 	start_mode = m
+	hud.show_loading("Riavvio", 0.0)
+	await get_tree().process_frame
+	await get_tree().process_frame
 	get_tree().reload_current_scene()
 
 
@@ -102,6 +253,7 @@ func _setup_input() -> void:
 	var keys := {
 		"steer_left": [KEY_LEFT, KEY_A],
 		"steer_right": [KEY_RIGHT, KEY_D],
+		"throttle": [KEY_UP, KEY_W],
 		"brake": [KEY_DOWN, KEY_S],
 		"handbrake": [KEY_SPACE],
 		"nitro": [KEY_SHIFT, KEY_N],
@@ -113,31 +265,6 @@ func _setup_input() -> void:
 				var ev := InputEventKey.new()
 				ev.physical_keycode = k
 				InputMap.action_add_event(action, ev)
-
-
-func _setup_environment() -> void:
-	var env := Environment.new()
-	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color(0.02, 0.02, 0.06)
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.35, 0.38, 0.6)
-	env.ambient_light_energy = 0.9
-	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	env.glow_enabled = true
-	env.glow_intensity = 0.9
-	env.glow_bloom = 0.05
-	env.glow_hdr_threshold = 0.9
-	env.fog_enabled = true
-	env.fog_light_color = Color(0.08, 0.05, 0.15)
-	env.fog_density = 0.004
-	var we := WorldEnvironment.new()
-	we.environment = env
-	add_child(we)
-	var moon := DirectionalLight3D.new()
-	moon.rotation_degrees = Vector3(-55, 30, 0)
-	moon.light_color = Color(0.6, 0.65, 1)
-	moon.light_energy = 0.45
-	add_child(moon)
 
 
 func _build_markers() -> void:
@@ -163,6 +290,7 @@ func _build_markers() -> void:
 	beam_mi.material_override = beam_mat
 	beam_mi.position.y = 20
 	cp_marker.add_child(beam_mi)
+	cp_beam = beam_mi
 	cp_marker.visible = false
 
 	arrow = Node3D.new()
@@ -191,42 +319,55 @@ func _start(m: String) -> void:
 	state = "countdown"
 	countdown = 3.5
 	if mode == "sprint":
-		var start := checkpoints[0]
-		var dir := (checkpoints[1] - checkpoints[0]).normalized()
-		var side := Vector3(-dir.z, 0, dir.x)
-		var slots := [Vector2(-3.5, 22), Vector2(3.5, 22), Vector2(-3.5, 12), Vector2(3.5, 12)]
+		var grid := city.start_grid(4)
 		for i in 3:
 			var r := _make_car(Car.Driver.RACER, RIVAL_COLORS[i])
-			var slot: Vector2 = slots[i]
-			r.place(start + dir * slot.y + side * slot.x, dir)
-			r.waypoints = checkpoints
+			r.place(grid[i][0], grid[i][1])
+			r.waypoints = race_path
 			r.wp_index = 1
-			r.lane_offset = rng.randf_range(-3.0, 3.0)
-			r.max_speed = 37.5 + i * 1.2
+			# Close to the racing line, each a little to one side so they don't all queue on it.
+			r.lane_offset = (i - 1) * 1.6 + rng.randf_range(-0.4, 0.4)
+			r.max_speed = 39.0 + i * 1.2
 			racers.append(r)
 		player = _make_car(Car.Driver.PLAYER, Color(0.95, 0.1, 0.5))
-		var ps: Vector2 = slots[3]
-		player.place(start + dir * ps.y + side * ps.x, dir)
+		player.place(grid[3][0], grid[3][1])
 		cp_marker.visible = true
 		cp_marker.position = checkpoints[1]
-		arrow.visible = true
+		# The racing line on the road shows the way; the floating arrow only where there is none.
+		if city.guide:
+			city.guide.visible = true
+			cp_beam.visible = false
+		else:
+			arrow.visible = true
 	else:
 		player = _make_car(Car.Driver.PLAYER, Color(0.95, 0.1, 0.5))
-		player.place(city.node_pos(Vector2i(3, 3)) + Vector3(0, 0, -20), Vector3(0, 0, -1))
+		var es := city.escape_start()
+		player.place(es[0], es[1])
+		_auto_goal = city.autopilot_goal(es[0], Vector3.ZERO)
 		heat = 3.0
 		police_called = true
-	cam_yaw = player.rotation.y
+	cam_yaw = player.heading()
 	_snap_camera()
 	hud.set_heat(heat)
 
 
 func _process(delta: float) -> void:
 	match state:
+		"loading":
+			return
 		"menu":
 			_orbit += delta * 0.08
-			var c := Vector3(city.extent / 2.0, 0, city.extent / 2.0)
-			camera.global_position = c + Vector3(sin(_orbit) * 260, 150, cos(_orbit) * 260)
-			camera.look_at(c, Vector3.UP)
+			if _preview:
+				# Slow turn around the chosen car, a little above it.
+				var c := _preview.global_position
+				var a := _orbit * 3.0
+				camera.global_position = c + Vector3(sin(a), 0, cos(a)) * _preview_dist + Vector3(0, _preview_dist * 0.28, 0)
+				# Aim below the car so it sits in the clear band between the title and the garage bar.
+				camera.look_at(c - Vector3(0, _preview_dist * 0.12, 0), Vector3.UP)
+				return
+			var view := city.menu_camera(_orbit)
+			camera.global_position = view[0]
+			camera.look_at(view[1], Vector3.UP)
 			return
 		"countdown":
 			countdown -= delta
@@ -265,12 +406,13 @@ func _physics_process(_delta: float) -> void:
 		return
 	player.in_steer = Input.get_action_strength("steer_right") - Input.get_action_strength("steer_left")
 	player.in_brake = Input.get_action_strength("brake")
-	player.in_throttle = 0.0 if player.in_brake > 0.0 else 1.0
+	player.in_throttle = 0.0 if player.in_brake > 0.0 else Input.get_action_strength("throttle")
 	player.in_handbrake = Input.is_action_pressed("handbrake")
 	player.in_nitro = Input.is_action_pressed("nitro")
 
 
 func _race_logic(delta: float) -> void:
+	_off_track_logic(delta)
 	if mode == "sprint":
 		_checkpoints_logic()
 		if not police_called and race_time > 14.0:
@@ -280,15 +422,47 @@ func _race_logic(delta: float) -> void:
 	_police_logic(delta)
 
 
+## Keeps every car inside the level: past OFF_TRACK_WARN metres beyond the guardrail the player
+## gets a warning, and a car that stays past OFF_TRACK_LIMIT for OFF_TRACK_TIME seconds (or goes
+## much further, or falls down the mountain) is put back on the road.
+func _off_track_logic(delta: float) -> void:
+	for c: Car in [player] + racers:
+		var d := city.off_track_distance(c.global_position)
+		var t: float = _off_track_t.get(c, 0.0)
+		t = t + delta if d > OFF_TRACK_LIMIT else 0.0
+		_off_track_t[c] = t
+		if c == player and d > OFF_TRACK_WARN and t == 0.0:
+			if _warn_t <= 0.0:
+				hud.flash("Torna in pista!", 1.0)
+				_warn_t = 1.0
+		if t > OFF_TRACK_TIME or d > OFF_TRACK_FAR:
+			_off_track_t[c] = 0.0
+			var spot := city.recovery_point(c.global_position)
+			var facing: Vector3 = spot[1]
+			if c.driver != Car.Driver.RACER and facing.dot(-c.global_transform.basis.z) < 0.0:
+				facing = -facing
+			c.place(spot[0], facing)
+			if c == player:
+				hud.flash("Rientro in pista", 1.5)
+				cam_yaw = player.heading()
+				_snap_camera()
+	_warn_t -= delta
+
+
 func _checkpoints_logic() -> void:
 	for r in racers:
 		if r.finished:
 			continue
-		if r.global_position.distance_to(checkpoints[r.wp_index]) < AI_ADVANCE_RADIUS:
+		var d := r.global_position.distance_to(race_path[r.wp_index])
+		# Also move on if the racer went past the point without touching it.
+		var passed := d < 40.0 and r.wp_index + 1 < race_path.size() and r.global_position.distance_to(race_path[r.wp_index + 1]) < race_path[r.wp_index].distance_to(race_path[r.wp_index + 1])
+		if d < AI_ADVANCE_RADIUS or passed:
 			r.wp_index += 1
-			if r.wp_index >= checkpoints.size():
+			if r.wp_index >= race_path.size():
 				r.finished = true
 				finish_order.append(r)
+	if player_wp < race_path.size() - 1 and player.global_position.distance_to(race_path[player_wp]) < CHECKPOINT_RADIUS:
+		player_wp += 1
 	if player.global_position.distance_to(checkpoints[player_cp]) < CHECKPOINT_RADIUS:
 		player_cp += 1
 		if player_cp >= checkpoints.size():
@@ -353,27 +527,13 @@ func _spawn_police(behind: bool) -> void:
 
 func _respawn_police(p: Car, behind := true, min_d := 70.0, max_d := 160.0) -> void:
 	var fwd := -player.global_transform.basis.z
-	var best := Vector2i(-1, -1)
-	var best_score := -INF
-	for i in City.BLOCKS + 1:
-		for j in City.BLOCKS + 1:
-			var n := Vector2i(i, j)
-			var pos := city.node_pos(n)
-			var to := pos - player.global_position
-			var d := to.length()
-			if d < min_d or d > max_d:
-				continue
-			var score := -to.normalized().dot(fwd) if behind else rng.randf()
-			if score > best_score:
-				best_score = score
-				best = n
-	if best.x < 0:
-		best = city.snap(player.global_position + Vector3(90, 0, 0))
-	var spawn := city.node_pos(best)
-	p.place(spawn, player.global_position - spawn)
+	var spot := city.police_spawn(player.global_position, fwd, behind, min_d, max_d, rng)
+	p.place(spot[0], spot[1])
 
 
 func _on_crash(impact: float, other: Object, car: Car) -> void:
+	if autotest:
+		print("[autotest] crash %s impact=%.1f other=%s at %s" % ["player" if car == player else str(car.driver), impact, other, car.global_position.round()])
 	if car != player or state != "race":
 		return
 	if other is TrafficCar:
@@ -401,18 +561,40 @@ func _snap_camera() -> void:
 
 
 func _update_camera(delta: float) -> void:
-	var target := player.global_position + Vector3(player.velocity.x, 0, player.velocity.z) * 0.2
-	if player.speed > -1.0:
-		cam_yaw = lerp_angle(cam_yaw, player.rotation.y, clampf(2.0 * delta, 0.0, 1.0))
-	var height := 30.0 + absf(player.speed) * 0.3
-	var offset := Basis(Vector3.UP, cam_yaw) * Vector3(0, height, height * 0.42)
-	camera.global_position = camera.global_position.lerp(target + offset, clampf(6.0 * delta, 0.0, 1.0))
-	camera.look_at(target, Vector3.UP)
+	var car_pos := player.global_position
+	var flat_v := Vector3(player.velocity.x, 0, player.velocity.z)
+	# Follow the nose, leaning towards the direction of travel in a drift; hold still when the car
+	# is in the air or on its roof so spins and flips stay readable.
+	var want := player.heading()
+	if flat_v.length() > 8.0 and player.speed > 0.0:
+		want = lerp_angle(want, atan2(-flat_v.x, -flat_v.z), 0.35)
+	if player.wheels_on_ground > 0 and player.speed > -2.0:
+		cam_yaw = lerp_angle(cam_yaw, want, clampf(5.0 * delta, 0.0, 1.0))
+	var back := Basis(Vector3.UP, cam_yaw) * Vector3(0, 0, 1)
+	# Only the height is smoothed, so bumps in the road don't shake the picture.
+	_cam_y = car_pos.y if delta >= 1.0 else lerpf(_cam_y, car_pos.y, clampf(10.0 * delta, 0.0, 1.0))
+	var pivot := Vector3(car_pos.x, _cam_y + 1.2, car_pos.z)
+	var desired := pivot + back * CAM_DIST + Vector3(0, CAM_HEIGHT - 1.2, 0)
+	# Keep the camera out of buildings: stop it short of anything between it and the car.
+	_cam_ray.from = pivot
+	_cam_ray.to = desired
+	_cam_ray.exclude = [player.get_rid()]
+	var hit := player.get_world_3d().direct_space_state.intersect_ray(_cam_ray)
+	var max_dist := pivot.distance_to(desired)
+	if not hit.is_empty():
+		max_dist = maxf(pivot.distance_to(hit.position) - 0.4, 1.5)
+	_cam_dist = minf(lerpf(_cam_dist, max_dist, clampf(4.0 * delta, 0.0, 1.0)), max_dist)
+	# Placed straight from the car's position every frame (only the angle is smoothed), so the
+	# camera never lags further behind as the speed grows.
+	camera.global_position = pivot + (desired - pivot).normalized() * _cam_dist
+	var look := car_pos + Vector3(0, 1.0, 0) - back * CAM_LOOK_AHEAD
+	camera.look_at(look, Vector3.UP)
+	var fov := CAM_FOV_NITRO if player.using_nitro else CAM_FOV
+	camera.fov = lerpf(camera.fov, fov, clampf(3.0 * delta, 0.0, 1.0))
 
 
 func _update_hud() -> void:
-	hud.speed_label.text = "%d km/h" % roundi(absf(player.speed) * 3.6)
-	hud.nitro_bar.value = player.nitro
+	hud.dashboard.set_values(absf(player.speed) * 3.6, player.rpm, Car.REDLINE_RPM + 200.0, player.gear, player.nitro, player.using_nitro)
 	var lines := PackedStringArray()
 	if mode == "sprint":
 		lines.append("POSIZIONE %d/%d" % [_player_position(), racers.size() + 1])
@@ -424,12 +606,12 @@ func _update_hud() -> void:
 		var to := t - player.global_position
 		to.y = 0
 		if to.length() > 1.0:
-			arrow.global_position = player.global_position + to.normalized() * 5.5 + Vector3(0, 2.5, 0)
+			arrow.global_position = player.global_position + to.normalized() * 9.0 + Vector3(0, 3.4, 0)
 			arrow.look_at(arrow.global_position + to, Vector3.UP)
 
 
 func _player_position() -> int:
-	var mine := _progress(player_cp, player)
+	var mine := _progress(player_wp if not finish_order.has(player) else race_path.size(), player)
 	var pos := 1
 	for r in racers:
 		if r.finished and not finish_order.has(player):
@@ -439,10 +621,10 @@ func _player_position() -> int:
 	return pos
 
 
-func _progress(cp: int, car: Car) -> float:
-	if cp >= checkpoints.size():
+func _progress(wp: int, car: Car) -> float:
+	if wp >= race_path.size():
 		return 1e9
-	return cp * 10000.0 - car.global_position.distance_to(checkpoints[cp])
+	return wp * 10000.0 - car.global_position.distance_to(race_path[wp])
 
 
 func _fmt_time(t: float) -> String:
@@ -454,14 +636,14 @@ func _fmt_time(t: float) -> String:
 func _autopilot() -> void:
 	# Drive the player like a racer, through the checkpoints, to exercise every system.
 	var dt := get_physics_process_delta_time()
-	if mode == "sprint" and _auto_wp < checkpoints.size():
-		if player.global_position.distance_to(checkpoints[_auto_wp]) < AI_ADVANCE_RADIUS and _auto_wp + 1 < checkpoints.size():
+	if mode == "sprint" and _auto_wp < race_path.size():
+		if player.global_position.distance_to(race_path[_auto_wp]) < AI_ADVANCE_RADIUS and _auto_wp + 1 < race_path.size():
 			_auto_wp += 1
-		var after := checkpoints[_auto_wp + 1] if _auto_wp + 1 < checkpoints.size() else Vector3.INF
-		player._steer_towards(checkpoints[_auto_wp], dt, after)
+		var after := race_path[_auto_wp + 1] if _auto_wp + 1 < race_path.size() else Vector3.INF
+		player._steer_towards(race_path[_auto_wp], dt, after)
 	else:
 		if player.global_position.distance_to(_auto_goal) < 20.0:
-			_auto_goal = city.node_pos(Vector2i(6, 6)) if _auto_goal.x < 1.0 else city.node_pos(Vector2i(0, 0))
+			_auto_goal = city.autopilot_goal(player.global_position, _auto_goal)
 		var goal := _auto_goal
 		var target := city.route_point(player.global_position, goal)
 		player._steer_towards(target, dt, city.route_point(target, goal))
@@ -474,8 +656,11 @@ func _autotest_tick(delta: float) -> void:
 		img.save_png("%s/shot_%s_%d.png" % [screenshot_dir, mode, _shots_taken])
 		_shots_taken += 1
 	if int(_test_t * 2.0) != int((_test_t - delta) * 2.0):
-		print("[autotest] t=%.1f state=%s speed=%.1f cp=%d heat=%.1f police=%d pos=%s" % [_test_t, state, player.speed, player_cp, heat, police.size(), player.global_position.round()])
-	if state == "end" or _test_t > 90.0:
+		print("[autotest] t=%.1f state=%s speed=%.1f cp=%d heat=%.1f police=%d pos=%s wheels=%d up=%.2f in=(%.1f,%.1f,%.1f,%s)" % [_test_t, state, player.speed, player_cp, heat, police.size(), player.global_position.round(), player.wheels_on_ground, player.global_transform.basis.y.y, player.in_throttle, player.in_brake, player.in_steer, player.in_handbrake])
+	if int(_test_t / 5.0) != int((_test_t - delta) / 5.0):
+		for r in racers:
+			print("[autotest]   racer wp=%d speed=%.1f pos=%s up=%.2f" % [r.wp_index, r.speed, r.global_position.round(), r.global_transform.basis.y.y])
+	if state == "end" or _test_t > 150.0:
 		print("[autotest] END state=%s title=%s text=%s" % [state, hud.end_title.text, hud.end_text.text.replace("\n", " | ")])
 		for r in racers:
 			print("[autotest] racer wp=%d finished=%s pos=%s" % [r.wp_index, r.finished, r.global_position.round()])
