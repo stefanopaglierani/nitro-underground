@@ -7,6 +7,8 @@ signal restart_pressed
 signal menu_pressed
 ## Garage: the player asked for the previous (-1) or next (+1) car.
 signal car_step(dir: int)
+## Title screen: switch between the realistic and the anime look.
+signal style_toggled
 
 const ACCENT := Color(1, 0.18, 0.55)
 const CYAN := Color(0.1, 0.9, 1)
@@ -29,6 +31,7 @@ var loading_panel: Control
 var loading_bar: ProgressBar
 var loading_label: Label
 var car_index_label: Label
+var speed_lines: ColorRect  # anime style only
 var _buttons: Dictionary = {}
 var _message_t := 0.0
 
@@ -38,6 +41,10 @@ func _ready() -> void:
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
+
+	if AnimeStyle.enabled:
+		speed_lines = AnimeStyle.make_speed_lines()
+		root.add_child(speed_lines)
 
 	dashboard = Dashboard.new()
 	root.add_child(dashboard)
@@ -280,6 +287,15 @@ func _build_menu() -> void:
 	title.add_theme_color_override("font_outline_color", CYAN)
 	title.add_theme_constant_override("outline_size", 4)
 	top.add_child(title)
+	var style := _big_button(top, "STILE: ANIME" if AnimeStyle.enabled else "STILE: REALISTICO", CYAN)
+	style.custom_minimum_size = Vector2(0, 0)
+	style.add_theme_font_size_override("font_size", 22)
+	style.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	style.offset_left = -290
+	style.offset_right = -20
+	style.offset_top = 36
+	style.offset_bottom = 94
+	style.pressed.connect(func(): style_toggled.emit())
 
 	var bottom := ColorRect.new()
 	bottom.color = Color(0.02, 0.01, 0.06, 0.65)

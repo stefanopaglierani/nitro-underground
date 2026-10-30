@@ -92,6 +92,7 @@ func _ready() -> void:
 		if a.begins_with("--car="):
 			Car.player_body = a.substr(6)
 
+	AnimeStyle.load_setting()
 	_setup_input()
 	hud = Hud.new()
 	add_child(hud)
@@ -102,6 +103,9 @@ func _ready() -> void:
 	hud.restart_pressed.connect(func(): _reload(mode))
 	hud.menu_pressed.connect(func(): _reload(""))
 	hud.car_step.connect(_step_car)
+	hud.style_toggled.connect(func():
+		AnimeStyle.set_enabled(not AnimeStyle.enabled)
+		_reload(""))
 	camera = Camera3D.new()
 	camera.fov = CAM_FOV
 	camera.near = 0.1
@@ -117,6 +121,10 @@ func _ready() -> void:
 		(steps[i][1] as Callable).call()
 	await _loading("Cielo e luce", float(steps.size()) / total)
 	city.setup_environment(self)
+	if AnimeStyle.enabled:
+		AnimeStyle.setup_environment(self)
+		AnimeStyle.add_ink_pass(camera)
+	AnimeStyle.install(get_tree())
 	camera.far = city.view_distance
 	await _loading("Traffico", float(steps.size() + 1) / total)
 	for i in 16:
@@ -210,6 +218,7 @@ func _show_car() -> void:
 	if _preview:
 		_preview.queue_free()
 	_preview = CarModel.build(Color(0, 0, 0, 0), entry["id"].contains("police"), entry["id"])
+	_preview.set_meta("anime_ink", true)
 	add_child(_preview)
 	var grid := city.start_grid(1)
 	_preview.global_transform = Transform3D(Basis.looking_at(grid[0][1], Vector3.UP), grid[0][0])
@@ -594,6 +603,9 @@ func _update_camera(delta: float) -> void:
 
 
 func _update_hud() -> void:
+	if hud.speed_lines:
+		var fast := clampf((absf(player.speed) - 24.0) / 18.0, 0.0, 1.0)
+		hud.speed_lines.material.set_shader_parameter("amount", 1.0 if player.using_nitro else fast * 0.8)
 	hud.dashboard.set_values(absf(player.speed) * 3.6, player.rpm, Car.REDLINE_RPM + 200.0, player.gear, player.nitro, player.using_nitro)
 	var lines := PackedStringArray()
 	if mode == "sprint":
