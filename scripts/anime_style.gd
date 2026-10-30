@@ -1,13 +1,18 @@
 class_name AnimeStyle
-## Optional anime / manga look, chosen on the title screen and saved on the device.
-## It keeps the same models: every material that enters the scene gets toon (cel) light with
-## hard shadow bands, cars get a black ink outline, a full-screen pass draws ink lines where the
-## depth jumps (silhouettes of rocks, trees, guardrails), the sky is a painted one and speed lines
-## appear at high speed or with nitro.
+## Optional drawn looks, chosen on the title screen and saved on the device:
+## "anime" (manga / cel animation) and "comic" (2.5D, like a comic book brought to life).
+## They keep the same models: every material that enters the scene gets toon (cel) light with
+## hard shadow bands, cars get a black ink outline, a full-screen pass (shaders/stylize.gdshader)
+## flattens the colours into bands and draws ink lines where the depth jumps, the sky is a
+## painted one and speed lines appear at high speed or with nitro. The comic look adds halftone
+## dots, hatching and misprinted colour plates.
 
 const SETTINGS := "user://settings.cfg"
-const OUTLINE_WIDTH := 0.035  # metres; the car outline grows the mesh by this much
+const STYLES := ["real", "anime", "comic"]
+const NAMES := {"real": "REALISTICO", "anime": "ANIME", "comic": "FUMETTO 2.5D"}
 
+static var style := "real"
+## True for the drawn looks (anime and comic).
 static var enabled := false
 static var _loaded := false
 static var _materials := {}  # original material -> toon copy
@@ -23,18 +28,27 @@ static func load_setting() -> void:
 	_loaded = true
 	var cfg := ConfigFile.new()
 	if cfg.load(SETTINGS) == OK:
-		enabled = bool(cfg.get_value("graphics", "anime", false))
+		style = str(cfg.get_value("graphics", "style", "real"))
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--style="):
-			enabled = a.substr(8) == "anime"
+			style = a.substr(8)
+	if not style in STYLES:
+		style = "real"
+	enabled = style != "real"
 
 
-static func set_enabled(on: bool) -> void:
-	enabled = on
+## Switches to the next look and saves it.
+static func next_style() -> void:
+	style = STYLES[(STYLES.find(style) + 1) % STYLES.size()]
+	enabled = style != "real"
 	var cfg := ConfigFile.new()
 	cfg.load(SETTINGS)
-	cfg.set_value("graphics", "anime", on)
+	cfg.set_value("graphics", "style", style)
 	cfg.save(SETTINGS)
+
+
+static func style_name() -> String:
+	return NAMES[style]
 
 
 ## Converts what is already in the tree and everything added later (cars, debris, the garage car).
@@ -167,7 +181,7 @@ static func _outline_material() -> ShaderMaterial:
 	if _outline == null:
 		_outline = ShaderMaterial.new()
 		_outline.shader = preload("res://shaders/anime_outline.gdshader")
-		_outline.set_shader_parameter("width", OUTLINE_WIDTH)
+		_outline.set_shader_parameter("width", 0.06 if style == "comic" else 0.05)
 	return _outline
 
 
@@ -184,6 +198,11 @@ static func setup_environment(parent: Node) -> void:
 		var env := we.environment
 		var sky_mat := ShaderMaterial.new()
 		sky_mat.shader = preload("res://shaders/anime_sky.gdshader")
+		if style == "comic":
+			# Pop-art sky: deeper blue on top, a warm pink band at the horizon.
+			sky_mat.set_shader_parameter("zenith", Color(0.05, 0.22, 0.85))
+			sky_mat.set_shader_parameter("horizon", Color(1.0, 0.72, 0.78))
+			sky_mat.set_shader_parameter("cloud_shade", Color(0.78, 0.62, 0.9))
 		var sky := Sky.new()
 		sky.sky_material = sky_mat
 		env.background_mode = Environment.BG_SKY
@@ -204,8 +223,8 @@ static func setup_environment(parent: Node) -> void:
 		env.fog_aerial_perspective = 0.0
 		env.fog_sky_affect = 0.0
 		env.adjustment_enabled = true
-		env.adjustment_saturation = 1.15
-		env.adjustment_contrast = 1.08
+		env.adjustment_saturation = 1.35 if style == "comic" else 1.25
+		env.adjustment_contrast = 1.15 if style == "comic" else 1.1
 		env.adjustment_brightness = 1.03
 	if sun:
 		sun.light_color = Color(1.0, 0.97, 0.9)
@@ -213,16 +232,18 @@ static func setup_environment(parent: Node) -> void:
 		sun.shadow_opacity = 0.7
 
 
-## Full-screen ink lines, as a child of the camera.
+## Full-screen stylize pass (cel bands, ink lines, comic print), as a child of the camera.
 static func add_ink_pass(camera: Camera3D) -> void:
 	var quad := QuadMesh.new()
 	quad.size = Vector2(2, 2)
 	quad.flip_faces = true
 	var mat := ShaderMaterial.new()
-	mat.shader = preload("res://shaders/anime_ink.gdshader")
+	mat.shader = preload("res://shaders/stylize.gdshader")
+	mat.set_shader_parameter("comic", style == "comic")
+	mat.render_priority = Material.RENDER_PRIORITY_MAX
 	quad.material = mat
 	var mi := MeshInstance3D.new()
-	mi.name = "AnimeInk"
+	mi.name = "Stylize"
 	mi.mesh = quad
 	mi.extra_cull_margin = 16384.0
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

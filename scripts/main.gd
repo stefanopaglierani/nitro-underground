@@ -104,7 +104,7 @@ func _ready() -> void:
 	hud.menu_pressed.connect(func(): _reload(""))
 	hud.car_step.connect(_step_car)
 	hud.style_toggled.connect(func():
-		AnimeStyle.set_enabled(not AnimeStyle.enabled)
+		AnimeStyle.next_style()
 		_reload(""))
 	camera = Camera3D.new()
 	camera.fov = CAM_FOV
