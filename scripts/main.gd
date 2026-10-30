@@ -342,7 +342,7 @@ func _start(m: String) -> void:
 			r.wp_index = 1
 			# Close to the racing line, each a little to one side so they don't all queue on it.
 			r.lane_offset = (i - 1) * 1.6 + rng.randf_range(-0.4, 0.4)
-			r.max_speed = 39.0 + i * 1.2
+			r.max_speed = 57.0 + i * 1.5
 			racers.append(r)
 		player = _make_car(Car.Driver.PLAYER, Color(0.95, 0.1, 0.5))
 		player.place(grid[3][0], grid[3][1])
