@@ -1,20 +1,11 @@
-class_name AnimeStyle
-## Optional drawn looks, chosen on the title screen and saved on the device:
-## "anime" (manga / cel animation) and "comic" (2.5D, like a comic book brought to life).
-## They keep the same models: every material that enters the scene gets toon (cel) light with
-## hard shadow bands, cars get a black ink outline, a full-screen pass (shaders/stylize.gdshader)
-## flattens the colours into bands and draws ink lines where the depth jumps, the sky is a
-## painted one and speed lines appear at high speed or with nitro. The comic look adds halftone
-## dots, hatching and misprinted colour plates.
+class_name ComicStyle
+## The game's look: 2.5D comic, like a comic book brought to life (Spider-Verse style).
+## It keeps the 3D models: every material that enters the scene gets toon (cel) light with hard
+## shadow bands, cars get a black ink outline, a full-screen pass (shaders/stylize.gdshader)
+## flattens the colours into bands, draws ink lines where the depth jumps and adds halftone dots,
+## hatching and misprinted colour plates; the sky is a painted pop-art one and speed lines appear
+## at high speed or with nitro.
 
-const SETTINGS := "user://settings.cfg"
-const STYLES := ["real", "anime", "comic"]
-const NAMES := {"real": "REALISTICO", "anime": "ANIME", "comic": "FUMETTO 2.5D"}
-
-static var style := "real"
-## True for the drawn looks (anime and comic).
-static var enabled := false
-static var _loaded := false
 static var _materials := {}  # original material -> toon copy
 static var _shaders := {}  # original shader -> toon copy
 static var _outline: ShaderMaterial
@@ -22,42 +13,9 @@ static var _queue: Array[GeometryInstance3D] = []
 static var _flush_queued := false
 
 
-static func load_setting() -> void:
-	if _loaded:
-		return
-	_loaded = true
-	var cfg := ConfigFile.new()
-	if cfg.load(SETTINGS) == OK:
-		style = str(cfg.get_value("graphics", "style", "real"))
-	for a in OS.get_cmdline_user_args():
-		if a.begins_with("--style="):
-			style = a.substr(8)
-	if not style in STYLES:
-		style = "real"
-	enabled = style != "real"
-
-
-## Switches to the next look and saves it.
-static func next_style() -> void:
-	style = STYLES[(STYLES.find(style) + 1) % STYLES.size()]
-	enabled = style != "real"
-	var cfg := ConfigFile.new()
-	cfg.load(SETTINGS)
-	cfg.set_value("graphics", "style", style)
-	cfg.save(SETTINGS)
-
-
-static func style_name() -> String:
-	return NAMES[style]
-
-
 ## Converts what is already in the tree and everything added later (cars, debris, the garage car).
 static func install(tree: SceneTree) -> void:
 	_materials.clear()  # the level was rebuilt: its materials are new
-	if not enabled:
-		if tree.node_added.is_connected(_on_node_added):
-			tree.node_added.disconnect(_on_node_added)
-		return
 	_scan(tree.root)
 	if not tree.node_added.is_connected(_on_node_added):
 		tree.node_added.connect(_on_node_added)
@@ -89,9 +47,9 @@ static func _scan(node: Node) -> void:
 
 
 static func _convert(g: GeometryInstance3D) -> void:
-	if g.has_meta("anime"):
+	if g.has_meta("comic"):
 		return
-	g.set_meta("anime", true)
+	g.set_meta("comic", true)
 	var mesh: Mesh = null
 	if g is MeshInstance3D:
 		mesh = (g as MeshInstance3D).mesh
@@ -121,7 +79,7 @@ static func _is_car_part(n: Node) -> bool:
 	while p:
 		# Player, rivals, police, traffic and the garage car (tagged by main.gd). Not the guardrail
 		# debris: its pieces are flat panels, and the outline would draw them as black slabs.
-		if p is Car or p is TrafficCar or p.has_meta("anime_ink"):
+		if p is Car or p is TrafficCar or p.has_meta("comic_ink"):
 			return true
 		p = p.get_parent()
 	return false
@@ -180,8 +138,8 @@ static func _toon_shader(sh: Shader) -> Shader:
 static func _outline_material() -> ShaderMaterial:
 	if _outline == null:
 		_outline = ShaderMaterial.new()
-		_outline.shader = preload("res://shaders/anime_outline.gdshader")
-		_outline.set_shader_parameter("width", 0.06 if style == "comic" else 0.05)
+		_outline.shader = preload("res://shaders/comic_outline.gdshader")
+		_outline.set_shader_parameter("width", 0.06)
 	return _outline
 
 
@@ -197,12 +155,11 @@ static func setup_environment(parent: Node) -> void:
 	if we and we.environment:
 		var env := we.environment
 		var sky_mat := ShaderMaterial.new()
-		sky_mat.shader = preload("res://shaders/anime_sky.gdshader")
-		if style == "comic":
-			# Pop-art sky: deeper blue on top, a warm pink band at the horizon.
-			sky_mat.set_shader_parameter("zenith", Color(0.05, 0.22, 0.85))
-			sky_mat.set_shader_parameter("horizon", Color(1.0, 0.72, 0.78))
-			sky_mat.set_shader_parameter("cloud_shade", Color(0.78, 0.62, 0.9))
+		sky_mat.shader = preload("res://shaders/comic_sky.gdshader")
+		# Pop-art sky: deeper blue on top, a warm pink band at the horizon.
+		sky_mat.set_shader_parameter("zenith", Color(0.05, 0.22, 0.85))
+		sky_mat.set_shader_parameter("horizon", Color(1.0, 0.72, 0.78))
+		sky_mat.set_shader_parameter("cloud_shade", Color(0.78, 0.62, 0.9))
 		var sky := Sky.new()
 		sky.sky_material = sky_mat
 		env.background_mode = Environment.BG_SKY
@@ -223,8 +180,8 @@ static func setup_environment(parent: Node) -> void:
 		env.fog_aerial_perspective = 0.0
 		env.fog_sky_affect = 0.0
 		env.adjustment_enabled = true
-		env.adjustment_saturation = 1.35 if style == "comic" else 1.25
-		env.adjustment_contrast = 1.15 if style == "comic" else 1.1
+		env.adjustment_saturation = 1.35
+		env.adjustment_contrast = 1.15
 		env.adjustment_brightness = 1.03
 	if sun:
 		sun.light_color = Color(1.0, 0.97, 0.9)
@@ -233,13 +190,12 @@ static func setup_environment(parent: Node) -> void:
 
 
 ## Full-screen stylize pass (cel bands, ink lines, comic print), as a child of the camera.
-static func add_ink_pass(camera: Camera3D) -> void:
+static func add_stylize_pass(camera: Camera3D) -> void:
 	var quad := QuadMesh.new()
 	quad.size = Vector2(2, 2)
 	quad.flip_faces = true
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://shaders/stylize.gdshader")
-	mat.set_shader_parameter("comic", style == "comic")
 	mat.render_priority = Material.RENDER_PRIORITY_MAX
 	quad.material = mat
 	var mi := MeshInstance3D.new()
@@ -247,7 +203,7 @@ static func add_ink_pass(camera: Camera3D) -> void:
 	mi.mesh = quad
 	mi.extra_cull_margin = 16384.0
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	mi.set_meta("anime", true)
+	mi.set_meta("comic", true)
 	camera.add_child(mi)
 
 
@@ -257,6 +213,6 @@ static func make_speed_lines() -> ColorRect:
 	r.set_anchors_preset(Control.PRESET_FULL_RECT)
 	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var mat := ShaderMaterial.new()
-	mat.shader = preload("res://shaders/anime_speed_lines.gdshader")
+	mat.shader = preload("res://shaders/comic_speed_lines.gdshader")
 	r.material = mat
 	return r

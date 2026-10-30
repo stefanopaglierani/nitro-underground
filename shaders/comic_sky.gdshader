@@ -1,5 +1,5 @@
 shader_type sky;
-// Anime style sky: deep blue at the top, pale at the horizon, a soft sun and big flat clouds
+// Comic style sky: deep blue at the top, pale at the horizon, a soft sun and big flat clouds
 // with a lit top and a blue-grey underside, like a painted background.
 
 uniform vec3 zenith : source_color = vec3(0.12, 0.38, 0.92);

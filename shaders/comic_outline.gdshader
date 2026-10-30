@@ -1,5 +1,5 @@
 shader_type spatial;
-// Ink outline for the anime style: the mesh drawn again, grown along its normals, back faces
+// Ink outline for the comic style: the mesh drawn again, grown along its normals, back faces
 // only and flat black, so a dark rim shows around the silhouette.
 render_mode unshaded, cull_front, depth_draw_opaque, fog_disabled;
 

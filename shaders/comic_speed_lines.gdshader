@@ -1,5 +1,5 @@
 shader_type canvas_item;
-// Anime style speed lines: thin white streaks pointing at the screen centre, only near the
+// Comic style speed lines: thin white streaks pointing at the screen centre, only near the
 // edges, flickering. amount 0 = none, 1 = full (top speed or nitro).
 
 uniform float amount = 0.0;

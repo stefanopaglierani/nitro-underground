@@ -1,13 +1,12 @@
 shader_type spatial;
-// Full-screen pass for the drawn styles (anime and 2.5D comic), on a quad in front of the camera.
-// Both: ink lines where the depth jumps, and colours flattened into cel bands.
-// Comic (Spider-Verse-like): halftone dots in the shadows, hatching in the darkest parts and
-// misprinted colour plates (red and blue shifted) that grow with distance, instead of blur.
+// Full-screen pass for the 2.5D comic look, on a quad in front of the camera: colours flattened
+// into cel bands, ink lines where the depth jumps, halftone dots in the shadows, hatching in the
+// darkest parts and misprinted colour plates (red and blue shifted) that grow with distance,
+// instead of blur (Spider-Verse-like).
 render_mode unshaded, depth_test_disabled, depth_draw_never, cull_disabled, fog_disabled, shadows_disabled;
 
 uniform sampler2D screen_tex : hint_screen_texture, filter_linear;
 uniform sampler2D depth_tex : hint_depth_texture, filter_nearest;
-uniform bool comic = false;
 uniform vec3 ink : source_color = vec3(0.05, 0.04, 0.1);
 uniform vec3 dot_ink : source_color = vec3(0.12, 0.05, 0.32);
 uniform float line_px = 1.6;
@@ -45,12 +44,10 @@ void fragment() {
 	float c = lin(uv, INV_PROJECTION_MATRIX);
 
 	vec3 col = texture(screen_tex, uv).rgb;
-	if (comic) {
-		// Misprint: the red and blue plates slip apart, more in the distance and at the edges.
-		float slip = misprint_px * k * (smoothstep(25.0, 160.0, c) + length(uv - 0.5) * 0.8);
-		col.r = texture(screen_tex, uv + vec2(slip, 0.0) * px).r;
-		col.b = texture(screen_tex, uv - vec2(slip, slip * 0.5) * px).b;
-	}
+	// Misprint: the red and blue plates slip apart, more in the distance and at the edges.
+	float slip = misprint_px * k * (smoothstep(25.0, 160.0, c) + length(uv - 0.5) * 0.8);
+	col.r = texture(screen_tex, uv + vec2(slip, 0.0) * px).r;
+	col.b = texture(screen_tex, uv - vec2(slip, slip * 0.5) * px).b;
 
 	// Cel bands: the brightness snaps to a few levels, the hue stays.
 	float l = luma(col);
@@ -58,25 +55,23 @@ void fragment() {
 	col = mix(col, col * (lq / max(l, 0.001)), flatten);
 	col = clamp(col, 0.0, 1.0);
 
-	if (comic) {
-		l = luma(col);
-		// Halftone: a grid of dots turned 45 degrees, bigger where the picture is darker.
-		vec2 p = FRAGCOORD.xy / (dot_px * k);
-		p = mat2(vec2(0.7071, 0.7071), vec2(-0.7071, 0.7071)) * p;
-		float d = length(fract(p) - 0.5);
-		// Only in real shadows and never on the sky, or the whole picture turns grey.
-		float shade = (1.0 - smoothstep(0.2, 0.62, l)) * (1.0 - step(fade_far * 3.0, c));
-		float r = sqrt(shade) * 0.55;
-		float dots = 1.0 - smoothstep(r - 0.06, r + 0.06, d);
-		col = mix(col, dot_ink, dots * 0.45 * step(0.02, shade));
-		// Highlights: small light dots in the brightest areas, like a printed comic.
-		float hi = smoothstep(0.75, 0.95, l);
-		float hdots = 1.0 - smoothstep(0.12, 0.2, length(fract(p + 0.5) - 0.5));
-		col = mix(col, vec3(1.0, 0.97, 0.9), hdots * hi * 0.25);
-		// Hatching: diagonal ink strokes in the darkest parts.
-		float hatch = step(0.75, fract((FRAGCOORD.x + FRAGCOORD.y) / (5.0 * k)));
-		col = mix(col, ink, hatch * smoothstep(0.22, 0.08, l) * 0.8);
-	}
+	l = luma(col);
+	// Halftone: a grid of dots turned 45 degrees, bigger where the picture is darker.
+	vec2 p = FRAGCOORD.xy / (dot_px * k);
+	p = mat2(vec2(0.7071, 0.7071), vec2(-0.7071, 0.7071)) * p;
+	float d = length(fract(p) - 0.5);
+	// Only in real shadows and never on the sky, or the whole picture turns grey.
+	float shade = (1.0 - smoothstep(0.2, 0.62, l)) * (1.0 - step(fade_far * 3.0, c));
+	float r = sqrt(shade) * 0.55;
+	float dots = 1.0 - smoothstep(r - 0.06, r + 0.06, d);
+	col = mix(col, dot_ink, dots * 0.45 * step(0.02, shade));
+	// Highlights: small light dots in the brightest areas, like a printed comic.
+	float hi = smoothstep(0.75, 0.95, l);
+	float hdots = 1.0 - smoothstep(0.12, 0.2, length(fract(p + 0.5) - 0.5));
+	col = mix(col, vec3(1.0, 0.97, 0.9), hdots * hi * 0.25);
+	// Hatching: diagonal ink strokes in the darkest parts.
+	float hatch = step(0.75, fract((FRAGCOORD.x + FRAGCOORD.y) / (5.0 * k)));
+	col = mix(col, ink, hatch * smoothstep(0.22, 0.08, l) * 0.8);
 
 	// Ink lines on the near side of every depth jump (silhouettes).
 	vec2 e = line_px * k * px;
