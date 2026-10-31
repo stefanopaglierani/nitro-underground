@@ -327,6 +327,7 @@ func setup_environment(parent: Node) -> void:
 	var sky_mat := ShaderMaterial.new()
 	sky_mat.shader = preload("res://shaders/night_sky.gdshader")
 	var sky := Sky.new()
+	sky.radiance_size = Sky.RADIANCE_SIZE_64
 	sky.sky_material = sky_mat
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky

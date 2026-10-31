@@ -177,6 +177,8 @@ static func setup_environment(parent: Node, night := false) -> void:
 		sky_mat.set_shader_parameter("cloud_shade", Color(0.78, 0.62, 0.9))
 		var sky := Sky.new()
 		sky.sky_material = sky_mat
+		# Small light map: the toon shading only needs a rough idea of the sky colours.
+		sky.radiance_size = Sky.RADIANCE_SIZE_64
 		env.background_mode = Environment.BG_SKY
 		env.sky = sky
 		env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR

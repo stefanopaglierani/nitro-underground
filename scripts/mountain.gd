@@ -27,7 +27,6 @@ const TREE_DIR := "res://assets/props/trees/"
 const SCENERY_TREES := ["pine", "spruce", "scots_pine", "pine_scan"]
 ## Grass clump textures (Yughues grass packs, CC0).
 const GRASS := ["grass_01", "grass_02", "grass_04"]
-const SKY := "res://assets/hdri/kloofendal_48d_partly_cloudy_puresky_2k.hdr"
 const TEX := "res://assets/materials/%s/%s_%s_1k.jpg"
 
 var pts: Array[Vector3] = []  # road centre, every SAMPLE_STEP m, closed loop
@@ -922,10 +921,10 @@ func _build_racing_line() -> void:
 
 func setup_environment(parent: Node) -> void:
 	var env := Environment.new()
-	var sky_mat := PanoramaSkyMaterial.new()
-	sky_mat.panorama = load(SKY) if ResourceLoader.exists(SKY) else null
+	# The sky material itself comes from ComicStyle.setup_environment (painted pop-art sky): no
+	# photo sky to load here (the 2k HDR panorama took memory and time on the phone for nothing).
 	var sky := Sky.new()
-	sky.sky_material = sky_mat
+	sky.radiance_size = Sky.RADIANCE_SIZE_64
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY

@@ -41,7 +41,9 @@ void sky() {
 	float sd = dot(d, LIGHT0_DIRECTION);
 	col += vec3(1.0, 0.95, 0.8) * (smoothstep(0.9985, 0.9992, sd) * 2.0 + pow(max(sd, 0.0), 40.0) * 0.35);
 	if (d.y > 0.01 && !AT_CUBEMAP_PASS) {
-		vec2 p = d.xz / (d.y + 0.12) * 1.3 + vec2(TIME * 0.004, 0.0);
+		// No TIME here: a sky that changes every frame makes Godot redo its light (radiance) map every
+		// frame too, which is very heavy on phones. The clouds stand still.
+		vec2 p = d.xz / (d.y + 0.12) * 1.3;
 		float n = fbm(p);
 		float shape = smoothstep(cover, cover + 0.04, n);
 		// Lighter on the side the sun is on: compare with the noise a little towards the sun.
