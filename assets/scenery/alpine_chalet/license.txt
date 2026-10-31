@@ -1,0 +1,11 @@
+Model Information:
+* title:	Alpine Chalet house
+* source:	https://sketchfab.com/3d-models/alpine-chalet-house-2ac40506a2d74e60be6e9df6657a6367
+* author:	Gerhald (https://sketchfab.com/Gerhald)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Alpine Chalet house" (https://sketchfab.com/3d-models/alpine-chalet-house-2ac40506a2d74e60be6e9df6657a6367) by Gerhald (https://sketchfab.com/Gerhald) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
