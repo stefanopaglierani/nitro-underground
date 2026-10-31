@@ -1,16 +1,10 @@
 class_name Hud
 extends CanvasLayer
-## Touch controls, race info, menu and end screen. Everything is built in code.
+## Touch controls, race info, countdown clock, loading page and end screen of the race scene.
+## Everything is built in code. The title screen is a separate scene (menu.gd).
 
-signal mode_chosen(mode: String)
 signal restart_pressed
 signal menu_pressed
-## Garage: the player asked for the previous (-1) or next (+1) car.
-signal car_step(dir: int)
-## Title screen: the player picked a circuit (id from main.gd TRACKS).
-signal track_chosen(id: String)
-## Title screen: moved between the car page and the circuit page.
-signal page_changed(page: String)
 
 const ACCENT := Color(1, 0.18, 0.55)
 const CYAN := Color(0.1, 0.9, 1)
@@ -23,20 +17,18 @@ var message_label: Label
 var heat_label: Label
 var heat_boxes: Array[ColorRect] = []
 var escape_bar: ProgressBar
-var menu_panel: Control
 var end_panel: Control
 var end_title: Label
 var end_text: Label
-var car_name_label: Label
 var pause: Button
 var loading_panel: Control
 var loading_bar: ProgressBar
 var loading_label: Label
-var car_index_label: Label
-var car_page: Control
-var track_page: Control
-var track_row: HBoxContainer
 var speed_lines: ColorRect
+## Countdown clock, big at the top centre, and the "+N s" that pops up under it at a checkpoint.
+var clock_label: Label
+var clock_bonus_label: Label
+var _bonus_t := 0.0
 var _buttons: Dictionary = {}
 var _message_t := 0.0
 
@@ -61,8 +53,25 @@ func _ready() -> void:
 	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	message_label.offset_left = -500
 	message_label.offset_right = 500
-	message_label.offset_top = 120
-	message_label.offset_bottom = 200
+	message_label.offset_top = 150
+	message_label.offset_bottom = 230
+
+	clock_label = _label(64, Color.WHITE)
+	clock_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	clock_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	clock_label.offset_left = -200
+	clock_label.offset_right = 200
+	clock_label.offset_top = 6
+	clock_label.offset_bottom = 86
+	clock_label.add_theme_constant_override("outline_size", 12)
+	clock_bonus_label = _label(34, Color(0.3, 1, 0.5))
+	clock_bonus_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	clock_bonus_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	clock_bonus_label.offset_left = -200
+	clock_bonus_label.offset_right = 200
+	clock_bonus_label.offset_top = 84
+	clock_bonus_label.offset_bottom = 130
+	clock_bonus_label.visible = false
 
 	heat_label = _label(22, Color(0.8, 0.85, 1))
 	heat_label.text = "POLIZIA"
@@ -107,11 +116,11 @@ func _ready() -> void:
 	_make_touch("brake", 3, Color(1, 0.3, 0.3), BTN_BIG)
 	_make_touch("handbrake", 4, Color(1, 0.75, 0.2), BTN_SMALL)
 	_make_touch("nitro", 5, Color(0.3, 0.6, 1), BTN_SMALL)
-	_build_menu()
 	_build_end()
 	_build_loading()
 	get_viewport().size_changed.connect(_layout)
 	_layout()
+	_show_race_info(false)
 
 
 func _label(size: int, color: Color) -> Label:
@@ -245,6 +254,30 @@ func _process(delta: float) -> void:
 		_message_t -= delta
 		if _message_t < 0.5:
 			message_label.modulate.a = maxf(_message_t / 0.5, 0.0)
+	if _bonus_t > 0.0:
+		_bonus_t -= delta
+		clock_bonus_label.modulate.a = clampf(_bonus_t / 0.6, 0.0, 1.0)
+		clock_label.scale = Vector2.ONE * (1.0 + 0.25 * clampf(_bonus_t - 1.2, 0.0, 0.6) / 0.6)
+		clock_bonus_label.visible = _bonus_t > 0.0
+
+
+## Countdown clock: white, yellow under 10 seconds, blinking red under 5.
+func set_clock(seconds: float) -> void:
+	clock_label.text = "%d.%d" % [int(seconds), int(fmod(seconds, 1.0) * 10.0)] if seconds < 10.0 else "%d" % ceili(seconds)
+	var col := Color.WHITE
+	if seconds < 5.0:
+		col = Color(1, 0.2, 0.2) if fmod(seconds, 0.5) > 0.2 else Color(1, 0.75, 0.75)
+	elif seconds < 10.0:
+		col = Color(1, 0.85, 0.2)
+	clock_label.add_theme_color_override("font_color", col)
+
+
+## Time added at a checkpoint: "+N s" under the clock, which jumps a little.
+func clock_bonus(seconds: float) -> void:
+	clock_bonus_label.text = "+%d s" % roundi(seconds)
+	clock_bonus_label.visible = true
+	clock_label.pivot_offset = clock_label.size / 2.0
+	_bonus_t = 1.8
 
 
 # ---------- Menu and end screen ----------
@@ -285,131 +318,6 @@ func _big_button(parent: Control, text: String, color: Color) -> Button:
 	b.add_theme_stylebox_override("focus", sb)
 	parent.add_child(b)
 	return b
-
-
-## Title screen with the garage: the chosen car turns on the road behind the menu (main.gd);
-## arrows or a sideways swipe change it, the two buttons start a race with it.
-func _build_menu() -> void:
-	menu_panel = Control.new()
-	menu_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
-	menu_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(menu_panel)
-
-	var top := ColorRect.new()
-	top.color = Color(0.02, 0.01, 0.06, 0.6)
-	top.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	top.offset_bottom = 130
-	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	menu_panel.add_child(top)
-	var title := Label.new()
-	title.text = "NITRO UNDERGROUND"
-	title.set_anchors_preset(Control.PRESET_FULL_RECT)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 64)
-	title.add_theme_color_override("font_color", ACCENT)
-	title.add_theme_color_override("font_outline_color", CYAN)
-	title.add_theme_constant_override("outline_size", 4)
-	top.add_child(title)
-
-	var bottom := ColorRect.new()
-	bottom.color = Color(0.02, 0.01, 0.06, 0.65)
-	bottom.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-	bottom.offset_top = -270
-	bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	menu_panel.add_child(bottom)
-	var box := VBoxContainer.new()
-	box.set_anchors_preset(Control.PRESET_FULL_RECT)
-	box.offset_left = 40
-	box.offset_right = -40
-	box.offset_top = 14
-	box.offset_bottom = -18
-	box.add_theme_constant_override("separation", 14)
-	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	bottom.add_child(box)
-
-	# Page 1: the car. Arrows or a swipe change it, then on to the circuit.
-	car_page = VBoxContainer.new()
-	car_page.add_theme_constant_override("separation", 14)
-	car_page.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_child(car_page)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 24)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	car_page.add_child(row)
-	var prev := _big_button(row, "<", CYAN)
-	prev.custom_minimum_size = Vector2(120, 96)
-	prev.pressed.connect(func(): car_step.emit(-1))
-	var names := VBoxContainer.new()
-	names.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	names.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(names)
-	car_name_label = Label.new()
-	car_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	car_name_label.add_theme_font_size_override("font_size", 44)
-	car_name_label.add_theme_color_override("font_color", Color.WHITE)
-	names.add_child(car_name_label)
-	car_index_label = Label.new()
-	car_index_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	car_index_label.add_theme_font_size_override("font_size", 22)
-	car_index_label.add_theme_color_override("font_color", Color(0.7, 0.75, 0.9))
-	names.add_child(car_index_label)
-	var next := _big_button(row, ">", CYAN)
-	next.custom_minimum_size = Vector2(120, 96)
-	next.pressed.connect(func(): car_step.emit(1))
-	var go := _big_button(car_page, "AVANTI: SCEGLI IL CIRCUITO  >", ACCENT)
-	go.pressed.connect(func(): _show_page("track"))
-
-	# Page 2: the circuit, then the race mode.
-	track_page = VBoxContainer.new()
-	track_page.add_theme_constant_override("separation", 14)
-	track_page.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_child(track_page)
-	track_row = HBoxContainer.new()
-	track_row.add_theme_constant_override("separation", 18)
-	track_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	track_page.add_child(track_row)
-	var modes := HBoxContainer.new()
-	modes.add_theme_constant_override("separation", 24)
-	modes.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	track_page.add_child(modes)
-	var sprint := _big_button(modes, "GARA SPRINT", ACCENT)
-	sprint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	sprint.pressed.connect(func(): mode_chosen.emit("sprint"))
-	var escape := _big_button(modes, "FUGA DALLA POLIZIA", CYAN)
-	escape.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	escape.pressed.connect(func(): mode_chosen.emit("escape"))
-	track_page.visible = false
-
-
-## Circuit buttons: `tracks` is main.gd TRACKS, `current` the circuit built behind the menu.
-func set_tracks(tracks: Array, current: String) -> void:
-	for c in track_row.get_children():
-		c.queue_free()
-	var back := _big_button(track_row, "< AUTO", CYAN)
-	back.custom_minimum_size = Vector2(150, 104)
-	back.add_theme_font_size_override("font_size", 24)
-	back.pressed.connect(func(): _show_page("car"))
-	for t in tracks:
-		var id: String = t[0]
-		var chosen := id == current
-		var b := _big_button(track_row, t[1] + "\n" + t[2], ACCENT if chosen else CYAN)
-		b.custom_minimum_size = Vector2(0, 104)
-		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		b.add_theme_font_size_override("font_size", 22)
-		if chosen:
-			var sb := (b.get_theme_stylebox("normal") as StyleBoxFlat).duplicate() as StyleBoxFlat
-			sb.bg_color = Color(ACCENT.r, ACCENT.g, ACCENT.b, 0.6)
-			sb.set_border_width_all(5)
-			b.add_theme_stylebox_override("normal", sb)
-			b.add_theme_stylebox_override("focus", sb)
-		b.pressed.connect(func(): track_chosen.emit(id))
-
-
-func _show_page(page: String) -> void:
-	car_page.visible = page == "car"
-	track_page.visible = page == "track"
-	page_changed.emit(page)
 
 
 ## Full-screen loading page with a progress bar, shown while the level and the cars are built.
@@ -474,11 +382,6 @@ func hide_loading() -> void:
 	loading_panel.visible = false
 
 
-func set_car(car_name: String, index: int, total: int) -> void:
-	car_name_label.text = car_name
-	car_index_label.text = "%d / %d   (scorri o usa le frecce)" % [index + 1, total]
-
-
 func _build_end() -> void:
 	var box := _panel_base()
 	end_panel = box.get_parent()
@@ -496,16 +399,19 @@ func _build_end() -> void:
 	end_panel.visible = false
 
 
-func show_menu(on: bool, page := "car") -> void:
-	menu_panel.visible = on
-	if on:
-		_show_page(page)
-	pause.visible = not on
-	show_controls(not on)
-	info_label.visible = not on
-	heat_label.visible = not on
+## The race is about to start: controls, info, clock and the MENU button come up.
+func show_race_hud() -> void:
+	_show_race_info(true)
+	show_controls(true)
+
+
+func _show_race_info(on: bool) -> void:
+	pause.visible = on
+	info_label.visible = on
+	clock_label.visible = on
+	heat_label.visible = on
 	for r in heat_boxes:
-		r.visible = not on
+		r.visible = on
 
 
 func show_end(won: bool, title: String, text: String) -> void:

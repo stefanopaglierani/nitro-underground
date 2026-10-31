@@ -30,6 +30,12 @@ const WHEEL_PARTS := ["wheel", "_rim", "calliper", "caliper", "tire", "tyre", "b
 const REAR_PARTS := ["tail", "brakelight", "brake_light", "rear", "reverse", "trunk", "exhaust"]
 const FRONT_PARTS := ["headlight", "head_light", "front", "hood", "grill", "windshield"]
 static var _scenes := {}
+
+
+## Forgets the car models read so far, so their memory is freed once no car uses them (the title
+## screen keeps only the car on show; leaving a race frees the race cars).
+static func clear_cache() -> void:
+	_scenes.clear()
 static var _paint_shader: Shader = preload("res://shaders/car_paint.gdshader")
 
 

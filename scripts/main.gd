@@ -1,21 +1,24 @@
+class_name Main
 extends Node3D
-## Sets up the level, cars, camera and HUD, and runs the race and police rules.
-## Modes: "sprint" (race against 3 rivals, police join after a while) and "escape" (lose the police).
+## The race scene: builds the circuit chosen on the title screen (scenes/menu.tscn), loads only
+## the cars it needs, then runs the sprint race against 3 rivals (the police join after a while).
+## The clock counts down: every checkpoint adds the seconds needed to reach the next one, and the
+## race is lost when it gets to zero.
 ## Levels (circuits): "mountain" (daytime mountain pass, default), "coast" (seaside road),
 ## "night" (lit-up night city circuit) and the old grid "city" (tests only), see Track.
 
-static var start_mode := ""
 static var level := "mountain"
-## Circuits offered on the title screen, after the car: [id, name, short description].
+## Circuits offered on the title screen: [id, name, short description].
 const TRACKS := [
 	["mountain", "MONTAGNA", "Passo di montagna, di giorno"],
 	["coast", "COSTA", "Strada sul mare tra le palme"],
 	["night", "CITTÀ DI NOTTE", "Circuito cittadino tra le luci"],
 ]
-## Which page of the title screen to open after a reload: "car" or "track".
-static var menu_page := "car"
-## Position of the chosen car in the garage list (kept across scene reloads).
-static var car_index := -1
+const MENU_SCENE := "res://scenes/menu.tscn"
+## Countdown clock: seconds given for each checkpoint stretch = its length / CLOCK_SPEED (m/s)
+## + CLOCK_EXTRA. Tuned on the autopilot, which needs about 2/3 of the time given; what is left over carries on.
+const CLOCK_SPEED := 26.0
+const CLOCK_EXTRA := 4.0
 const RIVAL_COLORS := [Color(0.1, 0.85, 0.3), Color(1, 0.55, 0.05), Color(0.1, 0.55, 1)]
 const CHECKPOINT_RADIUS := 16.0
 const AI_ADVANCE_RADIUS := 12.0
@@ -40,14 +43,12 @@ var cp_beam: Node3D
 var arrow: Node3D
 var rng := RandomNumberGenerator.new()
 
-var mode := ""
-var _garage: Array = []  # CarCatalog entries available in this build
-var _preview: Node3D
-var _preview_dist := 8.0
-var _swipe := 0.0
-var state := "loading"  # loading, menu, countdown, race, end
+var state := "loading"  # loading, countdown, race, end
 var countdown := 0.0
 var race_time := 0.0
+## Countdown clock: seconds left to reach the next checkpoint.
+var time_left := 0.0
+var _clock_times: Array[float] = []  # seconds given for the stretch that ends at checkpoint i
 var player_cp := 1
 var player_wp := 1  # index in race_path, for the race position
 var finish_order: Array[Car] = []
@@ -70,14 +71,12 @@ const CAM_LOOK_AHEAD := 8.0
 const TRAFFIC_CARS := 24
 const CAM_FOV := 70.0
 const CAM_FOV_NITRO := 76.0
-var _orbit := 0.0
 
 var autotest := false
 var screenshot_dir := ""
 var _test_t := 0.0
 var _shots_taken := 0
 var _auto_wp := 1
-var _auto_goal := Vector3.ZERO
 
 
 func _ready() -> void:
@@ -90,14 +89,8 @@ func _ready() -> void:
 	for a in args:
 		if a.begins_with("--seed="):
 			rng.seed = int(a.substr(7))
-	for a in args:
 		if a.begins_with("--shots="):
 			screenshot_dir = a.substr(8)
-	if autotest and start_mode == "":
-		start_mode = "sprint"
-	for a in args:
-		if a.begins_with("--mode="):
-			start_mode = a.substr(7)
 		if a.begins_with("--level="):
 			level = a.substr(8)
 		if a.begins_with("--car="):
@@ -106,19 +99,20 @@ func _ready() -> void:
 	_setup_input()
 	hud = Hud.new()
 	add_child(hud)
-	hud.show_menu(false)
 	hud.show_controls(false)
 	hud.pause.visible = false
-	hud.mode_chosen.connect(_begin_race)
-	hud.restart_pressed.connect(func(): _reload(mode))
-	hud.menu_pressed.connect(func(): _reload(""))
-	hud.car_step.connect(_step_car)
-	hud.page_changed.connect(func(page: String): menu_page = page)
-	hud.track_chosen.connect(_choose_track)
+	hud.restart_pressed.connect(_restart)
+	hud.menu_pressed.connect(_to_menu)
 	camera = Camera3D.new()
 	camera.fov = CAM_FOV
 	camera.near = 0.1
 	add_child(camera)
+	# Nothing to see until the level is complete: drawing the half-built world behind the loading
+	# page at every step only slows the phone down.
+	get_viewport().disable_3d = true
+
+	# Start reading the car models from disk now, in the background, while the level is built.
+	var car_paths := _request_car_models()
 
 	# Build the level one step at a time, drawing the loading bar in between.
 	match level:
@@ -132,17 +126,18 @@ func _ready() -> void:
 			city = Mountain.new()
 	add_child(city)
 	var steps := city.build_steps()
-	var total := steps.size() + 4
+	var total := steps.size() + 6.0
 	for i in steps.size():
-		await _loading(steps[i][0], float(i) / total)
+		await _loading(steps[i][0], i / total)
 		(steps[i][1] as Callable).call()
-	await _loading("Cielo e luce", float(steps.size()) / total)
+	await _loading("Cielo e sole", steps.size() / total)
 	city.setup_environment(self)
 	ComicStyle.setup_environment(self, city.night)
 	ComicStyle.add_stylize_pass(camera)
-	ComicStyle.install(get_tree())
 	camera.far = city.view_distance
-	await _loading("Traffico", float(steps.size() + 1) / total)
+	await _loading("Stile fumetto", (steps.size() + 1) / total)
+	ComicStyle.install(get_tree())
+	await _loading("Traffico", (steps.size() + 2) / total)
 	var traffic: Array[TrafficCar] = []
 	for i in TRAFFIC_CARS:
 		var t := TrafficCar.new()
@@ -154,47 +149,46 @@ func _ready() -> void:
 	checkpoints = city.race_checkpoints()
 	race_path = city.race_path()
 	_build_markers()
-
-	if start_mode == "":
-		await _loading("Garage", float(steps.size() + 2) / total)
-		state = "menu"
-		_open_garage()
-		await _loading("Pronto", 1.0)
-		hud.hide_loading()
-		hud.set_tracks(TRACKS, level)
-		hud.show_menu(true, menu_page)
-		for a in args:
-			if a.begins_with("--menushot="):
-				# Test aid: picture of the title screen (--page=track for the circuit page).
-				if args.has("--page=track"):
-					hud._show_page("track")
-				await get_tree().create_timer(3.0).timeout
-				get_viewport().get_texture().get_image().save_png(a.substr(11))
-				get_tree().quit()
-	else:
-		await _begin_race(start_mode, float(steps.size() + 2) / total)
+	_plan_clock()
+	# The car models were loading in the background: wait for the last ones.
+	var from := (steps.size() + 3) / total
+	var span := 1.0 / total
+	while true:
+		var done := 0.0
+		for path in car_paths:
+			var progress := []
+			var status := ResourceLoader.load_threaded_get_status(path, progress)
+			done += 1.0 if status != ResourceLoader.THREAD_LOAD_IN_PROGRESS else float(progress[0])
+		await _loading("Auto", from + span * (done / maxf(car_paths.size(), 1.0)))
+		if done >= car_paths.size():
+			break
+	for path in car_paths:
+		ResourceLoader.load_threaded_get(path)
+	await _loading("Griglia di partenza", (steps.size() + 4) / total)
+	_start()
+	# First frames of the finished level, still under the loading page: the phone prepares the
+	# shaders, lights and shadows here instead of stuttering at the start of the race.
+	await _loading("Luci e ombre", (steps.size() + 5) / total)
+	get_viewport().disable_3d = false
+	for i in 4:
+		await get_tree().process_frame
+	await _loading("Pronto", 1.0)
+	hud.hide_loading()
+	hud.show_race_hud()
+	state = "countdown"
 
 
 ## Shows the loading page and waits for it to be drawn before the next (blocking) step.
 func _loading(text: String, progress: float) -> void:
+	print("[loading] %5d ms  %3d%%  %s" % [Time.get_ticks_msec(), roundi(progress * 100.0), text])
 	hud.show_loading(text, progress)
 	await get_tree().process_frame
 	await get_tree().process_frame
 
 
-## Loads the cars for a race with the loading bar running (from `from` to 100 %), then starts it.
-## The level is already built, so leaving the menu doesn't rebuild it.
-func _begin_race(m: String, from := 0.0) -> void:
-	if state != "menu" and state != "loading":
-		return
-	state = "loading"
-	hud.show_menu(false)
-	hud.show_controls(false)
-	hud.pause.visible = false
-	if _preview:
-		_preview.queue_free()
-		_preview = null
-	# Read the car models from disk in the background, with the bar following the progress.
+## Starts reading (in background threads) the models of the player's car, the rivals and the
+## police. Returns the paths being read.
+func _request_car_models() -> Array[String]:
 	var paths: Array[String] = []
 	for id in [Car.player_body] + Car.RACER_BODIES + Car.POLICE_BODIES:
 		var entry := CarCatalog.find(id)
@@ -202,99 +196,39 @@ func _begin_race(m: String, from := 0.0) -> void:
 		if ResourceLoader.exists(path) and not ResourceLoader.has_cached(path) and not paths.has(path):
 			paths.append(path)
 			ResourceLoader.load_threaded_request(path)
-	var span := (1.0 - from) * 0.8
-	while true:
-		var done := 0.0
-		for path in paths:
-			var progress := []
-			var status := ResourceLoader.load_threaded_get_status(path, progress)
-			done += 1.0 if status != ResourceLoader.THREAD_LOAD_IN_PROGRESS else float(progress[0])
-		await _loading("Auto", from + span * (done / maxf(paths.size(), 1.0)))
-		if done >= paths.size():
-			break
-	for path in paths:
-		ResourceLoader.load_threaded_get(path)
-	await _loading("Griglia di partenza", from + span)
-	_start(m)
-	await _loading("Pronto", 1.0)
-	hud.hide_loading()
-	hud.show_menu(false)
+	return paths
 
 
-# ---------- Garage (car choice on the title screen) ----------
-
-func _open_garage() -> void:
-	_garage = CarCatalog.available()
-	if car_index < 0 or car_index >= _garage.size():
-		car_index = 0
-		for i in _garage.size():
-			if _garage[i]["id"] == Car.player_body:
-				car_index = i
-	_show_car()
-
-
-func _step_car(dir: int) -> void:
-	if state != "menu" or _garage.is_empty() or menu_page != "car":
-		return
-	car_index = posmod(car_index + dir, _garage.size())
-	_show_car()
+## Seconds given for each checkpoint stretch, from its length along the race path.
+func _plan_clock() -> void:
+	_clock_times.clear()
+	_clock_times.append(0.0)
+	var wp := 0
+	for i in range(1, checkpoints.size()):
+		var length := 0.0
+		while wp + 1 < race_path.size():
+			length += race_path[wp].distance_to(race_path[wp + 1])
+			wp += 1
+			if race_path[wp].distance_to(checkpoints[i]) < 1.0:
+				break
+		_clock_times.append(roundf(length / CLOCK_SPEED + CLOCK_EXTRA))
 
 
-func _show_car() -> void:
-	var entry: Dictionary = _garage[car_index]
-	Car.player_body = entry["id"]
-	hud.set_car(entry["name"], car_index, _garage.size())
-	if _preview:
-		_preview.queue_free()
-	_preview = CarModel.build(Color(0, 0, 0, 0), entry["id"].contains("police"), entry["id"])
-	_preview.set_meta("comic_ink", true)
-	add_child(_preview)
-	var grid := city.start_grid(1)
-	_preview.global_transform = Transform3D(Basis.looking_at(grid[0][1], Vector3.UP), grid[0][0])
-	var length := 0.0
-	for mi in _preview.find_children("*", "MeshInstance3D", true, false):
-		var bb: AABB = CarModel._xf_in(mi, _preview) * (mi as MeshInstance3D).get_aabb()
-		length = maxf(length, maxf(absf(bb.position.z), absf(bb.end.z)))
-	_preview_dist = clampf(length * 2.6, 6.5, 30.0)
-
-
-func _unhandled_input(event: InputEvent) -> void:
-	if state != "menu":
-		return
-	var dx := 0.0
-	if event is InputEventScreenDrag:
-		dx = (event as InputEventScreenDrag).relative.x
-	elif event is InputEventMouseMotion and (event as InputEventMouseMotion).button_mask & MOUSE_BUTTON_MASK_LEFT:
-		dx = (event as InputEventMouseMotion).relative.x
-	elif event is InputEventScreenTouch and not (event as InputEventScreenTouch).pressed:
-		_swipe = 0.0
-	elif event.is_action_pressed("steer_left"):
-		_step_car(-1)
-	elif event.is_action_pressed("steer_right"):
-		_step_car(1)
-	_swipe += dx
-	if absf(_swipe) > 90.0:
-		_step_car(-1 if _swipe > 0.0 else 1)
-		_swipe = 0.0
-
-
-## A circuit was picked on the title screen: build it (the menu stays on the circuit page, with
-## the new circuit behind it).
-func _choose_track(id: String) -> void:
-	if state != "menu" or id == level:
-		return
-	level = id
-	menu_page = "track"
-	_reload("")
-
-
-## Restart or back to the menu: rebuild the scene (the loading page shows while it does).
-func _reload(m: String) -> void:
-	start_mode = m
+## Same race again: the scene is built anew (with the loading page).
+func _restart() -> void:
 	hud.show_loading("Riavvio", 0.0)
 	await get_tree().process_frame
 	await get_tree().process_frame
 	get_tree().reload_current_scene()
+
+
+## Back to the title screen. The race scene and its models are freed.
+func _to_menu() -> void:
+	hud.show_loading("Menu", 0.0)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	CarModel.clear_cache()
+	get_tree().change_scene_to_file(MENU_SCENE)
 
 
 func _setup_input() -> void:
@@ -361,39 +295,29 @@ func _make_car(kind: Car.Driver, paint: Color) -> Car:
 	return c
 
 
-func _start(m: String) -> void:
-	mode = m
-	hud.show_menu(false)
-	state = "countdown"
+func _start() -> void:
 	countdown = 3.5
-	if mode == "sprint":
-		var grid := city.start_grid(4)
-		for i in 3:
-			var r := _make_car(Car.Driver.RACER, RIVAL_COLORS[i])
-			r.place(grid[i][0], grid[i][1])
-			r.waypoints = race_path
-			r.wp_index = 1
-			# Close to the racing line, each a little to one side so they don't all queue on it.
-			r.lane_offset = (i - 1) * 1.6 + rng.randf_range(-0.4, 0.4)
-			r.max_speed = 57.0 + i * 1.5
-			racers.append(r)
-		player = _make_car(Car.Driver.PLAYER, Color(0.95, 0.1, 0.5))
-		player.place(grid[3][0], grid[3][1])
-		cp_marker.visible = true
-		cp_marker.position = checkpoints[1]
-		# The racing line on the road shows the way; the floating arrow only where there is none.
-		if city.guide:
-			city.guide.visible = true
-			cp_beam.visible = false
-		else:
-			arrow.visible = true
+	var grid := city.start_grid(4)
+	for i in 3:
+		var r := _make_car(Car.Driver.RACER, RIVAL_COLORS[i])
+		r.place(grid[i][0], grid[i][1])
+		r.waypoints = race_path
+		r.wp_index = 1
+		# Close to the racing line, each a little to one side so they don't all queue on it.
+		r.lane_offset = (i - 1) * 1.6 + rng.randf_range(-0.4, 0.4)
+		r.max_speed = 57.0 + i * 1.5
+		racers.append(r)
+	player = _make_car(Car.Driver.PLAYER, Color(0.95, 0.1, 0.5))
+	player.place(grid[3][0], grid[3][1])
+	cp_marker.visible = true
+	cp_marker.position = checkpoints[1]
+	time_left = _clock_times[1]
+	# The racing line on the road shows the way; the floating arrow only where there is none.
+	if city.guide:
+		city.guide.visible = true
+		cp_beam.visible = false
 	else:
-		player = _make_car(Car.Driver.PLAYER, Color(0.95, 0.1, 0.5))
-		var es := city.escape_start()
-		player.place(es[0], es[1])
-		_auto_goal = city.autopilot_goal(es[0], Vector3.ZERO)
-		heat = 3.0
-		police_called = true
+		arrow.visible = true
 	cam_yaw = player.heading()
 	_snap_camera()
 	hud.set_heat(heat)
@@ -402,20 +326,6 @@ func _start(m: String) -> void:
 func _process(delta: float) -> void:
 	match state:
 		"loading":
-			return
-		"menu":
-			_orbit += delta * 0.08
-			if _preview:
-				# Slow turn around the chosen car, a little above it.
-				var c := _preview.global_position
-				var a := _orbit * 3.0
-				camera.global_position = c + Vector3(sin(a), 0, cos(a)) * _preview_dist + Vector3(0, _preview_dist * 0.28, 0)
-				# Aim below the car so it sits in the clear band between the title and the garage bar.
-				camera.look_at(c - Vector3(0, _preview_dist * 0.12, 0), Vector3.UP)
-				return
-			var view := city.menu_camera(_orbit)
-			camera.global_position = view[0]
-			camera.look_at(view[1], Vector3.UP)
 			return
 		"countdown":
 			countdown -= delta
@@ -440,10 +350,6 @@ func _go() -> void:
 	player.frozen = false
 	for r in racers:
 		r.frozen = false
-	if mode == "escape":
-		for i in 2:
-			_spawn_police(true)
-		hud.flash("Semina la polizia!", 3.0)
 
 
 func _physics_process(_delta: float) -> void:
@@ -461,12 +367,18 @@ func _physics_process(_delta: float) -> void:
 
 func _race_logic(delta: float) -> void:
 	_off_track_logic(delta)
-	if mode == "sprint":
-		_checkpoints_logic()
-		if not police_called and race_time > 14.0:
-			police_called = true
-			heat = maxf(heat, 1.0)
-			hud.flash("Qualcuno ha chiamato la polizia!", 3.0)
+	_checkpoints_logic()
+	if state != "race":
+		return
+	time_left -= delta
+	if time_left <= 0.0:
+		time_left = 0.0
+		_end(false, "TEMPO SCADUTO", "Non sei arrivato in tempo %s.\nNiente vincita stavolta." % ("al traguardo" if player_cp == checkpoints.size() - 1 else "al checkpoint %d" % player_cp))
+		return
+	if not police_called and race_time > 14.0:
+		police_called = true
+		heat = maxf(heat, 1.0)
+		hud.flash("Qualcuno ha chiamato la polizia!", 3.0)
 	_police_logic(delta)
 
 
@@ -521,7 +433,12 @@ func _checkpoints_logic() -> void:
 			_end(won, "%d° POSTO" % pos, "Tempo %s\nVincita: %d $" % [_fmt_time(race_time), prize])
 			return
 		cp_marker.position = checkpoints[player_cp]
-		hud.flash("Checkpoint %d/%d" % [player_cp - 1, checkpoints.size() - 1], 1.0)
+		var bonus := _clock_times[player_cp]
+		if autotest:
+			print("[autotest] CHECKPOINT %d at %.1f s, %.1f s left, +%d s for the next one" % [player_cp - 1, race_time, time_left, bonus])
+		time_left += bonus
+		hud.flash("Checkpoint %d/%d   +%d s" % [player_cp - 1, checkpoints.size() - 1, bonus], 1.5)
+		hud.clock_bonus(bonus)
 
 
 func _police_logic(delta: float) -> void:
@@ -538,10 +455,7 @@ func _police_logic(delta: float) -> void:
 		else:
 			bust_t = maxf(0.0, bust_t - delta * 0.5)
 		if bust_t > 3.0:
-			var text := "La polizia ti ha preso."
-			if mode == "sprint":
-				text += "\nNiente vincita stavolta."
-			_end(false, "ARRESTATO", text)
+			_end(false, "ARRESTATO", "La polizia ti ha preso.\nNiente vincita stavolta.")
 			return
 		if nearest > ESCAPE_DISTANCE:
 			escape_t += delta
@@ -554,9 +468,6 @@ func _police_logic(delta: float) -> void:
 				p.queue_free()
 			police.clear()
 			hud.set_heat(heat)
-			if mode == "escape":
-				_end(true, "SEMINATI!", "Tempo di fuga %s\nVincita: %d $" % [_fmt_time(race_time), PRIZE / 2])
-				return
 			hud.flash("Polizia seminata!", 2.5)
 	hud.escape_bar.visible = heat > 0.0 and escape_t > 0.0
 	hud.escape_bar.value = escape_t / ESCAPE_TIME
@@ -646,11 +557,11 @@ func _update_hud() -> void:
 	hud.speed_lines.material.set_shader_parameter("amount", 1.0 if player.using_nitro else fast * 0.8)
 	hud.dashboard.set_values(absf(player.speed) * 3.6, player.rpm, Car.REDLINE_RPM + 200.0, player.gear, player.nitro, player.using_nitro)
 	var lines := PackedStringArray()
-	if mode == "sprint":
-		lines.append("POSIZIONE %d/%d" % [_player_position(), racers.size() + 1])
-		lines.append("CHECKPOINT %d/%d" % [mini(player_cp - 1, checkpoints.size() - 1), checkpoints.size() - 1])
-	lines.append("TEMPO %s" % _fmt_time(race_time))
+	lines.append("POSIZIONE %d/%d" % [_player_position(), racers.size() + 1])
+	lines.append("CHECKPOINT %d/%d" % [mini(player_cp - 1, checkpoints.size() - 1), checkpoints.size() - 1])
+	lines.append("GARA %s" % _fmt_time(race_time))
 	hud.info_label.text = "\n".join(lines)
+	hud.set_clock(time_left)
 	if arrow.visible and player_cp < checkpoints.size():
 		var t := checkpoints[player_cp]
 		var to := t - player.global_position
@@ -686,17 +597,11 @@ func _fmt_time(t: float) -> String:
 func _autopilot() -> void:
 	# Drive the player like a racer, through the checkpoints, to exercise every system.
 	var dt := get_physics_process_delta_time()
-	if mode == "sprint" and _auto_wp < race_path.size():
+	if _auto_wp < race_path.size():
 		if player.global_position.distance_to(race_path[_auto_wp]) < AI_ADVANCE_RADIUS and _auto_wp + 1 < race_path.size():
 			_auto_wp += 1
 		var after := race_path[_auto_wp + 1] if _auto_wp + 1 < race_path.size() else Vector3.INF
 		player._steer_towards(race_path[_auto_wp], dt, after)
-	else:
-		if player.global_position.distance_to(_auto_goal) < 20.0:
-			_auto_goal = city.autopilot_goal(player.global_position, _auto_goal)
-		var goal := _auto_goal
-		var target := city.route_point(player.global_position, goal)
-		player._steer_towards(target, dt, city.route_point(target, goal))
 
 
 ## Test of the crash physics (--ram): throws the player sideways into the nearest driving
@@ -721,10 +626,10 @@ func _autotest_tick(delta: float) -> void:
 	_test_t += delta
 	if screenshot_dir != "" and _shots_taken < 6 and _test_t > 1.0 + _shots_taken * 6.0:
 		var img := get_viewport().get_texture().get_image()
-		img.save_png("%s/shot_%s_%d.png" % [screenshot_dir, mode, _shots_taken])
+		img.save_png("%s/shot_%s_%d.png" % [screenshot_dir, level, _shots_taken])
 		_shots_taken += 1
 	if int(_test_t * 2.0) != int((_test_t - delta) * 2.0):
-		print("[autotest] t=%.1f state=%s speed=%.1f cp=%d heat=%.1f police=%d pos=%s wheels=%d up=%.2f in=(%.1f,%.1f,%.1f,%s)" % [_test_t, state, player.speed, player_cp, heat, police.size(), player.global_position.round(), player.wheels_on_ground, player.global_transform.basis.y.y, player.in_throttle, player.in_brake, player.in_steer, player.in_handbrake])
+		print("[autotest] t=%.1f state=%s speed=%.1f cp=%d clock=%.1f heat=%.1f police=%d pos=%s wheels=%d up=%.2f in=(%.1f,%.1f,%.1f,%s)" % [_test_t, state, player.speed, player_cp, time_left, heat, police.size(), player.global_position.round(), player.wheels_on_ground, player.global_transform.basis.y.y, player.in_throttle, player.in_brake, player.in_steer, player.in_handbrake])
 	if OS.get_cmdline_user_args().has("--ram") and int(_test_t / 4.0) != int((_test_t - delta) / 4.0):
 		_ram_traffic()
 	if int(_test_t / 5.0) != int((_test_t - delta) / 5.0):
