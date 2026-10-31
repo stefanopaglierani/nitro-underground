@@ -74,6 +74,8 @@ var front_drive := 0.35
 ## Front wheel angle at full lock, at walking pace and at top speed.
 var max_steer_low := deg_to_rad(38)
 var max_steer_high := deg_to_rad(9)
+## The player's steering is 30% gentler than the AI's (Stefano found it too twitchy).
+const PLAYER_STEER := 0.7
 var steer_rate := 4.0
 var yaw_assist := 0.55
 var downforce := 1.0
@@ -360,6 +362,8 @@ func _apply_vehicle_forces(delta: float) -> void:
 	# Steering gets smaller as speed grows, like an arcade racer.
 	var speed_t := clampf((absf(speed) - 8.0) / (STEER_FADE_SPEED - 8.0), 0.0, 1.0)
 	var max_steer := lerpf(max_steer_low, max_steer_high, pow(speed_t, 0.75))
+	if driver == Driver.PLAYER:
+		max_steer *= PLAYER_STEER
 	_steer = move_toward(_steer, in_steer * max_steer, steer_rate * max_steer * delta)
 	_update_gearbox(delta)
 
@@ -497,13 +501,12 @@ func _apply_vehicle_forces(delta: float) -> void:
 
 
 func _air_control(b: Basis) -> void:
-	# Pull the pitch rate towards what the input asks for; with no input the car keeps the
-	# rotation it took off with. No steering in the air.
+	# No steering and no pedals in the air (braking used to pitch the nose up until the car
+	# flipped over). Instead the car gently levels itself, so it lands on its wheels.
 	var torque_k := mass * 1.8 * air_response
-	var pitch_in := (1.0 if in_brake > 0.1 else 0.0) - (1.0 if in_handbrake else 0.0)
-	if pitch_in != 0.0:
-		var wx := angular_velocity.dot(b.x)
-		apply_torque(b.x * (pitch_in * air_pitch_rate - wx) * torque_k)
+	var tilt := b.y.cross(Vector3.UP)  # axis that brings the roof back up
+	var spin := angular_velocity - b.y * angular_velocity.dot(b.y)  # pitch and roll, not yaw
+	apply_torque((tilt * 2.5 - spin * 0.8) * torque_k)
 
 
 ## Front-, rear- or four-wheel drive: "FWD", "RWD" or "AWD".
