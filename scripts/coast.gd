@@ -20,6 +20,8 @@ func _init() -> void:
 	noise_seed = 21
 	road_floor = SEA + 4.5
 	tree_tries = 3500
+	layout_id = "costa"
+	snow_line = 100000.0
 
 
 func build_steps() -> Array:
@@ -257,15 +259,24 @@ func _build_palms() -> void:
 		xfs.append(_palm_xf(Vector3(x, h - 0.1, z)))
 		if d < 40.0:
 			trunks.append(Vector3(x, h, z))
-	var mm := MultiMesh.new()
-	mm.transform_format = MultiMesh.TRANSFORM_3D
-	mm.mesh = mesh
-	mm.instance_count = xfs.size()
-	for i in xfs.size():
-		mm.set_instance_transform(i, xfs[i])
-	var mmi := MultiMeshInstance3D.new()
-	mmi.multimesh = mm
-	add_child(mmi)
+	if Scenery.exists("coast_coconut_palm"):
+		# Real palms (Sketchfab, CC-BY): double coconut palms and tall single date palms.
+		var a: Array = []
+		var b: Array = []
+		for i in xfs.size():
+			(a if i % 3 != 0 else b).append(xfs[i])
+		Scenery.scatter(self, "coast_coconut_palm", 10.5, a, 650.0)
+		Scenery.scatter(self, "coast_arabic_palm", 13.0, b, 650.0)
+	else:
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.mesh = mesh
+		mm.instance_count = xfs.size()
+		for i in xfs.size():
+			mm.set_instance_transform(i, xfs[i])
+		var mmi := MultiMeshInstance3D.new()
+		mmi.multimesh = mm
+		add_child(mmi)
 	var body := StaticBody3D.new()
 	add_child(body)
 	for t in trunks:
@@ -352,6 +363,22 @@ func _build_village() -> void:
 
 func _build_lighthouse() -> void:
 	var g := ground_height(_cape.x, _cape.y)
+	if Scenery.exists("coast_lighthouse_2"):
+		var lhm := Scenery.instance("coast_lighthouse_2", 26.0)
+		lhm.position = Vector3(_cape.x, g - 0.8, _cape.y)
+		lhm.rotation.y = _rng.randf() * TAU
+		add_child(lhm)
+		var lbody := StaticBody3D.new()
+		var lshape := CylinderShape3D.new()
+		lshape.radius = 6.0
+		lshape.height = 20.0
+		var lcol := CollisionShape3D.new()
+		lcol.shape = lshape
+		lcol.position = lhm.position + Vector3(0, 10, 0)
+		lbody.add_child(lcol)
+		add_child(lbody)
+		_build_beach()
+		return
 	var lh := Node3D.new()
 	lh.position = Vector3(_cape.x, g - 0.5, _cape.y)
 	add_child(lh)
@@ -385,6 +412,52 @@ func _build_lighthouse() -> void:
 	cmi.material_override = red
 	cmi.position.y = 24.1
 	lh.add_child(cmi)
+
+
+## Life on the beaches: rowing boats pulled up on the sand, umbrellas, and a wooden pier out
+## into the sea near the most seaward stretch of road.
+func _build_beach() -> void:
+	var size := (_gw - 1) * CELL
+	var boats := []
+	var umbrellas := []
+	for i in 4000:
+		var x := _min.x + _rng.randf() * size
+		var z := _min.y + _rng.randf() * size
+		var h := ground_height(x, z)
+		if h < SEA + 0.2 or h > SEA + 1.6:
+			continue
+		var d := _road_dist_at(x, z)
+		if d < RAIL_OFFSET + 4.0 or d > 220.0:
+			continue
+		var xf := Transform3D(Basis(Vector3.UP, _rng.randf() * TAU), Vector3(x, h - 0.05, z))
+		if _rng.randf() < 0.25:
+			if boats.size() < 14:
+				boats.append(xf)
+		elif umbrellas.size() < 70 and _noise.get_noise_2d(x * 3.0, z * 3.0) > 0.05:
+			umbrellas.append(xf)
+	if Scenery.exists("coast_rowboat"):
+		var half := boats.size() / 2
+		Scenery.scatter(self, "coast_rowboat", 1.2, boats.slice(0, half), 300.0)
+		Scenery.scatter(self, "coast_wooden_boat", 1.0, boats.slice(half), 300.0)
+	if Scenery.exists("coast_beach_umbrella"):
+		Scenery.scatter(self, "coast_beach_umbrella", 2.6, umbrellas, 260.0)
+	# Pier: dock pieces in a line straight out to sea from the shore below the road.
+	if Scenery.exists("coast_old_pier"):
+		var best := 0
+		for k in pts.size():
+			if pts[k].z > pts[best].z:
+				best = k
+		var x := pts[(best + pts.size() / 6) % pts.size()].x
+		var z0 := _shore_z(x) - 6.0
+		var xfs := []
+		var box: AABB = Scenery.pieces("coast_old_pier")[0]["box"]
+		var s := 3.2 / box.size.x
+		var step := box.size.z * s
+		var zz := z0
+		while zz < z0 + 70.0:
+			xfs.append(Transform3D(Basis.from_scale(Vector3.ONE * s), Vector3(x, SEA - 1.2, zz)))
+			zz += step * 0.98
+		Scenery.scatter_piece(self, "coast_old_pier", 0, xfs, 500.0)
 
 
 # ---------- Track interface ----------

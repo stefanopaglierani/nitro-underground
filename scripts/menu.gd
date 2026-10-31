@@ -137,6 +137,74 @@ func _button(text: String, color: Color, font := 30, height := 84.0) -> Button:
 	return b
 
 
+## A circuit button: a picture of the circuit as background (assets/ui/circuit_<id>.jpg), its
+## name and line, and the shape of the track (from its map) drawn on the right.
+func _track_button(id: String, title: String, line: String) -> Button:
+	var b := _button("", ACCENT, 26, 0)
+	b.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	b.clip_contents = true
+	var pic_path := "res://assets/ui/circuit_%s.jpg" % id
+	if ResourceLoader.exists(pic_path):
+		var pic := TextureRect.new()
+		pic.texture = load(pic_path)
+		pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		pic.set_anchors_preset(Control.PRESET_FULL_RECT)
+		pic.offset_left = 5
+		pic.offset_top = 5
+		pic.offset_right = -5
+		pic.offset_bottom = -5
+		pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		b.add_child(pic)
+		# Dark band on the left so the name always reads.
+		var shade := TextureRect.new()
+		var grad := Gradient.new()
+		grad.colors = PackedColorArray([Color(INK.r, INK.g, INK.b, 0.82), Color(INK.r, INK.g, INK.b, 0.0)])
+		var gt := GradientTexture2D.new()
+		gt.gradient = grad
+		gt.width = 64
+		gt.height = 4
+		shade.texture = gt
+		shade.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		shade.stretch_mode = TextureRect.STRETCH_SCALE
+		shade.set_anchors_preset(Control.PRESET_FULL_RECT)
+		shade.anchor_right = 0.75
+		shade.offset_left = 5
+		shade.offset_top = 5
+		shade.offset_bottom = -5
+		shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		b.add_child(shade)
+	var map_id: String = Main.TRACK_MAPS.get(id, "")
+	if map_id != "" and TrackLayout.exists(map_id):
+		var outline := TrackOutline.new()
+		outline.layout = TrackLayout.load_id(map_id)
+		outline.set_anchors_preset(Control.PRESET_RIGHT_WIDE)
+		outline.offset_left = -118
+		outline.offset_right = -10
+		outline.offset_top = 10
+		outline.offset_bottom = -10
+		outline.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		b.add_child(outline)
+	var text := VBoxContainer.new()
+	text.set_anchors_preset(Control.PRESET_FULL_RECT)
+	text.offset_left = 20
+	text.offset_right = -120
+	text.alignment = BoxContainer.ALIGNMENT_CENTER
+	text.add_theme_constant_override("separation", 0)
+	text.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	b.add_child(text)
+	for i in 2:
+		var l := Label.new()
+		l.text = title if i == 0 else line
+		l.add_theme_font_size_override("font_size", 30 if i == 0 else 19)
+		l.add_theme_color_override("font_color", Color.WHITE if i == 0 else Color(1, 0.92, 0.6))
+		l.add_theme_color_override("font_outline_color", INK)
+		l.add_theme_constant_override("outline_size", 9 if i == 0 else 7)
+		l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		text.add_child(l)
+	return b
+
+
 ## One panel on the right that shows the circuits, then the cars; the VIA! button under it.
 func _build_panel() -> void:
 	var panel := PanelContainer.new()
@@ -175,8 +243,7 @@ func _build_panel() -> void:
 	box.add_child(_track_page)
 	for t in Main.TRACKS:
 		var id: String = t[0]
-		var b := _button("%s\n%s" % [t[1], t[2]], ACCENT, 26, 0)
-		b.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		var b := _track_button(id, t[1], t[2])
 		b.pressed.connect(_pick_track.bind(id))
 		_track_page.add_child(b)
 		_track_buttons[id] = b

@@ -213,3 +213,36 @@ Modelli scaricati il 2026-10-30 in formato glTF dall'API di Sketchfab. Licenza *
 | `traffic_cone/` | Traffic cone (Game ready) | PT34 | https://sketchfab.com/3d-models/traffic-cone-game-ready-8cdac192abd044988c314eeb6377a3a0 | Nessuna (non ancora usato: i coni vengono dal pacchetto barriere) |
 | `street_signs/` | Worn street signs | Nicolai Kilstrup (nkilstrup) | https://sketchfab.com/3d-models/worn-street-signs-e8a1cfe8e0254e4e8b9edaf96c23e259 | Nessuna |
 | `barriers/` | Barrier & Traffic Cone Pack | Sabri Ayeş (sabriayes) | https://sketchfab.com/3d-models/barrier-traffic-cone-pack-23c4dfca76a24bf0b21894847867af2a | Nessuna |
+
+## Ambientazioni v0.11 (Sketchfab, CC-BY 4.0) — `assets/scenery/*.glb`
+
+Scaricati il 2026-10-31 in formato GLB dall'API di Sketchfab, non modificati. Licenza **CC Attribution 4.0**: crediti da riportare anche nei titoli di coda se il gioco viene pubblicato. Prefisso del file = circuito che li usa (`city_` Città di notte, `coast_` Costa, `desert_` Deserto). La città li mostra di notte con un materiale che accende le finestre (`shaders/city_facade.gdshader`).
+
+| File | Modello | Autore | Pagina |
+|---|---|---|---|
+| `city_downtown_set.glb` | Downtown Buildings Set - Low Poly model | DanielZhabotinsky | https://sketchfab.com/3d-models/downtown-buildings-set-low-poly-model-7378e7fb9c914c39880d9913a6f4e1d6 |
+| `city_midcity_set.glb` | Midcity Buildings Set - Low Poly model | DanielZhabotinsky | https://sketchfab.com/3d-models/midcity-buildings-set-low-poly-model-d5cbc471d20c4c9da31c3df656648916 |
+| `city_nyc_homes.glb` | Low Poly classical New York City homes | 99.Miles | https://sketchfab.com/3d-models/low-poly-classical-new-york-city-homes-449d873dcca0409bb73b6b801ff36bed |
+| `city_chicago_buildings.glb` | Realistic chicago buildings | 99.Miles | https://sketchfab.com/3d-models/realistic-chicago-buildings-c4a3993ef1e84e6d9d5a15c78da88aae |
+| `city_singapore_skyscraper.glb` | Singapore Office Skyscraper [FREE] | 99.Miles | https://sketchfab.com/3d-models/singapore-office-skyscraper-free-2305f0fe03ba44229a1f768dcb48bd8f |
+| `city_night_skyline.glb` | Low Poly Night City Building Skyline | 99.Miles | https://sketchfab.com/3d-models/low-poly-night-city-building-skyline-b0035b8713b048bb8ddf311ee67c28c8 |
+| `city_street_lights.glb` | Various Low-Poly Street Lights | kmb_jr | https://sketchfab.com/3d-models/various-low-poly-street-lights-1173b0c4d9b0400bbeaafbee0e94ca59 |
+| `city_street_props_traffic_light.glb` | Street and City Props Dumpster Traffic Light | spookyghostboo | https://sketchfab.com/3d-models/street-and-city-props-dumpster-traffic-light-27a6775c51e44bfda8e1ac8725eb3e9e |
+| `coast_coconut_palm.glb` | Coconut Palm | evolveduk | https://sketchfab.com/3d-models/coconut-palm-26e787f2ff2e4c0fb004c3b0210805a3 |
+| `coast_arabic_palm.glb` | Arabic Palmtree | rodrigogelmi | https://sketchfab.com/3d-models/arabic-palmtree-d76f0654b92d4cf994b528555525219b |
+| `coast_lighthouse_2.glb` | lighthouse | Lora_o | https://sketchfab.com/3d-models/lighthouse-dab98033118949728804bfc5f4076b8f |
+| `coast_old_pier.glb` | Old pier (Game ready) | PT34 | https://sketchfab.com/3d-models/old-pier-game-ready-3c21842960a74452a13609a584f38762 |
+| `coast_rowboat.glb` | Old Rowboat | toomanydemons | https://sketchfab.com/3d-models/old-rowboat-9922d5678af84adeb1c9b479856446ca |
+| `coast_wooden_boat.glb` | Wooden Boat | dadndan0091 | https://sketchfab.com/3d-models/wooden-boat-55118b23a5494e4b81eed831b9f8c871 |
+| `coast_beach_umbrella.glb` | Beach Umbrella | stealth86 | https://sketchfab.com/3d-models/beach-umbrella-1014ad7c8a4c4aa8ba5e88fc6151aa4f |
+| `desert_gas_station.glb` | Lowpoly Gas Station | AspectStudio | https://sketchfab.com/3d-models/lowpoly-gas-station-02a11319cb744999adddd7236a46bf8e |
+| `desert_roadside_motel.glb` | Roadside Motel | novusod | https://sketchfab.com/3d-models/roadside-motel-f52cfdfa6711424289ecc9df463acede |
+| `desert_mojave_motel_sign.glb` | Mojave Motel Sign | aocrisan | https://sketchfab.com/3d-models/mojave-motel-sign-c64f69ab7a6e4674826de6600f1a61d6 |
+| `desert_western_bank.glb` | Old Western Bank With Interior Low Poly | elvair | https://sketchfab.com/3d-models/old-western-bank-with-interior-low-poly-e55eb272bc1440bf93e5dc10ccf73698 |
+| `desert_western_watertower.glb` | Low Poly Western Watertower | staticcc | https://sketchfab.com/3d-models/low-poly-western-watertower-b62fd3f5aa4541b78065fe56565d88f8 |
+| `desert_shanty.glb` | Shanty \| Mansion \| Wooden | yadrogames | https://sketchfab.com/3d-models/shanty-mansion-wooden-cf93dfd6da1640f08ebe051ba280426d |
+| `desert_cactus_pack.glb` | Cactus \| Pack | yadrogames | https://sketchfab.com/3d-models/cactus-pack-588596f1601d48e6ad4cb24b31c3f33c |
+| `desert_desert_rocks.glb` | Desert \| Rocks \| Stones \| Pack | yadrogames | https://sketchfab.com/3d-models/desert-rocks-stones-pack-c2208f5ccc004f1681d27de67fe75799 |
+| `desert_desert_cliff.glb` | Desert Cliff 6 | WireframeArt | https://sketchfab.com/3d-models/desert-cliff-6-ed2e9c7e976e4768868481e4a5c63f6f |
+
+La libreria completa scaricata (58 modelli, anche quelli non ancora usati) è nella cartella del progetto `nitro-underground/libreria-3d/`, con i crediti in `CREDITI.md`.

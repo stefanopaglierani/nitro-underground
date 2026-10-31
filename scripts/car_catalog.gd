@@ -121,10 +121,8 @@ static func find(id: String) -> Dictionary:
 ## The 20 cars in the garage, in the order the garage shows them (Stefano's pick, 2026-10-30).
 ## The other CARS stay in the catalog for rivals, police and traffic.
 const GARAGE := [
-	"mclaren_600lt", "charger_1970", "skyline_r34_brian", "porsche_911_gt3", "mustang_1969",
-	"skyline_r34", "silvia_s15", "mr2_w20", "bmw_m3_e36", "mustang_gt", "kiri_86", "classic_muscle",
-	"ford_raptor_r", "ram_1500_trx", "doutrive_78", "eugene_mk6",
-	"sports", "muscle", "k_race", "k_race_future",
+	"mclaren_600lt", "porsche_911_gt3", "mustang_1969", "skyline_r34_brian", "charger_1970",
+	"ford_raptor_r", "ram_1500_trx",
 ]
 
 

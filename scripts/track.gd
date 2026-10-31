@@ -55,6 +55,11 @@ func advised_speed(_pos: Vector3, _fwd: Vector3) -> float:
 	return INF
 
 
+## Seconds a fast driver needs from a to b along the race, or -1 if the level does not know.
+func drive_time(_a: Vector3, _b: Vector3) -> float:
+	return -1.0
+
+
 ## Points the AI racers drive through, from the start to the finish line.
 func race_path() -> Array[Vector3]:
 	return []

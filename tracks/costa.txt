@@ -1,0 +1,26 @@
+# RIVIERA - mappa del circuito "Costa"
+PARTENZA
+DRITTO 220            # strada in collina, il mare è a sud
+DESTRA 30 150
+SINISTRA 30 150
+DRITTO 100
+GOMITO DESTRA
+DISCESA 7             # si scende verso il mare a tornanti
+DRITTO 110
+TORNANTE SINISTRA 18
+DRITTO 90
+TORNANTE DESTRA 18
+DRITTO 150
+PIANO
+DESTRA 90 40
+DRITTO 260            # lungomare
+CHICANE SINISTRA      # in mezzo al paese
+DRITTO 200
+DESTRA 60 80
+SALITA 6              # risalita verso la collina
+DRITTO 120
+DESTRA 30 60
+DRITTO 100
+GOMITO DESTRA
+PIANO
+DRITTO 40

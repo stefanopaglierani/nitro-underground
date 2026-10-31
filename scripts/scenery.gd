@@ -14,7 +14,13 @@ static var _bounds := {}
 
 
 static func exists(name: String) -> bool:
-	return ResourceLoader.exists(DIR % name)
+	return ResourceLoader.exists(_path(name))
+
+
+## assets/scenery/<name>/scene.gltf (older models) or assets/scenery/<name>.glb.
+static func _path(name: String) -> String:
+	var glb := "res://assets/scenery/%s.glb" % name
+	return glb if ResourceLoader.exists(glb) else DIR % name
 
 
 ## The meshes of a model and their transforms, scaled so the whole model is `height` metres tall,
@@ -48,16 +54,45 @@ static func part_count(name: String) -> int:
 	return (_parts[name] as Array).size()
 
 
-## One copy of a model as a node.
+## One copy of a model as a node. Its parts are merged into a single mesh with one surface per
+## material, so a model made of a hundred little pieces costs a handful of draw calls on the phone.
 static func instance(name: String, height: float, only: Array = []) -> Node3D:
 	var root := Node3D.new()
 	root.name = name
-	for p in parts(name, height, only):
-		var mi := MeshInstance3D.new()
-		mi.mesh = p[0]
-		mi.transform = p[1]
-		root.add_child(mi)
+	var mi := MeshInstance3D.new()
+	mi.mesh = merged(name, height, only)
+	root.add_child(mi)
 	return root
+
+
+## name|height|only -> merged ArrayMesh.
+static var _merged := {}
+
+
+static func merged(name: String, height: float, only: Array = []) -> ArrayMesh:
+	var key := "%s|%.3f|%s" % [name, height, only]
+	if _merged.has(key):
+		return _merged[key]
+	var tools := {}  # material -> SurfaceTool
+	var order := []
+	for p in parts(name, height, only):
+		var mesh: Mesh = p[0]
+		for si in mesh.get_surface_count():
+			var mat: Material = mesh.surface_get_material(si)
+			var k: Variant = mat if mat != null else "none"
+			if not tools.has(k):
+				var st := SurfaceTool.new()
+				tools[k] = st
+				order.append(k)
+			(tools[k] as SurfaceTool).append_from(mesh, si, p[1])
+	var out := ArrayMesh.new()
+	for k in order:
+		var st: SurfaceTool = tools[k]
+		st.commit(out)
+		if k is Material:
+			out.surface_set_material(out.get_surface_count() - 1, k)
+	_merged[key] = out
+	return out
 
 
 ## Many copies of a model, one MultiMesh per part. Returns the new nodes (already added).
@@ -103,7 +138,7 @@ static func _load(name: String) -> void:
 	var list := []
 	var box := AABB()
 	if exists(name):
-		var scene := (load(DIR % name) as PackedScene).instantiate() as Node3D
+		var scene := (load(_path(name)) as PackedScene).instantiate() as Node3D
 		var first := true
 		for mi in scene.find_children("*", "MeshInstance3D", true, false):
 			var xf := (mi as Node3D).transform
@@ -119,6 +154,102 @@ static func _load(name: String) -> void:
 		scene.free()
 	_parts[name] = list
 	_bounds[name] = box
+
+
+# ---------- Packs: one file holding many separate models ----------
+
+## name -> pieces (see pieces_of).
+static var _pieces := {}
+
+
+## The separate models of a pack (buildings of a city set, rocks of a rock pack...): meshes whose
+## footprints overlap belong to the same piece. Each piece: {"parts": [[mesh, transform]...],
+## "box": AABB} standing on y = 0, centred on x and z, in metres as in the file. Sorted left to
+## right as laid out in the file.
+static func pieces(name: String) -> Array:
+	if not _pieces.has(name):
+		_pieces[name] = pieces_of((load(_path(name)) as PackedScene).instantiate()) if exists(name) else []
+	return _pieces[name]
+
+
+static func pieces_of(scene: Node3D) -> Array:
+	var items := []  # [mesh, transform, aabb]
+	for mi in scene.find_children("*", "MeshInstance3D", true, false):
+		var xf := (mi as Node3D).transform
+		var n := mi.get_parent() as Node3D
+		while n != scene and n != null:
+			xf = n.transform * xf
+			n = n.get_parent() as Node3D
+		var mesh := _opaque_leaves((mi as MeshInstance3D).mesh, Color.WHITE)
+		items.append([mesh, xf, xf * mesh.get_aabb()])
+	scene.free()
+	# Union-find on overlapping footprints.
+	var parent := range(items.size())
+	var find := func(i: int) -> int:
+		while parent[i] != i:
+			i = parent[i]
+		return i
+	for i in items.size():
+		for j in range(i + 1, items.size()):
+			var a: AABB = items[i][2]
+			var b: AABB = items[j][2]
+			if a.position.x < b.end.x + 0.05 and b.position.x < a.end.x + 0.05 and a.position.z < b.end.z + 0.05 and b.position.z < a.end.z + 0.05:
+				var ri: int = find.call(i)
+				var rj: int = find.call(j)
+				if ri != rj:
+					parent[rj] = ri
+	var groups := {}
+	for i in items.size():
+		var r: int = find.call(i)
+		if not groups.has(r):
+			groups[r] = []
+		groups[r].append(items[i])
+	var out := []
+	for r in groups:
+		var list: Array = groups[r]
+		var box: AABB = list[0][2]
+		for it in list:
+			box = box.merge(it[2])
+		var fix := Transform3D(Basis.IDENTITY, -Vector3(box.get_center().x, box.position.y, box.get_center().z))
+		var parts := []
+		for it in list:
+			parts.append([it[0], fix * (it[1] as Transform3D)])
+		out.append({"parts": parts, "box": AABB(Vector3(-box.size.x / 2.0, 0, -box.size.z / 2.0), box.size), "x": box.get_center().x + box.get_center().z * 0.001})
+	out.sort_custom(func(p, q): return p["x"] < q["x"])
+	return out
+
+
+## One piece of a pack as a node, scaled by `s`.
+static func piece_instance(name: String, index: int, s := 1.0) -> Node3D:
+	var root := Node3D.new()
+	var p: Dictionary = pieces(name)[index]
+	for part in p["parts"]:
+		var mi := MeshInstance3D.new()
+		mi.mesh = part[0]
+		mi.transform = Transform3D(Basis.from_scale(Vector3.ONE * s), Vector3.ZERO) * (part[1] as Transform3D)
+		root.add_child(mi)
+	return root
+
+
+## Many copies of one piece, one MultiMesh per mesh. Transforms include any scaling.
+static func scatter_piece(parent: Node, name: String, index: int, transforms: Array, visibility_end := 0.0) -> Array:
+	var nodes := []
+	if transforms.is_empty():
+		return nodes
+	var p: Dictionary = pieces(name)[index]
+	for part in p["parts"]:
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.mesh = part[0]
+		mm.instance_count = transforms.size()
+		for i in transforms.size():
+			mm.set_instance_transform(i, (transforms[i] as Transform3D) * (part[1] as Transform3D))
+		var mmi := MultiMeshInstance3D.new()
+		mmi.multimesh = mm
+		mmi.visibility_range_end = visibility_end
+		parent.add_child(mmi)
+		nodes.append(mmi)
+	return nodes
 
 
 # ---------- Dressing a road (Mountain and the tracks built on it) ----------
