@@ -7,6 +7,10 @@ signal restart_pressed
 signal menu_pressed
 ## Garage: the player asked for the previous (-1) or next (+1) car.
 signal car_step(dir: int)
+## Title screen: the player picked a circuit (id from main.gd TRACKS).
+signal track_chosen(id: String)
+## Title screen: moved between the car page and the circuit page.
+signal page_changed(page: String)
 
 const ACCENT := Color(1, 0.18, 0.55)
 const CYAN := Color(0.1, 0.9, 1)
@@ -29,6 +33,10 @@ var loading_panel: Control
 var loading_bar: ProgressBar
 var loading_label: Label
 var car_index_label: Label
+var car_page: Control
+var track_page: Control
+var track_row: HBoxContainer
+var speed_lines: ColorRect
 var _buttons: Dictionary = {}
 var _message_t := 0.0
 
@@ -38,6 +46,9 @@ func _ready() -> void:
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
+
+	speed_lines = ComicStyle.make_speed_lines()
+	root.add_child(speed_lines)
 
 	dashboard = Dashboard.new()
 	root.add_child(dashboard)
@@ -90,12 +101,12 @@ func _ready() -> void:
 
 	touch = Node2D.new()
 	add_child(touch)
-	_make_touch("steer_left", "", 0, CYAN)
-	_make_touch("steer_right", "", 1, CYAN)
-	_make_touch("throttle", "GAS", 2, Color(0.3, 1, 0.45))
-	_make_touch("brake", "FRENO", 3, Color(1, 0.3, 0.3))
-	_make_touch("handbrake", "DERAPA", 4, Color(1, 0.75, 0.2))
-	_make_touch("nitro", "NITRO", 5, Color(0.3, 0.6, 1))
+	_make_touch("steer_left", 0, CYAN, BTN_BIG)
+	_make_touch("steer_right", 1, CYAN, BTN_BIG)
+	_make_touch("throttle", 2, Color(0.3, 1, 0.45), BTN_BIG)
+	_make_touch("brake", 3, Color(1, 0.3, 0.3), BTN_BIG)
+	_make_touch("handbrake", 4, Color(1, 0.75, 0.2), BTN_SMALL)
+	_make_touch("nitro", 5, Color(0.3, 0.6, 1), BTN_SMALL)
 	_build_menu()
 	_build_end()
 	_build_loading()
@@ -131,63 +142,83 @@ func _bar(color: Color) -> ProgressBar:
 	return b
 
 
-static func _circle(radius: int, color: Color, arrow: int) -> ImageTexture:
-	var size := radius * 2
-	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
-	for y in size:
-		for x in size:
-			var p := Vector2(x - radius + 0.5, y - radius + 0.5)
-			var d := p.length()
-			var c := Color(0, 0, 0, 0)
-			if d < radius - 5:
-				c = Color(color.r, color.g, color.b, 0.22)
-			elif d < radius:
-				c = Color(color.r, color.g, color.b, 0.85)
-			# Steering arrows: a triangle pointing left (-1) or right (+1).
-			if arrow != 0:
-				var ax := p.x * arrow
-				if ax > -radius * 0.3 and ax < radius * 0.35 and absf(p.y) < (radius * 0.35 - ax) * 0.9:
-					c = Color(1, 1, 1, 0.9)
-			img.set_pixel(x, y, c)
+## Touch buttons: a hexagon with a drawn icon, made from SVG at the size it is shown.
+const HEX := "M50 3 L90.7 26.5 L90.7 73.5 L50 97 L9.3 73.5 L9.3 26.5 Z"
+const ICONS := {
+	# Steering: a bold arrow.
+	"steer_left": "<path d='M64 24 L30 50 L64 76 Z' fill='#fff' stroke='#fff' stroke-width='8' stroke-linejoin='round'/>",
+	"steer_right": "<path d='M36 24 L70 50 L36 76 Z' fill='#fff' stroke='#fff' stroke-width='8' stroke-linejoin='round'/>",
+	# Accelerator: a tall narrow pedal with grooves.
+	"throttle": "<rect x='37' y='20' width='26' height='60' rx='7' fill='#fff'/>"
+		+ "<g stroke='#000' stroke-opacity='0.45' stroke-width='3.5' stroke-linecap='round'>"
+		+ "<line x1='43' y1='32' x2='57' y2='32'/><line x1='43' y1='42' x2='57' y2='42'/>"
+		+ "<line x1='43' y1='52' x2='57' y2='52'/><line x1='43' y1='62' x2='57' y2='62'/></g>",
+	# Brake: a wide pedal on its arm, with grooves.
+	"brake": "<line x1='50' y1='18' x2='50' y2='40' stroke='#fff' stroke-width='7' stroke-linecap='round'/>"
+		+ "<rect x='24' y='38' width='52' height='34' rx='8' fill='#fff'/>"
+		+ "<g stroke='#000' stroke-opacity='0.45' stroke-width='3.5' stroke-linecap='round'>"
+		+ "<line x1='32' y1='48' x2='68' y2='48'/><line x1='32' y1='56' x2='68' y2='56'/>"
+		+ "<line x1='32' y1='64' x2='68' y2='64'/></g>",
+	# Handbrake: the lever on its base, with the release button on the tip.
+	"handbrake": "<rect x='20' y='68' width='60' height='12' rx='4' fill='#fff'/>"
+		+ "<line x1='34' y1='70' x2='68' y2='32' stroke='#fff' stroke-width='12' stroke-linecap='round'/>"
+		+ "<circle cx='70' cy='29' r='7' fill='#fff' stroke='#000' stroke-opacity='0.4' stroke-width='3'/>"
+		+ "<circle cx='34' cy='70' r='6' fill='#000' fill-opacity='0.4'/>",
+	# NOS: a gas bottle with its valve and a band.
+	"nitro": "<rect x='41' y='14' width='18' height='7' rx='2' fill='#fff'/>"
+		+ "<rect x='45' y='20' width='10' height='10' fill='#fff'/>"
+		+ "<rect x='33' y='28' width='34' height='58' rx='12' fill='#fff'/>"
+		+ "<rect x='33' y='48' width='34' height='12' fill='#000' fill-opacity='0.4'/>"
+		+ "<line x1='59' y1='17' x2='72' y2='17' stroke='#fff' stroke-width='5' stroke-linecap='round'/>",
+}
+## Button size (hexagon height) in pixels at the 720 px reference height.
+const BTN_BIG := 110.0
+const BTN_SMALL := 92.0
+
+
+static func _hex_texture(action: String, color: Color, size: float, pressed: bool) -> ImageTexture:
+	var col := color.to_html(false)
+	var fill_a := 0.6 if pressed else 0.28
+	var svg := "<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'>"
+	svg += "<path d='%s' fill='#%s' fill-opacity='%.2f' stroke='#%s' stroke-width='5' stroke-linejoin='round'/>" % [HEX, col, fill_a, col]
+	svg += "<g opacity='%.2f' transform='translate(50 50) scale(0.82) translate(-50 -50)'>%s</g>" % [1.0 if pressed else 0.92, ICONS[action]]
+	svg += "</svg>"
+	var img := Image.new()
+	img.load_svg_from_string(svg, size / 100.0)
 	return ImageTexture.create_from_image(img)
 
 
-func _make_touch(action: String, text: String, slot: int, color: Color) -> void:
-	var radius := 78
-	var arrow := -1 if action == "steer_left" else (1 if action == "steer_right" else 0)
+func _make_touch(action: String, slot: int, color: Color, size: float) -> void:
 	var b := TouchScreenButton.new()
-	b.texture_normal = _circle(radius, color, arrow)
-	b.texture_pressed = _circle(radius, color.lightened(0.5), arrow)
+	b.texture_normal = _hex_texture(action, color, size, false)
+	b.texture_pressed = _hex_texture(action, color.lightened(0.35), size, true)
 	b.action = action
 	b.passby_press = true
 	b.visibility_mode = TouchScreenButton.VISIBILITY_ALWAYS
 	var shape := CircleShape2D.new()
-	shape.radius = radius
+	shape.radius = size * 0.5
 	b.shape = shape
 	b.shape_centered = true
-	if text != "":
-		var l := Label.new()
-		l.text = text
-		l.add_theme_font_size_override("font_size", 24)
-		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		l.size = Vector2(radius * 2, radius * 2)
-		b.add_child(l)
 	touch.add_child(b)
 	_buttons[slot] = b
 
 
 func _layout() -> void:
 	var s := root.get_viewport_rect().size
-	var d := 156.0
-	var bottom := s.y - d - 26.0
-	(_buttons[0] as Node2D).position = Vector2(30, bottom)
-	(_buttons[1] as Node2D).position = Vector2(30 + d + 24, bottom)
-	# Right thumb: GAS in the corner, FRENO beside it, NITRO above GAS and DERAPA above FRENO.
-	(_buttons[2] as Node2D).position = Vector2(s.x - d - 30, bottom)
-	(_buttons[3] as Node2D).position = Vector2(s.x - 2 * d - 54, bottom)
-	(_buttons[4] as Node2D).position = Vector2(s.x - 2 * d - 54, bottom - d - 24)
-	(_buttons[5] as Node2D).position = Vector2(s.x - d - 30, bottom - d - 24)
+	var big := BTN_BIG
+	var small := BTN_SMALL
+	var gap := 14.0
+	var bottom := s.y - big - 22.0
+	var raised := bottom - small - 6.0
+	# Left thumb: the two steering arrows, with NOS just above between them, so the right thumb
+	# can stay on the accelerator.
+	(_buttons[0] as Node2D).position = Vector2(28, bottom)
+	(_buttons[1] as Node2D).position = Vector2(28 + big + gap, bottom)
+	(_buttons[5] as Node2D).position = Vector2(28 + big + gap * 0.5 - small * 0.5, raised)
+	# Right thumb: accelerator in the corner, brake beside it, handbrake above between them.
+	(_buttons[2] as Node2D).position = Vector2(s.x - big - 28, bottom)
+	(_buttons[3] as Node2D).position = Vector2(s.x - 2 * big - gap - 28, bottom)
+	(_buttons[4] as Node2D).position = Vector2(s.x - big - 28 - gap * 0.5 - small * 0.5, raised)
 	dashboard.size = Vector2(260, 200)
 	dashboard.position = Vector2((s.x - dashboard.size.x) / 2.0, s.y - dashboard.size.y - 6.0)
 
@@ -297,10 +328,15 @@ func _build_menu() -> void:
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bottom.add_child(box)
 
+	# Page 1: the car. Arrows or a swipe change it, then on to the circuit.
+	car_page = VBoxContainer.new()
+	car_page.add_theme_constant_override("separation", 14)
+	car_page.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(car_page)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 24)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_child(row)
+	car_page.add_child(row)
 	var prev := _big_button(row, "<", CYAN)
 	prev.custom_minimum_size = Vector2(120, 96)
 	prev.pressed.connect(func(): car_step.emit(-1))
@@ -321,17 +357,59 @@ func _build_menu() -> void:
 	var next := _big_button(row, ">", CYAN)
 	next.custom_minimum_size = Vector2(120, 96)
 	next.pressed.connect(func(): car_step.emit(1))
+	var go := _big_button(car_page, "AVANTI: SCEGLI IL CIRCUITO  >", ACCENT)
+	go.pressed.connect(func(): _show_page("track"))
 
+	# Page 2: the circuit, then the race mode.
+	track_page = VBoxContainer.new()
+	track_page.add_theme_constant_override("separation", 14)
+	track_page.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(track_page)
+	track_row = HBoxContainer.new()
+	track_row.add_theme_constant_override("separation", 18)
+	track_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	track_page.add_child(track_row)
 	var modes := HBoxContainer.new()
 	modes.add_theme_constant_override("separation", 24)
 	modes.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_child(modes)
+	track_page.add_child(modes)
 	var sprint := _big_button(modes, "GARA SPRINT", ACCENT)
 	sprint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sprint.pressed.connect(func(): mode_chosen.emit("sprint"))
 	var escape := _big_button(modes, "FUGA DALLA POLIZIA", CYAN)
 	escape.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	escape.pressed.connect(func(): mode_chosen.emit("escape"))
+	track_page.visible = false
+
+
+## Circuit buttons: `tracks` is main.gd TRACKS, `current` the circuit built behind the menu.
+func set_tracks(tracks: Array, current: String) -> void:
+	for c in track_row.get_children():
+		c.queue_free()
+	var back := _big_button(track_row, "< AUTO", CYAN)
+	back.custom_minimum_size = Vector2(150, 104)
+	back.add_theme_font_size_override("font_size", 24)
+	back.pressed.connect(func(): _show_page("car"))
+	for t in tracks:
+		var id: String = t[0]
+		var chosen := id == current
+		var b := _big_button(track_row, t[1] + "\n" + t[2], ACCENT if chosen else CYAN)
+		b.custom_minimum_size = Vector2(0, 104)
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		b.add_theme_font_size_override("font_size", 22)
+		if chosen:
+			var sb := (b.get_theme_stylebox("normal") as StyleBoxFlat).duplicate() as StyleBoxFlat
+			sb.bg_color = Color(ACCENT.r, ACCENT.g, ACCENT.b, 0.6)
+			sb.set_border_width_all(5)
+			b.add_theme_stylebox_override("normal", sb)
+			b.add_theme_stylebox_override("focus", sb)
+		b.pressed.connect(func(): track_chosen.emit(id))
+
+
+func _show_page(page: String) -> void:
+	car_page.visible = page == "car"
+	track_page.visible = page == "track"
+	page_changed.emit(page)
 
 
 ## Full-screen loading page with a progress bar, shown while the level and the cars are built.
@@ -418,8 +496,10 @@ func _build_end() -> void:
 	end_panel.visible = false
 
 
-func show_menu(on: bool) -> void:
+func show_menu(on: bool, page := "car") -> void:
 	menu_panel.visible = on
+	if on:
+		_show_page(page)
 	pause.visible = not on
 	show_controls(not on)
 	info_label.visible = not on

@@ -62,6 +62,7 @@ Contiene 5 auto low poly con ruote separate (berlina, hatchback, station wagon, 
 |---|---|---|---|---|---|---|---|
 | `assets/hdri/kloofendal_48d_partly_cloudy_puresky_2k.hdr`, cielo della montagna | HDRI 2K | Kloofendal 48d Partly Cloudy (Pure Sky) | Greg Zaal, Jarod Guest | https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky | CC0 1.0 | 2026-10-29 | Nessuna |
 | `assets/materials/aerial_grass_rock/`, erba del terreno (colorata più verde nello shader) | Texture 1K | Aerial Grass Rock | Rob Tuytel | https://polyhaven.com/a/aerial_grass_rock | CC0 1.0 | 2026-10-29 | Nessuna |
+| `assets/materials/aerial_beach_01/`, sabbia della spiaggia (circuito Costa) | Texture 1K | Aerial Beach 01 | Rob Tuytel | https://polyhaven.com/a/aerial_beach_01 | CC0 1.0 | 2026-10-30 | Nessuna |
 | `assets/materials/rocky_terrain_02/`, terreno vicino alla strada | Texture 1K | Rocky Terrain 02 | Amal Kumar | https://polyhaven.com/a/rocky_terrain_02 | CC0 1.0 | 2026-10-29 | Nessuna |
 | `assets/materials/rock_face/`, pareti di roccia | Texture 1K | Rock Face | Greg Zaal, Dario Barresi | https://polyhaven.com/a/rock_face | CC0 1.0 | 2026-10-29 | Nessuna |
 | `assets/props/rock_09/`, massi a bordo strada | Modello glTF | Rock 09 | Jenelle van Heerden | https://polyhaven.com/a/rock_09 | CC0 1.0 | 2026-10-29 | Nessuna |
@@ -135,6 +136,39 @@ Crediti richiesti: "This work is based on "McLaren 600LT" by Outlaw Games™, "2
 
 In gioco i veicoli vengono scalati alla loro lunghezza reale e appoggiati a terra; le volanti Kenney ricevono lampeggianti fatti nel codice. L'elenco completo con i nomi mostrati nel menu è in `scripts/car_catalog.gd`.
 
+## Audio delle auto — `assets/audio/`
+
+Usati da `scripts/car_audio.gd`. Stesso set di suoni per tutte le auto.
+
+### Suoni generati da noi (CC0)
+
+Creati da zero con `tools/audio/make_engine_sounds.py` (nessun campione esterno), quindi rilasciati CC0 come il resto del codice audio.
+
+| File | Cos'è |
+|---|---|
+| `engine_on_*.wav`, `engine_off_*.wav` | Motore V8 a 1000, 2000, 3200, 4500, 6000 e 7600 giri, con gas aperto (on) e chiuso (off). Loop senza stacco. |
+| `wind.wav` | Vento e rotolamento, sale con la velocità |
+| `nitro_loop.wav` | Soffio del nitro |
+| `blowoff.wav` | "Pssh" della valvola del turbo quando si molla il gas o si cambia marcia |
+| `pop_0..2.wav` | Scoppiettii dello scarico in rilascio |
+| `starter.wav` | Motorino di avviamento |
+| `siren.wav` | Sirena della polizia |
+
+### Registrazioni scaricate
+
+Tutte **CC0 1.0**, licenza verificata sulla pagina di ogni suono il 2026-10-30. Da Freesound abbiamo usato l'anteprima MP3 di alta qualità (stesso suono, stessa licenza). Tagli fatti con `tools/audio/slice_recordings.py`: ritaglio, mono 32 kHz, normalizzazione, dissolvenze.
+
+| File | Suono originale | Autore | Link | Licenza | Modifiche |
+|---|---|---|---|---|---|
+| `crash_heavy.wav` | Car Crash | squareal | https://freesound.org/people/squareal/sounds/237375/ | CC0 1.0 | Tagliato 0,37–3,6 s |
+| `crash_medium.wav` | Hood Impact | LPA134 | https://freesound.org/people/LPA134/sounds/329516/ | CC0 1.0 | Tagliato 0,13–2,0 s |
+| `land_thud.wav` | Hood Impact | LPA134 | https://freesound.org/people/LPA134/sounds/329516/ | CC0 1.0 | 0,13–0,9 s, filtrato sotto 700 Hz (tonfo dell'atterraggio) |
+| `crash_metal.wav` | Metal Hit 2 | dslrguide | https://freesound.org/people/dslrguide/sounds/321482/ | CC0 1.0 | Tagliato 0,13–1,3 s |
+| `crash_light.wav` | Fast Collision | qubodup | https://freesound.org/people/qubodup/sounds/332056/ | CC0 1.0 | Normalizzato |
+| `gear_1.wav`, `gear_2.wav` | Elantra Gear Shift | mrmccormack | https://freesound.org/people/mrmccormack/sounds/116598/ | CC0 1.0 | Due cambiate ritagliate |
+| `tyre_squeal.wav` | Chrysler LHS tire squeal 03 | audible-edge | https://freesound.org/people/audible-edge/sounds/71738/ | CC0 1.0 | 8,3–9,35 s, reso un loop |
+| `handbrake.wav` | Car Parking Brake (Car Sound Effects Pack) | ggbotnet | https://opengameart.org/content/car-sound-effects-pack-low-quality | CC0 1.0 | Normalizzato |
+
 ### Auto Sketchfab aggiunte nella v0.6 — `assets/cars_sketchfab/*.glb`
 
 Scaricate il 30/10/2026 con l'API di Sketchfab (file GLB non modificati). In gioco vengono scalate alla lunghezza reale, girate col muso in avanti e appoggiate a terra; dove le ruote sono oggetti separati sterzano. Skyline, Silvia e M3 hanno le quattro ruote in un unico oggetto, quindi restano ferme.
@@ -152,3 +186,30 @@ Le auto di marchi reali (Nissan, Toyota, BMW, Ford) vanno bene per il prototipo 
 | `nissan-silvia-s15-drift.glb` | Nissan Silvia Drift Tuned (S15) | VuckyZ | CC BY 4.0 | https://sketchfab.com/3d-models/84b63a057e36488589392a19b9313e2b |
 | `bmw-m3-e36.glb` | Low poly BMW M3 E36 | sebbelon | CC BY 4.0 | https://sketchfab.com/3d-models/84c207be5933481fa754add04f196926 |
 | `ford-mustang-gt-2013.glb` | 2013 Ford Mustang GT | Ddiaz Design | CC BY-NC-SA 4.0 | https://sketchfab.com/3d-models/1368b104aa8148a3be15f4dfc8832045 |
+
+### Auto scaricate da Stefano (30/10/2026) — `assets/cars_sketchfab/`
+
+Scaricate a mano da Stefano su Sketchfab. Charger, Skyline "Brian" e Porsche sono la versione glTF di Sketchfab (non modificata, con il suo `license.txt`); la Mustang è il GLB originale dello zip "source". In gioco vengono scalate, girate e appoggiate a terra come le altre.
+Marchi reali e auto dei film: vanno bene per il prototipo e il portfolio, da rivedere prima di pubblicare sugli store. Charger e Porsche sono non commerciali.
+
+| File | Modello | Autore | Licenza | Pagina |
+|---|---|---|---|---|
+| `dodge_charger_1970/` | 1970 Dodge Charger R/T Fast And Furious Edition | OUTPISTON | CC BY-NC-SA 4.0 (`license.txt`) | https://sketchfab.com/3d-models/fd195aaa9dad4aefbace532050b7fca6 |
+| `nissan_r34_brian/` | Nissan R34 Brians Fast Furious \| www.vecarz.com | vecarz | CC BY 4.0 (`license.txt`) | https://sketchfab.com/3d-models/412aa249c2f548eebf64bdb35f3553af |
+| `porsche_911_gt3/` | Porsche 911 GT3 | Outlaw Games™ | CC BY-NC 4.0 (`license.txt`) | https://sketchfab.com/3d-models/593c83f3662a4a45a016f95dedd9f243 |
+| `ford-mustang-1969-john-bowe.glb` | Ford Mustang John Bowe 1969 \| www.vecarz.com | vecarz | CC BY 4.0 (dalla pagina Sketchfab, lo zip non ha license.txt) | https://sketchfab.com/3d-models/91a5454aaf02492a9c7e959b8eb6db9f |
+
+## Paesaggio realistico (Sketchfab, CC-BY 4.0) — `assets/scenery/`
+
+Modelli scaricati il 2026-10-30 in formato glTF dall'API di Sketchfab. Licenza **CC Attribution 4.0** (uso commerciale consentito, attribuzione obbligatoria: i crediti qui sotto vanno riportati anche nei titoli di coda del gioco). Modifiche comuni a tutti: texture ridotte a 1024 px; il gioco converte le foglie in alpha scissor e le tinge (scripts/scenery.gd).
+
+| Cartella | Modello | Autore | Link | Modifiche |
+|---|---|---|---|---|
+| `pine/` | Pine Tree [Game-ready] | Wenedi | https://sketchfab.com/3d-models/pine-tree-game-ready-dc3fbd9205cf4027a4455d1f415e0478 | Bordi trasparenti delle foglie riempiti di verde (niente alone bianco) |
+| `spruce/` | Spruce tree | Georgeous (intice184) | https://sketchfab.com/3d-models/spruce-tree-7a5db417827244d98827459bce0cc944 | Come sopra |
+| `scots_pine/` | Pine Tree | evolveduk | https://sketchfab.com/3d-models/pine-tree-d45218a3fab349e5b1de040f29e7b6f9 | Come sopra |
+| `pine_scan/` | Pine tree 01 | POLYSCAN (POLYSCAN3D) | https://sketchfab.com/3d-models/pine-tree-01-ba7c8f8e1cb549b3a3a30f1221386c8c | Come sopra |
+| `alpine_chalet/` | Alpine Chalet house | Gerhald | https://sketchfab.com/3d-models/alpine-chalet-house-2ac40506a2d74e60be6e9df6657a6367 | Nessuna |
+| `traffic_cone/` | Traffic cone (Game ready) | PT34 | https://sketchfab.com/3d-models/traffic-cone-game-ready-8cdac192abd044988c314eeb6377a3a0 | Nessuna (non ancora usato: i coni vengono dal pacchetto barriere) |
+| `street_signs/` | Worn street signs | Nicolai Kilstrup (nkilstrup) | https://sketchfab.com/3d-models/worn-street-signs-e8a1cfe8e0254e4e8b9edaf96c23e259 | Nessuna |
+| `barriers/` | Barrier & Traffic Cone Pack | Sabri Ayeş (sabriayes) | https://sketchfab.com/3d-models/barrier-traffic-cone-pack-23c4dfca76a24bf0b21894847867af2a | Nessuna |

@@ -7,6 +7,8 @@ extends Node3D
 var extent := 0.0
 ## Camera far plane for this level.
 var view_distance := 900.0
+## Night level: the drawn styles keep its own sky and lights instead of the daytime ones.
+var night := false
 ## Racing line painted on the road (hidden unless the game shows it), or null.
 var guide: Node3D
 

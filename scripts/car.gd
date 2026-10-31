@@ -27,8 +27,13 @@ const TYRE_WIDTH := 0.18
 ## the wheel ignores it and the body collides instead.
 const MIN_GROUND_NORMAL := 0.25
 ## Engine and gearbox, for the dashboard and the gear changes. Each gear tops out at this share of
-## max_speed (the last one a little past it, for nitro).
-const GEAR_TOPS := [0.3, 0.47, 0.63, 0.78, 0.9, 1.05]
+## max_speed (the last one a little past it, for nitro). Long gears: on a 220 km/h car first runs
+## to about 70 km/h and sixth cruises at 150 km/h near 5500 rpm.
+const GEAR_TOPS := [0.32, 0.5, 0.66, 0.8, 0.92, 1.04]
+## Pull in the higher gears drops like a real gearbox (force ~ ratio^GEAR_PULL), so each gear lasts.
+const GEAR_PULL := 0.55
+## Steering narrows from walking pace up to this speed (m/s), then stays at max_steer_high.
+const STEER_FADE_SPEED := 45.0
 const IDLE_RPM := 900.0
 const REDLINE_RPM := 7800.0
 const SHIFT_TIME := 0.12
@@ -46,12 +51,12 @@ var frozen := true:
 		frozen = value
 		freeze = value
 
-# ---- Tuning (SI units: kg, m, s, N). 42 m/s is about 150 km/h. ----
-var max_speed := 42.0
+# ---- Tuning (SI units: kg, m, s, N). 60 m/s is about 215 km/h. ----
+var max_speed := 60.0
 var engine_force := 11000.0
 var brake_force := 15000.0
 var reverse_max := 10.0
-var nitro_mult := 1.35
+var nitro_mult := 1.2
 var nitro_force_mult := 1.8
 var gravity_mult := 1.5
 var spring_rest := 0.3
@@ -153,6 +158,9 @@ var _siren_red: StandardMaterial3D
 var _siren_blue: StandardMaterial3D
 var _siren_light: OmniLight3D
 var _hit_cooldown := 0.0
+## AI only: seconds left with the driver thrown by a hit from another car. Meanwhile the tyres
+## grip less and the yaw assist is off, so the car is pushed, slides and spins like a real one.
+var _knocked := 0.0
 var _time := 0.0
 
 
@@ -173,6 +181,8 @@ func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 	continuous_cd = true
 	contact_monitor = true
 	max_contacts_reported = 6
+	collision_layer = TrafficCar.WORLD_LAYER | TrafficCar.CARS_LAYER
+	collision_mask = TrafficCar.WORLD_LAYER | TrafficCar.TRAFFIC_LAYER
 	var phys := PhysicsMaterial.new()
 	phys.friction = 0.35
 	phys.bounce = 0.15
@@ -214,6 +224,9 @@ func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 	elif kind == Driver.POLICE:
 		body = POLICE_BODIES[get_instance_id() % POLICE_BODIES.size()]
 	set_drivetrain(CarCatalog.drivetrain(body))
+	if kind == Driver.PLAYER:
+		# Air drag holds the car about 5% under max_speed, so aim a little higher.
+		max_speed = CarCatalog.top_speed(body) / 3.6 * 1.05
 	_model = CarModel.build(model_paint, kind == Driver.POLICE, body)
 	add_child(_model)
 	for n in ["WheelFL", "WheelFR", "WheelRL", "WheelRR"]:
@@ -251,9 +264,9 @@ func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 			glow.light_color = paint.lightened(0.3)
 			add_child(glow)
 		Driver.RACER:
-			max_speed = 40.0
+			max_speed = 57.0
 		Driver.POLICE:
-			max_speed = 41.0
+			max_speed = 59.0
 			engine_force = 11500.0
 			_siren_red = _model.get_meta("siren_red")
 			_siren_blue = _model.get_meta("siren_blue")
@@ -262,6 +275,9 @@ func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 			_siren_light.omni_range = 12
 			_siren_light.light_energy = 3.0
 			add_child(_siren_light)
+	var audio := CarAudio.new()
+	add_child(audio)
+	audio.setup(self)
 	freeze = frozen
 
 
@@ -309,11 +325,18 @@ func _physics_process(delta: float) -> void:
 	if frozen:
 		_update_visuals(delta)
 		return
-	match driver:
-		Driver.RACER:
-			_drive_racer(delta)
-		Driver.POLICE:
-			_drive_police(delta)
+	if _knocked > 0.0:
+		_knocked -= delta
+		in_throttle = 0.0
+		in_brake = 0.0
+		in_handbrake = false
+		in_nitro = false
+	else:
+		match driver:
+			Driver.RACER:
+				_drive_racer(delta)
+			Driver.POLICE:
+				_drive_police(delta)
 	_apply_vehicle_forces(delta)
 	_check_recovery(delta)
 	_update_visuals(delta)
@@ -335,7 +358,7 @@ func _apply_vehicle_forces(delta: float) -> void:
 		nitro = minf(1.0, nitro + nitro_refill * delta + (0.15 * delta if drifting else 0.0))
 
 	# Steering gets smaller as speed grows, like an arcade racer.
-	var speed_t := clampf((absf(speed) - 8.0) / (max_speed - 8.0), 0.0, 1.0)
+	var speed_t := clampf((absf(speed) - 8.0) / (STEER_FADE_SPEED - 8.0), 0.0, 1.0)
 	var max_steer := lerpf(max_steer_low, max_steer_high, pow(speed_t, 0.75))
 	_steer = move_toward(_steer, in_steer * max_steer, steer_rate * max_steer * delta)
 	_update_gearbox(delta)
@@ -349,7 +372,8 @@ func _apply_vehicle_forces(delta: float) -> void:
 		drive = -in_brake * 0.6 if speed > -reverse_max else 0.0
 	else:
 		drive = in_throttle * (nitro_force_mult if using_nitro else 1.0)
-		drive *= clampf(1.0 - pow(maxf(speed, 0.0) / top, 3.0), 0.0, 1.0)
+		drive *= clampf(1.0 - pow(maxf(speed, 0.0) / top, 6.0), 0.0, 1.0)
+		drive *= pow(GEAR_TOPS[0] / GEAR_TOPS[clampi(gear, 1, GEAR_TOPS.size()) - 1], GEAR_PULL)
 		if _shift_t > 0.0:
 			drive *= 0.6  # clutch slipping through the gear change
 
@@ -413,7 +437,7 @@ func _apply_vehicle_forces(delta: float) -> void:
 		var v_long := pv.dot(w_fwd)
 		var v_lat := pv.dot(w_right)
 
-		var mu := grip
+		var mu := grip * (0.35 if _knocked > 0.0 else 1.0)
 		if in_handbrake and not front:
 			mu = handbrake_rear_grip
 		var max_f := mu * load
@@ -455,7 +479,7 @@ func _apply_vehicle_forces(delta: float) -> void:
 		# Yaw assist: pull the spin rate towards what the steering asks for.
 		var target_yaw := -speed * tan(_steer) / (WHEEL_Z * 2.0)
 		var yaw := angular_velocity.dot(up)
-		var assist := yaw_assist * (0.5 if in_handbrake else 1.0)
+		var assist := yaw_assist * (0.5 if in_handbrake else 1.0) * (0.0 if _knocked > 0.0 else 1.0)
 		apply_torque(up * (target_yaw - yaw) * assist * mass * 1.5 * float(wheels_on_ground) / 4.0)
 		apply_central_force(-up * downforce * v.length_squared())
 	elif not on_ground:
@@ -554,6 +578,13 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 			state.linear_velocity = _prev_velocity * 0.75
 			break
 	var v_now := state.linear_velocity
+	if driver != Driver.PLAYER:
+		for i in state.get_contact_count():
+			var other := state.get_contact_collider_object(i)
+			if other is RigidBody3D and state.get_contact_local_normal(i).y < 0.7:
+				var knock := state.get_contact_impulse(i).length() / mass
+				if knock > 2.5:
+					_knocked = maxf(_knocked, clampf(knock * 0.15, 0.6, 1.8))
 	if _hit_cooldown <= 0.0:
 		for i in state.get_contact_count():
 			var n := state.get_contact_local_normal(i)
@@ -728,8 +759,8 @@ func _avoid_traffic(prev: Vector3, dir: Vector3, side: Vector3) -> float:
 
 
 func _velocity_of(n: Node3D) -> Vector3:
-	if n is Car:
-		return (n as Car).linear_velocity
+	if n is RigidBody3D:
+		return (n as RigidBody3D).linear_velocity
 	return -n.global_transform.basis.z * float(n.get("speed"))
 
 

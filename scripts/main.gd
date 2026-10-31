@@ -1,10 +1,19 @@
 extends Node3D
 ## Sets up the level, cars, camera and HUD, and runs the race and police rules.
 ## Modes: "sprint" (race against 3 rivals, police join after a while) and "escape" (lose the police).
-## Levels: "mountain" (daytime mountain road, default) and "city" (night city), see Track.
+## Levels (circuits): "mountain" (daytime mountain pass, default), "coast" (seaside road),
+## "night" (lit-up night city circuit) and the old grid "city" (tests only), see Track.
 
 static var start_mode := ""
 static var level := "mountain"
+## Circuits offered on the title screen, after the car: [id, name, short description].
+const TRACKS := [
+	["mountain", "MONTAGNA", "Passo di montagna, di giorno"],
+	["coast", "COSTA", "Strada sul mare tra le palme"],
+	["night", "CITTÀ DI NOTTE", "Circuito cittadino tra le luci"],
+]
+## Which page of the title screen to open after a reload: "car" or "track".
+static var menu_page := "car"
 ## Position of the chosen car in the garage list (kept across scene reloads).
 static var car_index := -1
 const RIVAL_COLORS := [Color(0.1, 0.85, 0.3), Color(1, 0.55, 0.05), Color(0.1, 0.55, 1)]
@@ -57,6 +66,8 @@ const CAM_DIST := 6.8
 const CAM_HEIGHT := 2.5
 const CAM_LOOK_AHEAD := 8.0
 ## Always the same distance and the same field of view: only nitro widens the view a little.
+## Civilian cars on the road (they are real rigid bodies, so they can be shoved and wrecked).
+const TRAFFIC_CARS := 24
 const CAM_FOV := 70.0
 const CAM_FOV_NITRO := 76.0
 var _orbit := 0.0
@@ -102,13 +113,23 @@ func _ready() -> void:
 	hud.restart_pressed.connect(func(): _reload(mode))
 	hud.menu_pressed.connect(func(): _reload(""))
 	hud.car_step.connect(_step_car)
+	hud.page_changed.connect(func(page: String): menu_page = page)
+	hud.track_chosen.connect(_choose_track)
 	camera = Camera3D.new()
 	camera.fov = CAM_FOV
 	camera.near = 0.1
 	add_child(camera)
 
 	# Build the level one step at a time, drawing the loading bar in between.
-	city = City.new() if level == "city" else Mountain.new()
+	match level:
+		"city":
+			city = City.new()
+		"coast":
+			city = Coast.new()
+		"night":
+			city = NightCity.new()
+		_:
+			city = Mountain.new()
 	add_child(city)
 	var steps := city.build_steps()
 	var total := steps.size() + 4
@@ -117,12 +138,19 @@ func _ready() -> void:
 		(steps[i][1] as Callable).call()
 	await _loading("Cielo e luce", float(steps.size()) / total)
 	city.setup_environment(self)
+	ComicStyle.setup_environment(self, city.night)
+	ComicStyle.add_stylize_pass(camera)
+	ComicStyle.install(get_tree())
 	camera.far = city.view_distance
 	await _loading("Traffico", float(steps.size() + 1) / total)
-	for i in 16:
+	var traffic: Array[TrafficCar] = []
+	for i in TRAFFIC_CARS:
 		var t := TrafficCar.new()
 		add_child(t)
 		t.setup(city, rng)
+		t.place_clear(rng, traffic)
+		traffic.append(t)
+	TrafficCar.link_lanes(traffic)
 	checkpoints = city.race_checkpoints()
 	race_path = city.race_path()
 	_build_markers()
@@ -133,7 +161,16 @@ func _ready() -> void:
 		_open_garage()
 		await _loading("Pronto", 1.0)
 		hud.hide_loading()
-		hud.show_menu(true)
+		hud.set_tracks(TRACKS, level)
+		hud.show_menu(true, menu_page)
+		for a in args:
+			if a.begins_with("--menushot="):
+				# Test aid: picture of the title screen (--page=track for the circuit page).
+				if args.has("--page=track"):
+					hud._show_page("track")
+				await get_tree().create_timer(3.0).timeout
+				get_viewport().get_texture().get_image().save_png(a.substr(11))
+				get_tree().quit()
 	else:
 		await _begin_race(start_mode, float(steps.size() + 2) / total)
 
@@ -197,7 +234,7 @@ func _open_garage() -> void:
 
 
 func _step_car(dir: int) -> void:
-	if state != "menu" or _garage.is_empty():
+	if state != "menu" or _garage.is_empty() or menu_page != "car":
 		return
 	car_index = posmod(car_index + dir, _garage.size())
 	_show_car()
@@ -210,6 +247,7 @@ func _show_car() -> void:
 	if _preview:
 		_preview.queue_free()
 	_preview = CarModel.build(Color(0, 0, 0, 0), entry["id"].contains("police"), entry["id"])
+	_preview.set_meta("comic_ink", true)
 	add_child(_preview)
 	var grid := city.start_grid(1)
 	_preview.global_transform = Transform3D(Basis.looking_at(grid[0][1], Vector3.UP), grid[0][0])
@@ -238,6 +276,16 @@ func _unhandled_input(event: InputEvent) -> void:
 	if absf(_swipe) > 90.0:
 		_step_car(-1 if _swipe > 0.0 else 1)
 		_swipe = 0.0
+
+
+## A circuit was picked on the title screen: build it (the menu stays on the circuit page, with
+## the new circuit behind it).
+func _choose_track(id: String) -> void:
+	if state != "menu" or id == level:
+		return
+	level = id
+	menu_page = "track"
+	_reload("")
 
 
 ## Restart or back to the menu: rebuild the scene (the loading page shows while it does).
@@ -327,7 +375,7 @@ func _start(m: String) -> void:
 			r.wp_index = 1
 			# Close to the racing line, each a little to one side so they don't all queue on it.
 			r.lane_offset = (i - 1) * 1.6 + rng.randf_range(-0.4, 0.4)
-			r.max_speed = 39.0 + i * 1.2
+			r.max_speed = 57.0 + i * 1.5
 			racers.append(r)
 		player = _make_car(Car.Driver.PLAYER, Color(0.95, 0.1, 0.5))
 		player.place(grid[3][0], grid[3][1])
@@ -594,6 +642,8 @@ func _update_camera(delta: float) -> void:
 
 
 func _update_hud() -> void:
+	var fast := clampf((absf(player.speed) - 24.0) / 18.0, 0.0, 1.0)
+	hud.speed_lines.material.set_shader_parameter("amount", 1.0 if player.using_nitro else fast * 0.8)
 	hud.dashboard.set_values(absf(player.speed) * 3.6, player.rpm, Car.REDLINE_RPM + 200.0, player.gear, player.nitro, player.using_nitro)
 	var lines := PackedStringArray()
 	if mode == "sprint":
@@ -649,6 +699,24 @@ func _autopilot() -> void:
 		player._steer_towards(target, dt, city.route_point(target, goal))
 
 
+## Test of the crash physics (--ram): throws the player sideways into the nearest driving
+## traffic car at 25 m/s and prints how both move off.
+func _ram_traffic() -> void:
+	var best: TrafficCar
+	for tc: TrafficCar in get_tree().get_nodes_in_group("traffic"):
+		if not tc.crashed and (best == null or tc.global_position.distance_to(player.global_position) < best.global_position.distance_to(player.global_position)):
+			best = tc
+	if best == null:
+		return
+	var side := best.global_transform.basis.x
+	# Traffic keeps right, so the open road is on its left.
+	player.place(best.global_position - side * 9.0, side)
+	player.linear_velocity = side * 25.0
+	print("[autotest] RAM traffic at %s mass=%.0f" % [best.global_position.round(), best.mass])
+	await get_tree().create_timer(0.6).timeout
+	print("[autotest] RAM after 0.6s: traffic v=%.1f crashed=%s up=%.2f | player v=%.1f up=%.2f" % [best.linear_velocity.length(), best.crashed, best.global_transform.basis.y.y, player.linear_velocity.length(), player.global_transform.basis.y.y])
+
+
 func _autotest_tick(delta: float) -> void:
 	_test_t += delta
 	if screenshot_dir != "" and _shots_taken < 6 and _test_t > 1.0 + _shots_taken * 6.0:
@@ -657,7 +725,14 @@ func _autotest_tick(delta: float) -> void:
 		_shots_taken += 1
 	if int(_test_t * 2.0) != int((_test_t - delta) * 2.0):
 		print("[autotest] t=%.1f state=%s speed=%.1f cp=%d heat=%.1f police=%d pos=%s wheels=%d up=%.2f in=(%.1f,%.1f,%.1f,%s)" % [_test_t, state, player.speed, player_cp, heat, police.size(), player.global_position.round(), player.wheels_on_ground, player.global_transform.basis.y.y, player.in_throttle, player.in_brake, player.in_steer, player.in_handbrake])
+	if OS.get_cmdline_user_args().has("--ram") and int(_test_t / 4.0) != int((_test_t - delta) / 4.0):
+		_ram_traffic()
 	if int(_test_t / 5.0) != int((_test_t - delta) / 5.0):
+		print("[autotest]   render: %d triangles, %d draw calls, %.0f fps" % [RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME), RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME), Engine.get_frames_per_second()])
+		var wrecks := 0
+		for tc: TrafficCar in get_tree().get_nodes_in_group("traffic"):
+			wrecks += 1 if tc.crashed else 0
+		print("[autotest]   traffic %d cars, %d wrecked" % [get_tree().get_nodes_in_group("traffic").size(), wrecks])
 		for r in racers:
 			print("[autotest]   racer wp=%d speed=%.1f pos=%s up=%.2f" % [r.wp_index, r.speed, r.global_position.round(), r.global_transform.basis.y.y])
 	if state == "end" or _test_t > 150.0:
