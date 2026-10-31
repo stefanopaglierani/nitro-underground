@@ -75,9 +75,10 @@ func setup(track: Track, rng: RandomNumberGenerator, start_t := -1.0) -> void:
 
 
 ## Moves the car along its lane until it is clear of the cars already placed.
-func place_clear(rng: RandomNumberGenerator, placed: Array[TrafficCar]) -> void:
+func place_clear(rng: RandomNumberGenerator, placed: Array[TrafficCar], keep_away := Vector3.INF) -> void:
 	for attempt in 20:
-		var clear := true
+		# Not right in front of the start grid: the race would open with a pile-up.
+		var clear := keep_away == Vector3.INF or global_position.distance_to(keep_away) > 160.0
 		for o in placed:
 			if o.global_position.distance_to(global_position) < 14.0:
 				clear = false

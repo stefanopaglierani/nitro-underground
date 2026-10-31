@@ -45,14 +45,25 @@ var _heights := PackedFloat32Array()
 var _road_d := PackedFloat32Array()  # distance from each terrain vertex to the road centre
 ## Height of the lowest point of the road; -INF keeps the loop where the grade profile puts it.
 var road_floor := -INF
+## Farthest the road goes from the centre (set with the road line).
+var _reach := 540.0
+## Snow above this height on the terrain (high mountains).
+var snow_line := 105.0
 var rng_seed := 4242
 var noise_seed := 7
 var tree_tries := 9000
+## Colour multiplied into the asphalt and the verges (darker at night).
+var road_tint := Color.WHITE
+var verge_tint := Color(1.25, 1.22, 1.15)
+## Map of the circuit (tracks/<layout_id>.txt, see TrackLayout); empty: the old round formula.
+var layout_id := ""
+var layout: TrackLayout
 
 
 func _init() -> void:
 	view_distance = 1600.0
 	extent = 1200.0
+	layout_id = "montagna"
 
 
 func build() -> void:
@@ -87,8 +98,15 @@ func _make_road_line() -> void:
 	# profile (at most about 12 %) that adds up to zero over the lap.
 	var raw: Array[Vector2] = []
 	var n := 1400
-	for i in n:
-		raw.append(_loop_point(TAU * i / n))
+	if layout_id != "" and TrackLayout.exists(layout_id):
+		layout = TrackLayout.load_id(layout_id)
+		for w in layout.warnings:
+			push_warning("Mappa %s: %s" % [layout_id, w])
+		raw.assign(Array(layout.points))
+		n = raw.size()
+	else:
+		for i in n:
+			raw.append(_loop_point(TAU * i / n))
 	# Resample evenly.
 	var total := 0.0
 	for i in n:
@@ -110,7 +128,7 @@ func _make_road_line() -> void:
 	for k in count:
 		var u := TAU * k / count
 		pts.append(Vector3(flat[k].x, h, flat[k].y))
-		h += _loop_grade(u) * step
+		h += (layout.grade_at(float(k) / count) if layout else _loop_grade(u)) * step
 	# Spread the tiny closing error over the lap, then lift the whole loop to the level's base.
 	var lowest := INF
 	for k in count:
@@ -119,6 +137,9 @@ func _make_road_line() -> void:
 	if road_floor > -INF:
 		for k in count:
 			pts[k].y += road_floor - lowest
+	_reach = 0.0
+	for k in count:
+		_reach = maxf(_reach, Vector2(pts[k].x, pts[k].z).length())
 	for k in count:
 		tangents.append((pts[(k + 1) % count] - pts[(k - 1 + count) % count]).normalized())
 	# Corner speed from the curvature over +-10 m.
@@ -134,6 +155,9 @@ func _make_road_line() -> void:
 		if not _buckets.has(key):
 			_buckets[key] = []
 		_buckets[key].append(k)
+	if layout and layout.start_frac >= 0.0:
+		start_i = int(layout.start_frac * count) % count
+		return
 	# Start on the straightest stretch, so the grid and the first metres are easy.
 	var best := -INF
 	for k in range(0, count, 5):
@@ -196,8 +220,10 @@ func _right(k: int) -> Vector3:
 # ---------- Terrain ----------
 
 func _natural(x: float, z: float) -> float:
+	# Around the pass, beyond the road, the ground climbs into high peaks with snow on top.
 	var r := Vector2(x, z).length()
-	return 16.0 + _noise.get_noise_2d(x, z) * 48.0 + maxf(0.0, r - 540.0) * 0.45
+	var peaks := maxf(0.0, r - _reach - 90.0) * (0.75 + 0.55 * _noise.get_noise_2d(x * 2.5 + 900.0, z * 2.5))
+	return 16.0 + _noise.get_noise_2d(x, z) * 48.0 + peaks
 
 
 func _build_terrain() -> void:
@@ -261,6 +287,7 @@ func _terrain_material() -> Material:
 	mat.set_shader_parameter("grass_albedo", _tex("aerial_grass_rock", "diff"))
 	mat.set_shader_parameter("rock_albedo", _tex("rock_face", "diff"))
 	mat.set_shader_parameter("gravel_albedo", _tex("rocky_terrain_02", "diff"))
+	mat.set_shader_parameter("snow_line", snow_line)
 	return mat
 
 
@@ -342,11 +369,13 @@ func _pbr(folder: String) -> BaseMaterial3D:
 func _build_road() -> void:
 	# Ribbons across the road, from the left guardrail to the right one: (lateral offset, u).
 	var asphalt := _ribbon([-ROAD_HALF, ROAD_HALF], 0.0, 8.0)
-	asphalt.surface_set_material(0, _pbr("asphalt_02"))
+	var asphalt_mat := _pbr("asphalt_02")
+	asphalt_mat.albedo_color = road_tint
+	asphalt.surface_set_material(0, asphalt_mat)
 	var verge_l := _ribbon([-RAIL_OFFSET, -ROAD_HALF], -0.03, 4.0)
 	var verge_r := _ribbon([ROAD_HALF, RAIL_OFFSET], -0.03, 4.0)
 	var gravel := _pbr("clean_asphalt")
-	gravel.albedo_color = Color(1.25, 1.22, 1.15)
+	gravel.albedo_color = verge_tint
 	verge_l.surface_set_material(0, gravel)
 	verge_r.surface_set_material(0, gravel)
 	var body := StaticBody3D.new()
@@ -573,7 +602,7 @@ func _build_trees() -> void:
 			continue
 		var h := ground_height(x, z)
 		var slope := absf(ground_height(x + 2.0, z) - h) + absf(ground_height(x, z + 2.0) - h)
-		if slope > 1.3 or not _plant_ok(x, z, h):
+		if slope > 1.3 or h > snow_line - 25.0 or not _plant_ok(x, z, h):
 			continue  # too steep: rock
 		# Woods in patches.
 		if _noise.get_noise_2d(x * 3.0 + 500.0, z * 3.0) < -0.05:
@@ -812,7 +841,7 @@ func _build_ramps() -> void:
 	for k in range(0, n, 5):
 		var worst := INF
 		var max_drop := 0.0
-		for j in range(-10, 75):
+		for j in range(-40, 95):
 			var i := (k + j + n) % n
 			worst = minf(worst, limits[i])
 		for j in range(0, 75):
@@ -983,12 +1012,33 @@ func advised_speed(pos: Vector3, fwd: Vector3) -> float:
 
 func race_path() -> Array[Vector3]:
 	# Along the racing line once it is built: the AI racers then cut the corners like a driver.
+	# Points every 20 m, closer together in the tight bends (hairpins, elbows), where cutting
+	# straight from one point to the next would hit the inside guardrail.
 	var out: Array[Vector3] = []
 	var n := pts.size()
-	for k in range(0, n, PATH_STRIDE):
+	var k := 0
+	while k < n:
 		out.append(_line_point((start_i + k) % n))
+		var tight := INF
+		for j in range(0, PATH_STRIDE + 4):
+			tight = minf(tight, limits[(start_i + k + j) % n])
+		k += 3 if tight < 22.0 else (5 if tight < 30.0 else PATH_STRIDE)
 	out.append(pts[start_i])  # one full lap: the finish is the start line
 	return out
+
+
+func drive_time(a: Vector3, b: Vector3) -> float:
+	if line_speed.size() != pts.size():
+		return -1.0
+	var n := pts.size()
+	var i := nearest(a)
+	var steps := posmod(nearest(b) - i, n)
+	if steps == 0:
+		steps = n
+	var t := 0.0
+	for j in steps:
+		t += SAMPLE_STEP / maxf(line_speed[(i + j) % n], 5.0)
+	return t
 
 
 func _line_point(k: int) -> Vector3:

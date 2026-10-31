@@ -1,0 +1,31 @@
+# PASSO ALPINO - mappa del circuito "Montagna"
+# Si legge come un navigatore: un pezzo di strada per riga. Istruzioni in COME_FARE.md
+PARTENZA
+DRITTO 300            # rettilineo di partenza
+DESTRA 30 140         # esse veloce
+SINISTRA 30 140
+DRITTO 60
+SALITA 8              # si sale verso il passo: quattro tornanti
+TORNANTE DESTRA 20
+DRITTO 170
+TORNANTE SINISTRA 20
+DRITTO 170
+TORNANTE DESTRA 20
+DRITTO 170
+TORNANTE SINISTRA 20
+DRITTO 90
+PIANO                 # in cima al passo
+CHICANE DESTRA
+DRITTO 140
+DESTRA 90 45
+DISCESA 6             # giù dall'altro versante
+DRITTO 200
+DESTRA 90 70
+DRITTO 380            # lungo rettilineo in discesa
+GOMITO DESTRA         # staccata forte!
+PIANO
+DRITTO 160
+SINISTRA 45 50
+DRITTO 100
+DESTRA 135 45
+DRITTO 60

@@ -10,15 +10,35 @@ extends Node3D
 static var level := "mountain"
 ## Circuits offered on the title screen: [id, name, short description].
 const TRACKS := [
-	["mountain", "MONTAGNA", "Passo di montagna, di giorno"],
-	["coast", "COSTA", "Strada sul mare tra le palme"],
-	["night", "CITTÀ DI NOTTE", "Circuito cittadino tra le luci"],
+	["mountain", "MONTAGNA", "Passo alpino: tornanti e vette"],
+	["coast", "COSTA", "Riviera: lungomare, palme e faro"],
+	["night", "CITTÀ DI NOTTE", "Downtown: gomiti tra i palazzi"],
+	["desert", "DESERTO", "Route 66: canyon e motel"],
 ]
+## Map file of each circuit (tracks/<name>.txt), drawn on its button in the menu.
+const TRACK_MAPS := {"mountain": "montagna", "coast": "costa", "night": "citta_notte", "desert": "deserto"}
+## The level object for a circuit id (not built yet).
+static func make_level(id: String) -> Track:
+	match id:
+		"city":
+			return City.new()
+		"coast":
+			return Coast.new()
+		"night":
+			return NightCity.new()
+		"desert":
+			return Desert.new()
+	return Mountain.new()
+
+
 const MENU_SCENE := "res://scenes/menu.tscn"
 ## Countdown clock: seconds given for each checkpoint stretch = its length / CLOCK_SPEED (m/s)
 ## + CLOCK_EXTRA. Tuned on the autopilot, which needs about 2/3 of the time given; what is left over carries on.
 const CLOCK_SPEED := 26.0
 const CLOCK_EXTRA := 4.0
+## On circuits that know their racing line speeds (Track.drive_time): seconds = ideal time on the
+## racing line * CLOCK_SLACK + CLOCK_EXTRA, so a stretch full of hairpins gets more time.
+const CLOCK_SLACK := 1.55
 const RIVAL_COLORS := [Color(0.1, 0.85, 0.3), Color(1, 0.55, 0.05), Color(0.1, 0.55, 1)]
 const CHECKPOINT_RADIUS := 16.0
 const AI_ADVANCE_RADIUS := 12.0
@@ -115,15 +135,7 @@ func _ready() -> void:
 	var car_paths := _request_car_models()
 
 	# Build the level one step at a time, drawing the loading bar in between.
-	match level:
-		"city":
-			city = City.new()
-		"coast":
-			city = Coast.new()
-		"night":
-			city = NightCity.new()
-		_:
-			city = Mountain.new()
+	city = make_level(level)
 	add_child(city)
 	var steps := city.build_steps()
 	var total := steps.size() + 6.0
@@ -139,11 +151,12 @@ func _ready() -> void:
 	ComicStyle.install(get_tree())
 	await _loading("Traffico", (steps.size() + 2) / total)
 	var traffic: Array[TrafficCar] = []
-	for i in TRAFFIC_CARS:
+	var grid_front: Vector3 = city.start_grid(1)[0][0]
+	for i in (0 if OS.get_cmdline_user_args().has("--notraffic") else TRAFFIC_CARS):
 		var t := TrafficCar.new()
 		add_child(t)
 		t.setup(city, rng)
-		t.place_clear(rng, traffic)
+		t.place_clear(rng, traffic, grid_front)
 		traffic.append(t)
 	TrafficCar.link_lanes(traffic)
 	checkpoints = city.race_checkpoints()
@@ -211,7 +224,11 @@ func _plan_clock() -> void:
 			wp += 1
 			if race_path[wp].distance_to(checkpoints[i]) < 1.0:
 				break
-		_clock_times.append(roundf(length / CLOCK_SPEED + CLOCK_EXTRA))
+		var ideal := city.drive_time(checkpoints[i - 1], checkpoints[i])
+		if ideal > 0.0:
+			_clock_times.append(roundf(ideal * CLOCK_SLACK + CLOCK_EXTRA))
+		else:
+			_clock_times.append(roundf(length / CLOCK_SPEED + CLOCK_EXTRA))
 
 
 ## Same race again: the scene is built anew (with the loading page).
@@ -492,7 +509,7 @@ func _respawn_police(p: Car, behind := true, min_d := 70.0, max_d := 160.0) -> v
 
 func _on_crash(impact: float, other: Object, car: Car) -> void:
 	if autotest:
-		print("[autotest] crash %s impact=%.1f other=%s at %s" % ["player" if car == player else str(car.driver), impact, other, car.global_position.round()])
+		print("[autotest] crash %s impact=%.1f other=%s %s at %s" % ["player" if car == player else str(car.driver), impact, other, (other.get_child(1).name if other is Node and other.get_child_count() > 1 else ""), car.global_position.round()])
 	if car != player or state != "race":
 		return
 	if other is TrafficCar:
