@@ -1,0 +1,496 @@
+{
+  "accessors": [
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 3381,
+      "max": [
+        20106.240234375,
+        25398.400390625,
+        129393.1875
+      ],
+      "min": [
+        -24451.548828125,
+        -21780.96875,
+        -7329.87353515625
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 40572,
+      "componentType": 5126,
+      "count": 3381,
+      "max": [
+        0.9999109506607056,
+        0.9977814555168152,
+        0.9999258518218994
+      ],
+      "min": [
+        -0.9998905062675476,
+        -0.9966817498207092,
+        -0.6588456630706787
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5126,
+      "count": 3381,
+      "max": [
+        0.9999745488166809,
+        0.9999954700469971,
+        0.9184771180152893,
+        1.0
+      ],
+      "min": [
+        -0.9999842643737793,
+        -0.9997650980949402,
+        -0.9173382520675659,
+        1.0
+      ],
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 3381,
+      "max": [
+        1.9340120553970337,
+        8.763399124145508
+      ],
+      "min": [
+        -0.9389926195144653,
+        -0.9916260242462158
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 27048,
+      "componentType": 5126,
+      "count": 3381,
+      "max": [
+        1.0000001192092896,
+        0.998076319694519
+      ],
+      "min": [
+        0.9999998211860657,
+        -0.39031219482421875
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 54096,
+      "componentType": 5126,
+      "count": 3381,
+      "max": [
+        0.0,
+        0.0
+      ],
+      "min": [
+        0.0,
+        0.0
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 81144,
+      "componentType": 5126,
+      "count": 3381,
+      "max": [
+        1.9340120553970337,
+        8.763399124145508
+      ],
+      "min": [
+        -0.9389926195144653,
+        -0.9916260242462158
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "componentType": 5125,
+      "count": 14355,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 81144,
+      "componentType": 5126,
+      "count": 6174,
+      "max": [
+        33021.125,
+        37343.390625,
+        146318.671875
+      ],
+      "min": [
+        -38378.94921875,
+        -36944.44140625,
+        9206.5556640625
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 155232,
+      "componentType": 5126,
+      "count": 6174,
+      "max": [
+        0.9998518228530884,
+        0.9999131560325623,
+        0.999569296836853
+      ],
+      "min": [
+        -0.9993765354156494,
+        -0.999130129814148,
+        -0.9178482890129089
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "byteOffset": 54096,
+      "componentType": 5126,
+      "count": 6174,
+      "max": [
+        0.9992712736129761,
+        0.9999054074287415,
+        0.9996060729026794,
+        1.0
+      ],
+      "min": [
+        -0.9996799826622009,
+        -0.9998629689216614,
+        -0.999897301197052,
+        -1.0
+      ],
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 108192,
+      "componentType": 5126,
+      "count": 6174,
+      "max": [
+        0.9008476138114929,
+        1.0
+      ],
+      "min": [
+        0.06049570441246033,
+        0.0
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 157584,
+      "componentType": 5126,
+      "count": 6174,
+      "max": [
+        1.0,
+        0.998076319694519
+      ],
+      "min": [
+        1.0,
+        0.9790415167808533
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 206976,
+      "componentType": 5126,
+      "count": 6174,
+      "max": [
+        0.0,
+        0.0
+      ],
+      "min": [
+        0.0,
+        0.0
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 256368,
+      "componentType": 5126,
+      "count": 6174,
+      "max": [
+        0.9008476138114929,
+        1.0
+      ],
+      "min": [
+        0.06049570441246033,
+        0.0
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 57420,
+      "componentType": 5125,
+      "count": 16806,
+      "type": "SCALAR"
+    }
+  ],
+  "asset": {
+    "extras": {
+      "author": "Georgeous (https://sketchfab.com/intice184)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/spruce-tree-7a5db417827244d98827459bce0cc944",
+      "title": "Spruce tree"
+    },
+    "generator": "Sketchfab-16.73.0",
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 124644,
+      "name": "floatBufferViews",
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 305760,
+      "byteOffset": 124644,
+      "byteStride": 8,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 229320,
+      "byteOffset": 430404,
+      "byteStride": 12,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 152880,
+      "byteOffset": 659724,
+      "byteStride": 16,
+      "name": "floatBufferViews",
+      "target": 34962
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 812604,
+      "uri": "scene.bin"
+    }
+  ],
+  "images": [
+    {
+      "uri": "textures/M_Bark.001_baseColor.png"
+    },
+    {
+      "uri": "textures/M_Bark.001_normal.png"
+    },
+    {
+      "uri": "textures/M_Branch.001_baseColor.png"
+    },
+    {
+      "uri": "textures/M_Branch.001_normal.png"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "M_Bark.001",
+      "normalTexture": {
+        "index": 1
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicFactor": 0.0
+      }
+    },
+    {
+      "alphaCutoff": 0.2971437627238483,
+      "alphaMode": "MASK",
+      "doubleSided": true,
+      "name": "M_Branch.001",
+      "normalTexture": {
+        "index": 3
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 2
+        },
+        "metallicFactor": 0.0
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Spruce_LOD0_M_Bark.001_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 1,
+            "POSITION": 0,
+            "TANGENT": 2,
+            "TEXCOORD_0": 3,
+            "TEXCOORD_1": 4,
+            "TEXCOORD_2": 5,
+            "TEXCOORD_3": 6
+          },
+          "indices": 7,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    },
+    {
+      "name": "Spruce_LOD0_M_Branch.001_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 9,
+            "POSITION": 8,
+            "TANGENT": 10,
+            "TEXCOORD_0": 11,
+            "TEXCOORD_1": 12,
+            "TEXCOORD_2": 13,
+            "TEXCOORD_3": 14
+          },
+          "indices": 15,
+          "material": 1,
+          "mode": 4
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "matrix": [
+        -0.9999995231628418,
+        0.0009677800699137151,
+        2.1489034327831005e-19,
+        0.0,
+        0.0,
+        2.220446049250313e-16,
+        -1.0,
+        0.0,
+        -0.0009677800699137151,
+        -0.9999995231628418,
+        -2.220444990459129e-16,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "Sketchfab_model"
+    },
+    {
+      "children": [
+        2
+      ],
+      "matrix": [
+        0.009999999776482582,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -0.009999999776482582,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -0.009999999776482582,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "SM_Spruce.fbx"
+    },
+    {
+      "children": [
+        3
+      ],
+      "name": "RootNode"
+    },
+    {
+      "children": [
+        4,
+        5
+      ],
+      "matrix": [
+        0.011338813230395166,
+        -1.8473272179361415e-09,
+        0.0,
+        0.0,
+        1.8473272179361415e-09,
+        0.011338813230395166,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.011338813230395317,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "Spruce_LOD0"
+    },
+    {
+      "mesh": 0,
+      "name": "Spruce_LOD0_M_Bark.001_0"
+    },
+    {
+      "mesh": 1,
+      "name": "Spruce_LOD0_M_Branch.001_0"
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Sketchfab_Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    },
+    {
+      "sampler": 0,
+      "source": 3
+    }
+  ]
+}

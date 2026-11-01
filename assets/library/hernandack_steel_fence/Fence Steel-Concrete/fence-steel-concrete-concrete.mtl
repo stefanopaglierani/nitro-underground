@@ -1,0 +1,12 @@
+# Blender MTL File: 'fence-steel-concrete.blend'
+# Material Count: 1
+
+newmtl Concrete.007
+Ns 4.525288
+Ka 1.000000 1.000000 1.000000
+Kd 0.209385 0.209385 0.209385
+Ks 0.078182 0.078182 0.078182
+Ke 0.000000 0.000000 0.000000
+Ni 0.850000
+d 1.000000
+illum 2

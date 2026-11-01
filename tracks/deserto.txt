@@ -1,0 +1,20 @@
+# ROUTE 66 - mappa del circuito "Deserto"
+PARTENZA
+DRITTO 520            # il lunghissimo rettilineo della Route 66
+DESTRA 60 220         # curvone velocissimo
+DRITTO 160
+SALITA 4
+ESSE SINISTRA 45 70   # dentro il canyon
+DRITTO 90
+DESTRA 70 60
+DISCESA 5
+DRITTO 140
+TORNANTE DESTRA 24    # tornante in fondo al canyon
+PIANO
+DRITTO 260
+GOMITO SINISTRA       # entrata in paese
+DRITTO 90
+GOMITO DESTRA
+DRITTO 220            # via principale del paese
+DESTRA 50 90
+DRITTO 160

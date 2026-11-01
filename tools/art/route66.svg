@@ -1,0 +1,188 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <!-- Nitro Underground title background: a stretch of Route 66 in the desert, drawn as a 2.5D
+       comic panel (ink outlines, halftone dots, misprinted colour plates). Original artwork,
+       made for the game (CC0). Rendered to assets/ui/route66_menu.jpg by tools/art/render.js. -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a1f7a"/>
+      <stop offset="0.35" stop-color="#5a2a9e"/>
+      <stop offset="0.62" stop-color="#e2457e"/>
+      <stop offset="0.85" stop-color="#ff8a3d"/>
+      <stop offset="1" stop-color="#ffd166"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff6c2"/>
+      <stop offset="0.6" stop-color="#ffd84a"/>
+      <stop offset="1" stop-color="#ff9b2e"/>
+    </radialGradient>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e98a4a"/>
+      <stop offset="1" stop-color="#b8502a"/>
+    </linearGradient>
+    <linearGradient id="road" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4a3f5c"/>
+      <stop offset="1" stop-color="#26213a"/>
+    </linearGradient>
+    <linearGradient id="mesaFar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c2477a"/>
+      <stop offset="1" stop-color="#8e3a86"/>
+    </linearGradient>
+    <linearGradient id="mesaNear" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e0583a"/>
+      <stop offset="1" stop-color="#9a2f2c"/>
+    </linearGradient>
+    <pattern id="dots" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(20)">
+      <circle cx="9" cy="9" r="4.2" fill="#000"/>
+    </pattern>
+    <pattern id="dotsSmall" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(20)">
+      <circle cx="6" cy="6" r="2.4" fill="#000"/>
+    </pattern>
+    <pattern id="dotsLight" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(-15)">
+      <circle cx="8" cy="8" r="3.4" fill="#fff"/>
+    </pattern>
+    <pattern id="hatch" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+      <line x1="0" y1="0" x2="0" y2="14" stroke="#000" stroke-width="3"/>
+    </pattern>
+    <linearGradient id="fadeDown" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.55"/>
+      <stop offset="0.5" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <mask id="skyDotsMask"><rect width="1920" height="560" fill="url(#fadeDown)"/></mask>
+    <linearGradient id="fadeUp" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0.5"/>
+    </linearGradient>
+    <mask id="groundDotsMask"><rect y="560" width="1920" height="520" fill="url(#fadeUp)"/></mask>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <mask id="sunDotsMask"><circle cx="640" cy="430" r="330" fill="url(#glow)"/></mask>
+  </defs>
+
+  <!-- Sky -->
+  <rect width="1920" height="600" fill="url(#sky)"/>
+  <rect width="1920" height="560" fill="url(#dots)" mask="url(#skyDotsMask)" opacity="0.5"/>
+  <!-- Comic sun rays -->
+  <g opacity="0.22" fill="#fff">
+    <path d="M640 430 L700 0 L860 0 Z"/><path d="M640 430 L1040 0 L1180 0 Z"/>
+    <path d="M640 430 L1360 0 L1500 0 Z"/><path d="M640 430 L1680 0 L1880 0 Z"/>
+    <path d="M640 430 L1920 140 L1920 300 Z"/><path d="M640 430 L300 0 L470 0 Z"/>
+    <path d="M640 430 L0 120 L0 260 Z"/>
+  </g>
+  <!-- Sun with halftone glow -->
+  <circle cx="640" cy="430" r="330" fill="url(#dotsLight)" mask="url(#sunDotsMask)"/>
+  <circle cx="640" cy="430" r="150" fill="url(#sun)" stroke="#2a0d2e" stroke-width="6"/>
+  <g stroke="#e2457e" stroke-width="10" opacity="0.8">
+    <line x1="480" y1="470" x2="800" y2="470"/><line x1="492" y1="500" x2="788" y2="500"/>
+    <line x1="512" y1="528" x2="768" y2="528"/>
+  </g>
+  <!-- Clouds, drawn flat -->
+  <g stroke="#2a0d2e" stroke-width="5" stroke-linejoin="round">
+    <path d="M140 210 q30 -50 90 -30 q30 -60 110 -30 q70 -20 90 40 q50 10 30 50 h-330 q-40 -20 10 -30 z" fill="#ffb3c7"/>
+    <path d="M1500 150 q30 -40 80 -25 q35 -45 100 -15 q60 0 60 45 q40 15 15 40 h-280 q-30 -25 25 -45 z" fill="#ffc2a8"/>
+    <path d="M1000 260 q20 -30 60 -20 q30 -35 80 -10 q45 0 40 35 h-200 q-20 -10 20 -5 z" fill="#f6a0c8"/>
+  </g>
+  <rect x="140" y="160" width="400" height="80" fill="url(#hatch)" opacity="0.0"/>
+
+  <!-- Far mesas -->
+  <path d="M0 560 L0 470 L70 470 L95 430 L250 430 L270 470 L330 470 L350 500 L470 500 L480 560 Z" fill="url(#mesaFar)" stroke="#2a0d2e" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M1380 560 L1400 500 L1460 495 L1480 455 L1640 455 L1660 490 L1760 490 L1790 445 L1920 445 L1920 560 Z" fill="url(#mesaFar)" stroke="#2a0d2e" stroke-width="5" stroke-linejoin="round"/>
+  <!-- Near butte on the left, with hatched shadow side -->
+  <path d="M-10 600 L60 380 L110 360 L120 300 L300 300 L310 350 L360 370 L420 600 Z" fill="url(#mesaNear)" stroke="#1a0820" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M300 300 L310 350 L360 370 L420 600 L330 600 L300 420 Z" fill="url(#hatch)" opacity="0.45"/>
+  <path d="M130 330 L280 330 M100 400 L340 400 M80 470 L370 470" stroke="#1a0820" stroke-width="3" opacity="0.5"/>
+  <!-- Butte on the right -->
+  <path d="M1560 600 L1600 420 L1650 405 L1660 360 L1790 360 L1800 400 L1850 420 L1920 600 Z" fill="url(#mesaNear)" stroke="#1a0820" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M1790 360 L1800 400 L1850 420 L1920 600 L1840 600 L1800 450 Z" fill="url(#hatch)" opacity="0.45"/>
+
+  <!-- Desert floor -->
+  <rect y="560" width="1920" height="520" fill="url(#ground)"/>
+  <rect y="560" width="1920" height="520" fill="url(#dotsSmall)" mask="url(#groundDotsMask)" opacity="0.35"/>
+  <line x1="0" y1="560" x2="1920" y2="560" stroke="#2a0d2e" stroke-width="5"/>
+  <!-- Ground streaks pointing at the vanishing point -->
+  <g stroke="#7a2c1e" stroke-width="4" opacity="0.5" stroke-linecap="round">
+    <line x1="560" y1="600" x2="200" y2="700"/><line x1="500" y1="640" x2="20" y2="820"/>
+    <line x1="1120" y1="600" x2="1560" y2="700"/><line x1="1200" y1="650" x2="1900" y2="880"/>
+    <line x1="400" y1="760" x2="60" y2="1000"/><line x1="1400" y1="780" x2="1880" y2="1060"/>
+  </g>
+
+  <!-- The road: two lanes to the horizon -->
+  <path d="M820 560 L850 560 L1560 1080 L120 1080 Z" fill="url(#road)" stroke="#120818" stroke-width="7" stroke-linejoin="round"/>
+  <!-- Edge lines -->
+  <path d="M823 562 L170 1080" stroke="#f4efe0" stroke-width="10"/>
+  <path d="M847 562 L1505 1080" stroke="#f4efe0" stroke-width="10"/>
+  <!-- Centre line: double yellow, dashes widening towards us -->
+  <g fill="#ffcc1a" stroke="#120818" stroke-width="2">
+    <path d="M833 566 L837 566 L838 580 L832 580 Z"/>
+    <path d="M830 600 L840 600 L843 628 L827 628 Z"/>
+    <path d="M824 664 L846 664 L851 714 L819 714 Z"/>
+    <path d="M813 776 L857 776 L866 860 L804 860 Z"/>
+    <path d="M794 960 L876 960 L890 1080 L780 1080 Z"/>
+  </g>
+  <!-- Halftone shade on the road edges -->
+  <path d="M820 560 L835 560 L840 1080 L120 1080 Z" fill="url(#dotsSmall)" opacity="0.18"/>
+
+  <!-- ROUTE 66 shield painted on the asphalt, in perspective, with a misprint offset -->
+  <g transform="translate(1045 900) scale(1.05 0.42)">
+    <g transform="translate(-6 4)" opacity="0.55">
+      <path d="M-120 -170 Q-60 -150 0 -180 Q60 -150 120 -170 L120 -40 Q120 80 0 150 Q-120 80 -120 -40 Z" fill="none" stroke="#18e0ff" stroke-width="16"/>
+    </g>
+    <path d="M-120 -170 Q-60 -150 0 -180 Q60 -150 120 -170 L120 -40 Q120 80 0 150 Q-120 80 -120 -40 Z" fill="none" stroke="#f4efe0" stroke-width="16"/>
+    <text x="0" y="-55" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="50" fill="#f4efe0">ROUTE</text>
+    <text x="0" y="90" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="150" fill="#f4efe0">66</text>
+  </g>
+
+  <!-- Telephone poles on the right, receding -->
+  <g stroke="#1a0820" stroke-linecap="round">
+    <line x1="1700" y1="1080" x2="1700" y2="260" stroke-width="22"/>
+    <line x1="1610" y1="320" x2="1790" y2="320" stroke-width="16"/>
+    <line x1="1630" y1="360" x2="1770" y2="360" stroke-width="12"/>
+    <line x1="1340" y1="760" x2="1340" y2="410" stroke-width="12"/>
+    <line x1="1290" y1="440" x2="1390" y2="440" stroke-width="9"/>
+    <line x1="1150" y1="650" x2="1150" y2="470" stroke-width="7"/>
+    <line x1="1120" y1="486" x2="1180" y2="486" stroke-width="5"/>
+    <line x1="1040" y1="600" x2="1040" y2="508" stroke-width="5"/>
+    <line x1="1022" y1="516" x2="1058" y2="516" stroke-width="4"/>
+    <line x1="970" y1="580" x2="970" y2="530" stroke-width="3"/>
+  </g>
+  <g fill="none" stroke="#1a0820" stroke-width="3">
+    <path d="M1620 320 Q1460 420 1300 440 Q1210 470 1130 486 Q1080 505 1026 516 Q995 527 962 534"/>
+    <path d="M1780 320 Q1590 410 1380 440 Q1260 468 1170 486 Q1100 505 1054 516 Q1010 528 978 534"/>
+  </g>
+
+  <!-- Saguaro cacti on the left -->
+  <g transform="translate(-55 0)" stroke="#0e2a12" stroke-width="7" stroke-linejoin="round" fill="#3fb24a">
+    <path d="M150 1040 L150 700 Q150 660 185 660 Q220 660 220 700 L220 1040 Z"/>
+    <path d="M150 860 L100 860 Q70 860 70 830 L70 760 Q70 735 92 735 Q114 735 114 760 L114 815 L150 815 Z"/>
+    <path d="M220 800 L262 800 Q290 800 290 770 L290 720 Q290 698 268 698 Q246 698 246 720 L246 760 L220 760 Z"/>
+    <path d="M520 700 L520 610 Q520 595 533 595 Q546 595 546 610 L546 700 Z"/>
+    <path d="M520 655 L505 655 Q497 655 497 646 L497 628 Q497 620 505 620 Q512 620 512 628 L512 640 L520 640 Z"/>
+  </g>
+  <g transform="translate(-55 0)" stroke="#0e2a12" stroke-width="3" opacity="0.6">
+    <line x1="170" y1="690" x2="170" y2="1030"/><line x1="200" y1="690" x2="200" y2="1030"/>
+  </g>
+  <path transform="translate(-55 0)" d="M195 670 L220 700 L220 1040 L195 1040 Z" fill="url(#hatch)" opacity="0.35"/>
+
+  <!-- Roadside shield sign on a post, with a misprinted colour plate -->
+  <g transform="translate(330 600)">
+    <rect x="-9" y="40" width="18" height="300" fill="#6b4a2e" stroke="#1a0820" stroke-width="6"/>
+    <g transform="translate(-7 6)" opacity="0.7">
+      <path d="M-80 -90 Q-40 -76 0 -96 Q40 -76 80 -90 L80 -10 Q80 50 0 90 Q-80 50 -80 -10 Z" fill="#18e0ff"/>
+    </g>
+    <path d="M-80 -90 Q-40 -76 0 -96 Q40 -76 80 -90 L80 -10 Q80 50 0 90 Q-80 50 -80 -10 Z" fill="#f4efe0" stroke="#1a0820" stroke-width="8" stroke-linejoin="round"/>
+    <path d="M-62 -68 L62 -68 L62 -36 L-62 -36 Z" fill="#1a0820"/>
+    <text x="0" y="-44" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="26" fill="#f4efe0">US</text>
+    <text x="0" y="46" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="80" fill="#1a0820">66</text>
+    <path d="M-80 -90 Q-40 -76 0 -96 Q40 -76 80 -90 L80 -10 Q80 50 0 90 Q-80 50 -80 -10 Z" fill="url(#dotsSmall)" opacity="0.12"/>
+  </g>
+
+  <!-- Speed streaks for motion, comic style -->
+  <g stroke="#fff" stroke-width="5" stroke-linecap="round" opacity="0.55">
+    <line x1="960" y1="700" x2="1250" y2="860"/><line x1="990" y1="760" x2="1380" y2="990"/>
+    <line x1="700" y1="700" x2="460" y2="830"/><line x1="680" y1="770" x2="330" y2="980"/>
+  </g>
+
+  <!-- Comic panel border -->
+  <rect x="8" y="8" width="1904" height="1064" fill="none" stroke="#120818" stroke-width="16"/>
+</svg>
