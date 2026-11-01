@@ -15,28 +15,54 @@ aggiornando la documentazione**, nella stessa pull request del lavoro (o in una 
 
      ![descrizione](immagini/v0.X-qualcosa.jpg)
 
-     **Cosa ha chiesto Stefano:** le sue richieste, con le sue parole quando sono efficaci.
+     **Richiesta:** cosa ha chiesto Stefano, con le sue parole quando sono efficaci.
 
-     **Cosa è stato fatto:** i cambiamenti visibili, spiegati per chi non programma.
-     Numeri misurati solo se davvero misurati.
+     **Come è stato costruito:** le soluzioni tecniche, comprensibili anche a chi non
+     programma, con i file dove stanno (`scripts/...`). Numeri solo se davvero misurati.
 
-     **Cosa ne ha pensato Stefano:** (solo se ha già provato la versione)
+     **Verifica ed esito:** come è stato controllato (banco prova, autotest, screenshot) e,
+     se ha già provato la versione, cosa ne ha pensato Stefano.
      ```
    - Se Stefano ha provato una versione precedente, aggiungi il suo giudizio a quella voce.
    - Aggiorna "Prossimi passi".
 2. **[README.md](../README.md)**
-   - Riga "Versione attuale" in alto (numero e data), anche nel riassunto inglese.
-   - "Cosa c'è nel gioco", "Tecnologia" e "Struttura del codice" se sono cambiati.
+   - Badge della versione in alto, e la versione nella sezione English.
+   - "In 30 secondi" (numero di versioni e giorni), "Cosa c'è nel gioco", "Come è costruito,
+     in breve", "Come è cambiato" e "Struttura del repository" se sono cambiati.
    - Gli screenshot se il gioco ora ha un aspetto diverso.
-3. **[CREDITI.md](../CREDITI.md) e `assets/LICENSES.md`**: ogni nuovo asset registrato; se è NC o
+3. **[docs/TECNICO.md](TECNICO.md)**: se cambia come funziona qualcosa (fisica, circuiti,
+   grafica, audio, prestazioni), aggiorna la sezione giusta. Se cambia la fisica, rilancia il banco
+   prova a 30, 60 e 120 tick e aggiorna le due tabelle.
+4. **[CREDITI.md](../CREDITI.md) e `assets/LICENSES.md`**: ogni nuovo asset registrato; se è NC o
    di un marchio reale, aggiunto all'elenco "Cosa non si potrebbe usare".
-4. **Screenshot**: in `docs/immagini/`, JPG di 1280×720 al massimo, qualità circa 80
-   (meno di 400 KB l'uno). Nome con la versione, per esempio `v0.12-garage.jpg`.
+5. **Screenshot**: in `docs/immagini/`, JPG di 1280×720 al massimo, qualità circa 80
+   (meno di 400 KB l'uno). Le immagini senza versione nel nome (`gara-*.jpg`, `menu-*.jpg`,
+   `panorama-*.jpg`) mostrano **sempre la versione attuale**: rifalle quando il gioco cambia aspetto,
+   e conserva quelle vecchie con la versione nel nome (es. `v0.11-gara-costa.jpg`) per la storia.
+
+## Come rifare gli screenshot
+
+Dalla cartella del progetto, dopo `godot --headless --import` (serve `xvfb-run`):
+
+```bash
+G="xvfb-run -a -s '-screen 0 1280x720x24' godot --rendering-driver opengl3 --resolution 1280x720"
+# Menu: pagina circuiti e pagina auto
+$G -- --menushot=out/menu_track.png
+$G -- --menushot=out/menu_car.png --page=car
+# Gara: 6 immagini durante una gara guidata dal pilota automatico
+$G res://scenes/main.tscn -- --autotest --mode=sprint --level=desert --car=charger_1970 --shots=out/
+# Panorami di un circuito (frazioni del giro; "s" = vista panoramica, "h" = dall'alto)
+$G --script tools/shot.gd -- desert out/ 0.15s 0.45s 0.3h
+# Mappe dei circuiti
+godot --headless --script tools/map_preview.gd -- out/
+```
+
+Il rendering in un container senza GPU è lento: circa 20 minuti per gara.
 
 ## Regole di scrittura
 
-- In italiano, frasi semplici, comprensibili da chi non programma. Il riassunto inglese del README
-  resta breve.
+- In italiano, frasi semplici, comprensibili da chi non programma. La sezione English del README
+  segue gli stessi contenuti in breve.
 - Racconta la storia vera: cosa ha chiesto Stefano, cosa è stato fatto, cosa è andato storto.
   Non dichiarare provato sul telefono quello che non è stato provato.
 - Le decisioni di gioco, stile e auto sono di Stefano: scrivilo così.

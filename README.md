@@ -1,176 +1,174 @@
 # Nitro Underground
 
-**Gioco mobile di corse clandestine in 3D, con grafica a fumetto 2.5D.** Fatto con Godot 4, per Android.
+**Gioco di corse clandestine in 3D per Android, con grafica a fumetto 2.5D.**
+Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come mappe di testo.
 
-![Menu Route 66 e scelta del circuito](docs/immagini/menu-circuiti.jpg)
+![Nitro Underground: gara sul passo di montagna](docs/immagini/gara-montagna.jpg)
 
-> Versione attuale: **v0.11.1** (31 ottobre 2026) · Stato: prototipo giocabile, in sviluppo attivo
-> 📖 [Storia completa dello sviluppo](docs/STORIA.md) · 🎨 [Crediti e licenze](CREDITI.md)
+[![Godot 4.7](https://img.shields.io/badge/Godot-4.7-478CBF?logo=godotengine&logoColor=white)](https://godotengine.org)
+![GDScript](https://img.shields.io/badge/GDScript-~7.500_righe-355570)
+![Android](https://img.shields.io/badge/Android-arm64-3DDC84?logo=android&logoColor=white)
+![Versione](https://img.shields.io/badge/versione-0.11.1-ff3d8b)
+![Stato](https://img.shields.io/badge/stato-prototipo_giocabile-f5a623)
 
-*English summary at the [bottom of the page](#english).*
+📖 [Storia dello sviluppo](docs/STORIA.md) · 🛠️ [Come è costruito](docs/TECNICO.md) · 🎨 [Crediti e licenze](CREDITI.md) · 🇬🇧 [English](#english)
 
 ---
 
-## Che cos'è
+## In 30 secondi
 
-Nitro Underground è un gioco di corse arcade per telefono, nello spirito delle gare clandestine
-dei film e dei giochi di corse su strada degli anni 2000: auto sportive, sorpassi nel traffico,
-nitro, derapate e la polizia che arriva se fai troppi danni. Nome, mondo e circuiti sono originali.
+- **Cos'è:** un racing arcade per telefono nello spirito delle gare su strada: sorpassi nel
+  traffico, nitro, derapate, salti e la polizia che arriva se fai troppi danni. Nome, mondo e
+  circuiti sono originali.
+- **Chi l'ha fatto:** **Stefano Paglierani** ha ideato e diretto il gioco: concept, stile,
+  circuiti, auto, comandi e ogni scelta di prodotto, provando ogni build sul suo telefono Android.
+  Il codice è stato scritto da **Claude** (l'assistente AI di Anthropic) sulle sue indicazioni.
+- **In quanto tempo:** 5 giorni, dal 27 al 31 ottobre 2026: **12 versioni** dal primo prototipo
+  alla v0.11.1, ognuna provata su telefono o PC e migliorata in base alle prove.
+- **Cosa dimostra:** direzione di prodotto e game design su un progetto reale, ciclo rapido
+  prova → feedback → nuova versione, uso dell'intelligenza artificiale come squadra di sviluppo,
+  attenzione alle licenze degli asset e alle prestazioni su telefono.
 
-Il progetto è anche un esperimento: **Stefano**, l'autore, non scrive codice. Ha deciso lui il gioco,
-lo stile, le auto e ogni modifica, provando ogni versione sul suo telefono Android e sul PC;
-tutto il codice è stato scritto da Claude (l'assistente AI di Anthropic) seguendo le sue richieste.
-La [storia dello sviluppo](docs/STORIA.md) racconta passo per passo come il gioco è cambiato,
-versione dopo versione, in base alle sue prove.
-
-## Screenshot
+## Screenshot (v0.11.1)
 
 | | |
 |---|---|
-| ![Gara in montagna](docs/immagini/gara-montagna.jpg) | ![Città di notte](docs/immagini/citta-notte.jpg) |
-| *Montagna: tempo a scalare fino al prossimo checkpoint* | *Città di notte* |
-| ![Costa](docs/immagini/costa.jpg) | ![Chalet in montagna](docs/immagini/montagna-chalet.jpg) |
-| *Costa: lungomare, palme e traffico* | *Passo alpino con chalet e lavori in corso* |
-| ![Scelta dell'auto](docs/immagini/menu-auto.jpg) | ![Le quattro ambientazioni](docs/immagini/ambientazioni.jpg) |
-| *Garage: scelta dell'auto* | *Le quattro ambientazioni della v0.11* |
+| ![Menu Route 66 con scelta del circuito](docs/immagini/menu-circuiti.jpg) | ![Garage con scelta dell'auto](docs/immagini/menu-auto.jpg) |
+| *Menu: illustrazione originale della Route 66, scelta del circuito* | *Garage: 7 auto, ognuna con velocità e trazione proprie* |
+| ![Gara sulla costa](docs/immagini/gara-costa.jpg) | ![Gara nella città di notte](docs/immagini/gara-citta.jpg) |
+| *Costa: lungomare, palme e traffico* | *Città di notte: palazzi con finestre accese, neon* |
+| ![Gara nel deserto](docs/immagini/gara-deserto.jpg) | ![Panorama del deserto](docs/immagini/panorama-deserto.jpg) |
+| *Deserto: la Route 66 attraverso il canyon* | *Deserto: paese con motel e distributore* |
+| ![Panorama della costa](docs/immagini/panorama-costa.jpg) | ![Panorama della città di notte](docs/immagini/panorama-citta.jpg) |
+| *Costa: palme, mare e case bianche* | *Città di notte: skyline di torri illuminate* |
 
 ## Cosa c'è nel gioco
 
-- **4 circuiti**: Montagna (passo alpino con tornanti), Costa (riviera con palme e faro),
-  Città di notte (downtown illuminato) e Deserto (Route 66 con canyon e motel).
-- **Gara sprint** contro 3 avversari guidati dal computer, con checkpoint e **tempo a scalare**:
-  ogni checkpoint ti dà qualche secondo in più, il tempo avanzato si somma.
-- **Polizia**: se causi incidenti sale il livello di allerta e arrivano le volanti.
-- **Garage con 7 auto**, ognuna con la sua velocità massima (210-255 km/h) e la sua trazione
-  (anteriore, posteriore o integrale).
-- **Fisica vera**: l'auto è un corpo rigido su quattro ruote con sospensioni; spinta e sterzo
-  arrivano dalle ruote, ci sono salti con rampe e atterraggi, derapate col freno a mano,
-  cambio automatico a 6 marce, nitro.
-- **Traffico che si può urtare**: le auto civili vengono spinte, si girano e si incidentano.
-  I guardrail si rompono a pezzi.
-- **Audio delle auto**: motore V8 che segue i giri, cambiate con soffio del turbo,
-  scoppiettii, gomme che stridono, nitro, urti e sirena.
-- **Comandi touch** a esagoni con icone: sterzo e nitro a sinistra, gas, freno e freno a mano a destra.
-  Cruscotto digitale con velocità, marcia e nitro, e linea di traiettoria a terra.
-- **Stile grafico a fumetto 2.5D**: colori a bande, contorni a inchiostro, retino e tratteggio,
-  cielo disegnato, sopra a modelli 3D di paesaggio realistici.
-- **Circuiti scritti come testo**: ogni pista è un file in `tracks/` che si legge come
-  un navigatore (`DRITTO 300`, `TORNANTE DESTRA`, `CHICANE`...). Chiunque può disegnarne una
-  con il Blocco note: vedi [tracks/COME_FARE.md](tracks/COME_FARE.md).
+| | |
+|---|---|
+| 🏁 **4 circuiti** | Montagna (passo alpino con tornanti), Costa (riviera), Città di notte (downtown), Deserto (Route 66) |
+| 🚗 **7 auto** | Velocità massime da 210 a 255 km/h, trazione anteriore, posteriore o integrale |
+| ⏱️ **Gara sprint** | 3 avversari guidati dal computer, checkpoint con tempo a scalare |
+| 🚓 **Polizia** | Gli incidenti alzano il livello di allerta e arrivano le volanti |
+| 💥 **Fisica vera** | Corpo rigido su 4 ruote con sospensioni, salti, derapate, traffico che si urta, guardrail che si rompono |
+| 🔊 **Audio** | Motore V8 sintetizzato che segue i giri, cambiate, turbo, gomme, urti, sirena |
+| 🎨 **Fumetto 2.5D** | Luce a bande, contorni a inchiostro, retino, cielo pop-art sopra a modelli 3D realistici |
+| 🗺️ **Circuiti in testo** | Ogni pista è un file che si legge come un navigatore: chiunque può disegnarne una |
+| 📱 **Comandi touch** | Pulsanti a esagono con icone, cruscotto digitale, traiettoria ideale colorata a terra |
 
-![Mappa del circuito del Deserto](docs/immagini/mappa-deserto.png)
+## Come è costruito, in breve
 
-## Come provarlo
+Il dettaglio completo, con diagrammi e numeri, è in **[docs/TECNICO.md](docs/TECNICO.md)**.
 
-### Su Android
+- **Fisica dell'auto scritta da zero** su `RigidBody3D` + Jolt: ruote come cilindri proiettati
+  che salgono sui cordoli, sospensioni molla-smorzatore, aderenza per ruota limitata dal carico,
+  cambio a 6 marce. Verificata con un banco prova automatico: **0-100 km/h in 3,5 s**, frenata da
+  144 km/h in 63 m, salti **entro il 2,5% della traiettoria balistica teorica**, stessi risultati a
+  30, 60 e 120 tick al secondo.
+- **Un linguaggio per disegnare i circuiti** (`tracks/*.txt`): `DRITTO 520`, `TORNANTE DESTRA`,
+  `CHICANE SINISTRA`... Il gioco chiude l'anello da solo e ne ricava strada, terreno, guardrail,
+  traiettoria ideale, velocità in curva per l'IA e tempo dei checkpoint.
+- **Stile a fumetto** fatto con shader: materiali toon applicati a tutto ciò che entra in scena e
+  una passata a schermo intero (bande, inchiostro sui salti di profondità, retino, tratteggio).
+- **Costruito dal codice**: le scene sono quasi vuote, strade, terreno, auto, interfaccia e
+  materiali nascono dagli script. Tutto è testo leggibile e versionato.
+- **Pensato per il telefono**: caricamento a passi con modelli letti in thread paralleli, modelli
+  3D fusi per ridurre le chiamate di disegno (da oltre 1.000 a poche per modello), texture compresse.
+- **Licenze tracciate**: oltre 120 asset gratuiti registrati con autore, link e licenza.
 
-Gli APK non sono nel repository (pesano circa 300 MB). Per ora vengono distribuiti a mano
-per le prove. Chi ha l'APK lo copia sul telefono, lo apre e consente l'installazione da
-"origini sconosciute". Se c'è già una versione precedente installata, va disinstallata prima,
-perché ogni build è firmata con una chiave di prova diversa.
+![Mappe dei quattro circuiti](docs/immagini/mappe-circuiti.png)
 
-Per crearlo da sé: `GODOT=/percorso/godot tools/build_android.sh` produce `build/NitroUnderground.apk`
-(servono i template di esportazione Android di Godot 4.7).
+## Come è cambiato
 
-### Su PC Windows
+![Evoluzione del gioco](docs/immagini/evoluzione.jpg)
 
-1. Scarica [`tools/windows/Gioca-Nitro.bat`](tools/windows/Gioca-Nitro.bat) e
-   [`tools/windows/gioca-nitro.ps1`](tools/windows/gioca-nitro.ps1) nella stessa cartella.
-2. Fai doppio clic su `Gioca-Nitro.bat`.
+Dalla città low poly vista dall'alto del primo giorno al fumetto 2.5D di oggi: ogni svolta è nata
+dalle prove sul telefono. La [storia completa](docs/STORIA.md) racconta, versione per versione,
+cosa è stato chiesto e come è stato costruito.
 
-La prima volta scarica Godot 4.7.2 e l'ultima versione di prova del gioco (ramo `prova-pc`),
-prepara i modelli (5-10 minuti) e lo avvia. Le volte dopo riscarica solo se c'è una versione nuova.
+| Versione | In una riga |
+|---|---|
+| v0.1 | Primo prototipo giocabile sul telefono: città notturna, visuale dall'alto |
+| v0.2-v0.3 | Fisica a corpo rigido, telecamera dietro l'auto, salti |
+| v0.4-v0.6 | Montagna di giorno, garage, guida dalle ruote, cruscotto, guardrail distruttibili |
+| v0.7-v0.9 | Audio, traffico urtabile, comandi a esagoni, stile a fumetto 2.5D |
+| v0.10 | Menu Route 66, caricamento leggero, tempo a scalare |
+| v0.11-v0.11.1 | Circuiti come mappe di testo, ambientazioni rifatte, Deserto, garage da 7 |
+
+## Provarlo
+
+**PC Windows (il modo più semplice):** scarica [`Gioca-Nitro.bat`](tools/windows/Gioca-Nitro.bat)
+e [`gioca-nitro.ps1`](tools/windows/gioca-nitro.ps1) nella stessa cartella e fai doppio clic sul
+`.bat`. La prima volta scarica Godot 4.7.2 e l'ultima build (ramo `prova-pc`), prepara i modelli
+(5-10 minuti) e avvia il gioco.
 
 | Tastiera | Azione |
 |---|---|
 | ← → oppure A D | Sterzo |
-| ↑ oppure W | Gas |
-| ↓ oppure S | Freno e retromarcia |
+| ↑ oppure W / ↓ oppure S | Gas / Freno e retromarcia |
 | Spazio | Freno a mano (derapata) |
 | Shift oppure N | Nitro |
 
-Il mouse fa da dito sui pulsanti a schermo.
+**Android:** gli APK (circa 300 MB) non sono nel repository. Si possono creare con
+`GODOT=/percorso/godot tools/build_android.sh` (servono i template Android di Godot 4.7).
 
-### Dall'editor di Godot
+**Editor:** apri la cartella con **Godot 4.7** e premi Play.
 
-Apri la cartella del progetto con **Godot 4.7** e premi Play. La scena iniziale è `scenes/menu.tscn`.
+## Struttura del repository
 
-## Tecnologia
-
-| | |
+| Percorso | Contenuto |
 |---|---|
-| Motore | Godot 4.7, renderer Mobile (Vulkan) |
-| Fisica | Jolt Physics, 60 tick al secondo |
-| Linguaggio | GDScript (circa 7.500 righe), shader Godot |
-| Piattaforma | Android arm64; PC Windows per le prove |
-| Asset | Gratuiti: CC0 e CC-BY (Poly Haven, Kenney, OpenGameArt, Freesound, Sketchfab) |
+| `scripts/` | Tutto il gioco: menu, gara, auto, circuiti, traffico, audio, stile, interfaccia |
+| `shaders/` | Stile a fumetto, cielo, terreno, mare, facciate illuminate, vernice delle auto |
+| `tracks/` | Le mappe dei circuiti in testo e la guida [`COME_FARE.md`](tracks/COME_FARE.md) |
+| `assets/` | Modelli, texture e suoni, con il registro [`LICENSES.md`](assets/LICENSES.md) |
+| `tests/` | Banco prova della fisica |
+| `tools/` | Build Android, anteprima mappe, screenshot automatici, launcher Windows, sintesi audio |
+| `docs/` | Storia, documentazione tecnica, immagini |
 
-Quasi tutto è costruito dal codice: le scene `.tscn` sono minime, mentre strade, terreno,
-guardrail, traffico, interfaccia e stile grafico nascono dagli script.
+## Licenze
 
-### Struttura del codice
-
-| Cartella / file | Cosa contiene |
-|---|---|
-| `scripts/menu.gd` | Menu Route 66: scelta del circuito e dell'auto |
-| `scripts/main.gd` | Regole di gara, checkpoint, tempo, polizia, telecamera, caricamento |
-| `scripts/car.gd` | Auto `RigidBody3D`: ruote, sospensioni, cambio, nitro, salti, guida del computer |
-| `scripts/car_catalog.gd` | Elenco delle auto, velocità massime, trazione, garage |
-| `scripts/car_model.gd`, `car_audio.gd` | Modelli 3D delle auto e suoni del motore |
-| `scripts/track.gd`, `track_layout.gd` | Base comune dei circuiti e lettura delle mappe in `tracks/*.txt` |
-| `scripts/mountain.gd`, `coast.gd`, `night_city.gd`, `desert.gd` | Le quattro ambientazioni |
-| `scripts/scenery.gd` | Piazza alberi, edifici e oggetti realistici a bordo strada |
-| `scripts/traffic.gd`, `guardrails.gd`, `ramp.gd` | Traffico urtabile, guardrail che si rompono, rampe |
-| `scripts/comic_style.gd`, `shaders/` | Lo stile a fumetto 2.5D |
-| `scripts/hud.gd`, `dashboard.gd` | Comandi touch, cruscotto, schermate |
-| `tracks/` | Le mappe dei circuiti in testo, con la guida `COME_FARE.md` |
-| `tests/physics_bench.gd` | Banco prova della fisica (accelerazione, frenata, salti, urti) |
-| `tools/` | Build Android, anteprima delle mappe, screenshot automatici, launcher per Windows |
-| `docs/` | Storia dello sviluppo, immagini, guida per aggiornare la storia |
-
-### Prove automatiche
-
-- `godot --headless -s res://tests/physics_bench.gd -- --tps=60` misura accelerazione, frenata,
-  curve, salti e urti, e stampa i risultati in JSON (da lanciare a 30, 60 e 120 tick per
-  controllare che la fisica non dipenda dal frame rate).
-- `godot --headless -- --autotest --mode=sprint` fa correre l'auto da sola per tutta la gara.
-- `godot --headless --script tools/map_preview.gd -- <cartella>` disegna le mappe dei circuiti
-  e controlla che i tratti di strada non si tocchino.
-
-## Licenze, in breve
-
-Gli asset vengono tutti da fonti gratuite e ognuno è registrato con autore e licenza in
-[`assets/LICENSES.md`](assets/LICENSES.md). Alcuni modelli di auto (marchi reali, licenze
-non commerciali) vanno bene per un prototipo e un portfolio ma **non** per una versione in vendita:
-il riepilogo onesto è in [CREDITI.md](CREDITI.md).
-
-Il codice non ha ancora una licenza open source: per ora tutti i diritti sono riservati all'autore.
+Tutti gli asset vengono da fonti gratuite (CC0 e CC BY) e sono registrati in
+[`assets/LICENSES.md`](assets/LICENSES.md). Alcuni modelli di auto (marchi reali, licenze non
+commerciali) sono usati solo perché questo è un prototipo senza scopo commerciale: il riepilogo
+onesto è in [CREDITI.md](CREDITI.md). Il codice non ha ancora una licenza open source: tutti i
+diritti sono riservati all'autore.
 
 ## Roadmap
 
 1. ~~Documento di concept~~ ✔
 2. **Prototipo giocabile su telefono** ← siamo qui (v0.1 → v0.11.1)
 3. Vertical slice: un circuito e un'auto rifiniti al livello del gioco finale
-4. Produzione e pubblicazione sugli store (con sostituzione degli asset non commerciali)
+4. Produzione e pubblicazione, con sostituzione degli asset non commerciali
 
 ---
 
 ## English
 
-**Nitro Underground** is a mobile arcade street-racing game made with **Godot 4** for Android,
-in a 2.5D comic-book art style. It is a work-in-progress prototype (v0.11.1, October 2026).
+**Nitro Underground** is a 3D arcade street-racing game for Android with a 2.5D comic-book look,
+built with **Godot 4.7** (GDScript, Mobile/Vulkan renderer, Jolt physics). Current version:
+**v0.11.1**, a playable prototype.
 
-- 4 circuits (alpine pass, coast, night city, Route 66 desert), sprint races against 3 AI rivals,
-  a countdown clock per checkpoint, police that arrive when you cause crashes.
-- Rigid-body car physics with per-wheel grip and suspension, FWD/RWD/AWD, 6-speed gearbox,
-  jumps, drifting, nitro; traffic you can crash into; breakable guardrails; full engine audio.
-- Circuits are written as plain-text "turn-by-turn" files in `tracks/`, so anyone can design one.
+**Who made it.** **Stefano Paglierani** conceived and directed the game: concept, art direction,
+circuits, cars, controls and every product decision, testing each build on his Android phone.
+The code was written by **Claude** (Anthropic's AI assistant) from his direction. 12 versions were
+designed, built and play-tested in 5 days (27-31 October 2026).
 
-The project's author, Stefano, does not write code: he designed the game and tested every build
-on his phone, and all code was written by Claude (Anthropic's AI assistant) from his requests.
-The [development history](docs/STORIA.md) (in Italian) follows every version from v0.1 to today.
+**Highlights**
+- **Custom vehicle physics** on a `RigidBody3D`: shape-cast wheels that climb kerbs,
+  spring-damper suspension, load-limited tyre grip, FWD/RWD/AWD, 6-speed gearbox. Validated by an
+  automated bench: 0-100 km/h in 3.5 s, ramp jumps within 2.5% of the ballistic prediction,
+  frame-rate independent at 30/60/120 Hz.
+- **A tiny track-description language** (`tracks/*.txt`, Italian keywords such as `DRITTO`,
+  `TORNANTE`, `CHICANE`) that auto-closes the loop and generates road, terrain, guardrails, a
+  racing line with a speed profile for the AI, and checkpoint times.
+- **2.5D comic rendering**: toon materials applied to everything that enters the scene, plus a
+  full-screen pass with cel bands, depth-based ink lines, halftone, hatching and misregistered colour plates.
+- **Synthesized V8 engine audio**, crossfaded and pitched to RPM in real time.
+- **Mobile-minded**: staged, threaded loading; models merged into one mesh per material
+  (a 123-part model went from 1,000+ draw calls to a handful); GPU-compressed textures.
+- **Rigorous asset licensing**: 120+ free assets logged with author, link and licence; the
+  non-commercial exceptions are declared openly in [CREDITI.md](CREDITI.md).
 
-Assets are free (CC0 / CC-BY, credited in [`assets/LICENSES.md`](assets/LICENSES.md)). Some car
-models are real-brand or non-commercial (CC BY-NC) and are only used because this is a
-non-commercial prototype/portfolio: see [CREDITI.md](CREDITI.md). The code has no open-source
-licence yet (all rights reserved).
+Docs (in Italian): [development history](docs/STORIA.md) · [technical deep dive](docs/TECNICO.md).
+The code has no open-source licence yet (all rights reserved).
