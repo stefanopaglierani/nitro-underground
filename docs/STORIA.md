@@ -33,7 +33,7 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.10 | 31/10/2026 | Menu Route 66, caricamento leggero, tempo a scalare | [#16](https://github.com/stefanopaglierani/nitro-underground/pull/16) |
 | v0.11 | 31/10/2026 | Circuiti scritti come mappe di testo, ambientazioni rifatte, Deserto | [#17](https://github.com/stefanopaglierani/nitro-underground/pull/17) |
 | v0.11.1 | 31/10/2026 | Sterzo più dolce, niente ribaltamenti in aria, garage da 7 | [#17](https://github.com/stefanopaglierani/nitro-underground/pull/17) |
-| v0.12 | 02/11/2026 | Stabilizzazione: pausa, polizia più giusta, rivali e traffico più furbi | PR_PLACEHOLDER |
+| v0.12 | 02/11/2026 | Stabilizzazione: pausa, polizia più giusta, rivali e traffico più furbi | [#19](https://github.com/stefanopaglierani/nitro-underground/pull/19) |
 
 ## Le svolte principali
 
