@@ -76,6 +76,8 @@ var max_steer_low := deg_to_rad(38)
 var max_steer_high := deg_to_rad(9)
 ## The player's steering is 30% gentler than the AI's (Stefano found it too twitchy).
 const PLAYER_STEER := 0.7
+## Rivals take the corners at this share of the speed the level advises (fewer crashes).
+const RACER_CORNER_MARGIN := 0.92
 var steer_rate := 4.0
 var yaw_assist := 0.55
 var downforce := 1.0
@@ -653,7 +655,9 @@ func _steer_towards(target: Vector3, delta: float, after := Vector3.INF) -> floa
 				in_throttle = 0.0
 				in_brake = 1.0
 	# On winding roads the level knows the corners ahead better than the next point does.
-	if city and speed > city.advised_speed(global_position, -global_transform.basis.z):
+	# Rivals keep a safety margin under it, so they don't arrive too fast and hit the rails.
+	var margin := RACER_CORNER_MARGIN if driver == Driver.RACER else 1.0
+	if city and speed > city.advised_speed(global_position, -global_transform.basis.z) * margin:
 		in_throttle = 0.0
 		in_brake = 1.0
 		in_nitro = false
@@ -720,8 +724,8 @@ func _avoid_traffic(prev: Vector3, dir: Vector3, side: Vector3) -> float:
 			continue
 		var tc_v := _velocity_of(tc)
 		var closing := flat_v.length() - tc_v.dot(vdir)
-		# Look further ahead the faster we close in: about three seconds plus a margin.
-		if closing <= 0.5 or along > closing * 3.0 + 15.0:
+		# Look further ahead the faster we close in: about four seconds plus a margin.
+		if closing <= 0.5 or along > closing * 4.0 + 20.0:
 			continue
 		# In the way if it is near the line we are driving along, or near the line we are steering to.
 		var in_way := absf(rel.dot(vside)) < 2.8 or absf((tc.global_position - prev).dot(side) - (lane_offset + _dodge)) < 2.8

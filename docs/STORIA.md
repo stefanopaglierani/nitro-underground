@@ -1,6 +1,6 @@
 # Storia dello sviluppo
 
-Il diario di bordo di Nitro Underground, dalla prima idea alla v0.11.1, in 5 giorni e 12 versioni.
+Il diario di bordo di Nitro Underground, dalla prima idea alla v0.12, in 7 giorni e 13 versioni.
 
 Ogni versione segue lo stesso ciclo: **Stefano prova la build** sul telefono Android o sul PC,
 scrive cosa non va e cosa vuole, **Claude la costruisce** e la verifica con le prove automatiche,
@@ -33,6 +33,7 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.10 | 31/10/2026 | Menu Route 66, caricamento leggero, tempo a scalare | [#16](https://github.com/stefanopaglierani/nitro-underground/pull/16) |
 | v0.11 | 31/10/2026 | Circuiti scritti come mappe di testo, ambientazioni rifatte, Deserto | [#17](https://github.com/stefanopaglierani/nitro-underground/pull/17) |
 | v0.11.1 | 31/10/2026 | Sterzo più dolce, niente ribaltamenti in aria, garage da 7 | [#17](https://github.com/stefanopaglierani/nitro-underground/pull/17) |
+| v0.12 | 02/11/2026 | Stabilizzazione: pausa, polizia più giusta, rivali e traffico più furbi | [#19](https://github.com/stefanopaglierani/nitro-underground/pull/19) |
 
 ## Le svolte principali
 
@@ -302,11 +303,47 @@ dall'APK, che scende a circa 310 MB.
 **Verifica:** banco prova della fisica a 60 tick: 0-100 km/h in 3,48 s, frenata da 144 km/h in
 62,9 m, salti entro il 2-2,5% della traiettoria balistica, atterraggi con 2-3° di inclinazione.
 
+## v0.12 — Stabilizzazione: pausa, polizia, rivali e traffico (2 novembre)
+
+![Gara in pausa](immagini/v0.12-pausa.jpg)
+
+**Richiesta:** il 2 novembre Stefano ha fissato una direttiva di sviluppo: prima di aggiungere
+cose nuove, **rendere stabile il gioco che c'è**. Dopo un controllo completo della v0.11.1 (codice,
+prove automatiche, gara su tutti i circuiti) ha scelto le correzioni: una pausa vera, una polizia
+meno esagerata ("arriva a 20 secondi e prima si occupa delle auto in gara che incontra"), rivali
+più veloci del 20% e più attenti agli incidenti, e un traffico che dopo un urto si ferma
+3 secondi e poi si libera da solo.
+
+**Come è stato costruito:**
+- **Pausa** (`hud.gd`, `main.gd`): pannello "GARA IN PAUSA" con *Riprendi gara* e *Menù*. Si apre
+  con il pulsante MENU, con il tasto Indietro di Android (che prima chiudeva il gioco di colpo) e
+  da sola quando il telefono manda il gioco in secondo piano (una chiamata, il tasto Home). Tutto si
+  ferma: cronometro, auto, fisica. Nel menu, Indietro torna dalle auto ai circuiti.
+- **Posizione in gara**: la scritta POSIZIONE poteva bloccarsi per tutta la gara se il giocatore
+  saltava un punto del percorso (per esempio passando da un guardrail rotto); ora guarda anche i
+  punti successivi.
+- **Polizia**: chiamata a 20 secondi invece di 14; ogni volante insegue la prima auto in gara che
+  incontra e passa al giocatore solo quando lui le passa vicino (35 m); arresto solo se fermo sotto
+  i 5 km/h accanto alla polizia per 5 secondi.
+- **Rivali** (`car.gd`, `main.gd`): +20% di velocità massima e spinta, curve prese al 92% della
+  velocità consigliata, traffico guardato più lontano; se restano incastrati 8 secondi vengono
+  rimessi sul percorso.
+- **Traffico** (`traffic.gd`): qualsiasi urto da un'auto in gara ferma l'auto civile per
+  3 secondi (si può ancora spingere); poi riparte da sola: se ha un'auto attaccata davanti fa un
+  po' di retromarcia, la aggira di lato piano e torna in corsia.
+- **Telecamera** (`main.gd`): alzata e allontanata del 20% (con i pickup l'auto copriva la strada);
+  solo muri e rocce la fanno avvicinare, non più le auto che seguono, e mai a meno di 4 m.
+
+**Verifica:** banco prova della fisica a 30, 60 e 120 tick con gli stessi numeri della v0.11.1
+(la guida non è cambiata). La gara automatica, che con la v0.11.1 finiva sempre con l'arresto,
+ora arriva al traguardo su tutti e 4 i circuiti. Pausa, Indietro, secondo piano, urti col traffico
+e posizione in gara sono stati provati con script di prova. Da provare sul telefono.
+
 ---
 
 ## Prossimi passi
 
-- Prova sul telefono della v0.11.1 e messa a punto in base alle impressioni di Stefano.
+- Prova sul telefono della v0.12: pausa (tasto Indietro, chiamata, Home), polizia, rivali, traffico.
 - Passo 3 del piano: **vertical slice**, cioè un circuito e un'auto rifiniti al livello del gioco finale.
 - Prima di qualsiasi pubblicazione: sostituire i modelli non commerciali e di marchi reali
   (vedi [CREDITI.md](../CREDITI.md)) e aggiungere i titoli di coda con i crediti CC BY.

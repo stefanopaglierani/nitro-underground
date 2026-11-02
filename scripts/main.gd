@@ -39,10 +39,23 @@ const CLOCK_EXTRA := 4.0
 ## On circuits that know their racing line speeds (Track.drive_time): seconds = ideal time on the
 ## racing line * CLOCK_SLACK + CLOCK_EXTRA, so a stretch full of hairpins gets more time.
 const CLOCK_SLACK := 1.55
+## Rivals' top speed and engine pull compared to v0.11 (Stefano: +20%).
+const RIVAL_BOOST := 1.2
 const RIVAL_COLORS := [Color(0.1, 0.85, 0.3), Color(1, 0.55, 0.05), Color(0.1, 0.55, 1)]
 const CHECKPOINT_RADIUS := 16.0
 const AI_ADVANCE_RADIUS := 12.0
+## How many race-path points ahead the player's progress looks for (a skipped stretch).
+const PLAYER_WP_LOOKAHEAD := 8
+## Seconds a rival may go without reaching its next race-path point before it is put back on it.
+const RACER_STALL_TIME := 8.0
 const PRIZE := 5000
+## Seconds into the race when someone calls the police.
+const POLICE_CALL_TIME := 20.0
+## A police car busy with a rival switches to the player when the player passes this close.
+const POLICE_NOTICE_DISTANCE := 35.0
+## Busted: stopped (under BUST_SPEED m/s, i.e. 5 km/h) next to a chasing police car for BUST_TIME s.
+const BUST_SPEED := 5.0 / 3.6
+const BUST_TIME := 5.0
 const ESCAPE_DISTANCE := 110.0
 const ESCAPE_TIME := 10.0
 const OFF_TRACK_WARN := 1.0
@@ -77,14 +90,18 @@ var bust_t := 0.0
 var escape_t := 0.0
 var police_called := false
 var _off_track_t := {}
+var _racer_stall := {}  # racer -> [wp_index, seconds without reaching the next point]
 var _warn_t := 0.0
 var cam_yaw := 0.0
 var _cam_dist := CAM_DIST
 var _cam_y := 0.0
 var _cam_ray := PhysicsRayQueryParameters3D.new()
 # Chase camera: behind the car and a little above it, looking down the road.
-const CAM_DIST := 6.8
-const CAM_HEIGHT := 2.5
+## Raised and pulled back 20% in v0.12 (Stefano: big pickups hid the road).
+const CAM_DIST := 8.16
+const CAM_HEIGHT := 3.0
+## Closest the camera may come when a wall is in the way: still behind the tail of a long pickup.
+const CAM_MIN_DIST := 4.0
 const CAM_LOOK_AHEAD := 8.0
 ## Always the same distance and the same field of view: only nitro widens the view a little.
 ## Civilian cars on the road (they are real rigid bodies, so they can be shoved and wrecked).
@@ -123,6 +140,8 @@ func _ready() -> void:
 	hud.pause.visible = false
 	hud.restart_pressed.connect(_restart)
 	hud.menu_pressed.connect(_to_menu)
+	hud.pause_pressed.connect(pause_race)
+	hud.resume_pressed.connect(resume_race)
 	camera = Camera3D.new()
 	camera.fov = CAM_FOV
 	camera.near = 0.1
@@ -231,8 +250,43 @@ func _plan_clock() -> void:
 			_clock_times.append(roundf(length / CLOCK_SPEED + CLOCK_EXTRA))
 
 
+## Freezes the race (countdown included) behind the "GARA IN PAUSA" panel. Called by the MENU
+## button, the Android back button and when the game goes to the background (a call, the home
+## button), so the clock never runs while the player can't drive.
+func pause_race() -> void:
+	if state != "countdown" and state != "race":
+		return
+	if get_tree().paused:
+		return
+	get_tree().paused = true
+	hud.show_pause(true)
+
+
+func resume_race() -> void:
+	if not get_tree().paused:
+		return
+	get_tree().paused = false
+	hud.show_pause(false)
+
+
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_WM_GO_BACK_REQUEST:
+			# Android back button (the game no longer quits on it, see project settings).
+			if get_tree().paused:
+				resume_race()
+			elif state == "end":
+				_to_menu()
+			else:
+				pause_race()
+		NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT:
+			if not autotest:
+				pause_race()
+
+
 ## Same race again: the scene is built anew (with the loading page).
 func _restart() -> void:
+	get_tree().paused = false
 	hud.show_loading("Riavvio", 0.0)
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -241,6 +295,9 @@ func _restart() -> void:
 
 ## Back to the title screen. The race scene and its models are freed.
 func _to_menu() -> void:
+	get_tree().paused = false
+	hud.show_pause(false)
+	hud.show_controls(false)
 	hud.show_loading("Menu", 0.0)
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -322,7 +379,8 @@ func _start() -> void:
 		r.wp_index = 1
 		# Close to the racing line, each a little to one side so they don't all queue on it.
 		r.lane_offset = (i - 1) * 1.6 + rng.randf_range(-0.4, 0.4)
-		r.max_speed = 57.0 + i * 1.5
+		r.max_speed = (57.0 + i * 1.5) * RIVAL_BOOST
+		r.engine_force *= RIVAL_BOOST
 		racers.append(r)
 	player = _make_car(Car.Driver.PLAYER, Color(0.95, 0.1, 0.5))
 	player.place(grid[3][0], grid[3][1])
@@ -384,6 +442,7 @@ func _physics_process(_delta: float) -> void:
 
 func _race_logic(delta: float) -> void:
 	_off_track_logic(delta)
+	_racer_stall_logic(delta)
 	_checkpoints_logic()
 	if state != "race":
 		return
@@ -392,7 +451,7 @@ func _race_logic(delta: float) -> void:
 		time_left = 0.0
 		_end(false, "TEMPO SCADUTO", "Non sei arrivato in tempo %s.\nNiente vincita stavolta." % ("al traguardo" if player_cp == checkpoints.size() - 1 else "al checkpoint %d" % player_cp))
 		return
-	if not police_called and race_time > 14.0:
+	if not police_called and race_time > POLICE_CALL_TIME:
 		police_called = true
 		heat = maxf(heat, 1.0)
 		hud.flash("Qualcuno ha chiamato la polizia!", 3.0)
@@ -426,6 +485,30 @@ func _off_track_logic(delta: float) -> void:
 	_warn_t -= delta
 
 
+## A rival that makes no progress for RACER_STALL_TIME seconds (stuck against a wall or a wreck,
+## going back and forth) is put back on the race path, on the point it was heading to.
+func _racer_stall_logic(delta: float) -> void:
+	for r in racers:
+		if r.finished:
+			continue
+		var s: Array = _racer_stall.get(r, [r.wp_index, 0.0])
+		if s[0] != r.wp_index:
+			s = [r.wp_index, 0.0]
+		s[1] += delta
+		if s[1] > RACER_STALL_TIME and r.wp_index + 1 < race_path.size():
+			# Onto the point it was heading to, past whatever held it up there.
+			var at := race_path[r.wp_index]
+			r.place(at + Vector3(0, 0.6, 0), race_path[r.wp_index + 1] - at)
+			r.wp_index += 1
+			if autotest:
+				var cop := INF
+				for c in police:
+					cop = minf(cop, c.global_position.distance_to(r.global_position))
+				print("[autotest] racer unstuck at wp %d %s, nearest police %.0f m" % [r.wp_index, r.global_position.round(), cop])
+			s = [r.wp_index, 0.0]
+		_racer_stall[r] = s
+
+
 func _checkpoints_logic() -> void:
 	for r in racers:
 		if r.finished:
@@ -438,8 +521,15 @@ func _checkpoints_logic() -> void:
 			if r.wp_index >= race_path.size():
 				r.finished = true
 				finish_order.append(r)
-	if player_wp < race_path.size() - 1 and player.global_position.distance_to(race_path[player_wp]) < CHECKPOINT_RADIUS:
-		player_wp += 1
+	# The player may skip points (a cut through a broken guardrail, a long jump, a recovery
+	# further on): look a few points ahead too, or the race position would freeze.
+	for j in PLAYER_WP_LOOKAHEAD:
+		var k := player_wp + j
+		if k >= race_path.size() - 1:
+			break
+		if player.global_position.distance_to(race_path[k]) < CHECKPOINT_RADIUS:
+			player_wp = k + 1
+			break
 	if player.global_position.distance_to(checkpoints[player_cp]) < CHECKPOINT_RADIUS:
 		player_cp += 1
 		if player_cp >= checkpoints.size():
@@ -462,16 +552,27 @@ func _police_logic(delta: float) -> void:
 	var wanted := clampi(floori(heat), 0, 3)
 	if police.size() < wanted:
 		_spawn_police(false)
+	# Each police car goes after the first racing car it meets and turns on the player only when
+	# the player drives past it. Only the cars chasing the player can arrest or be shaken off.
 	var nearest := INF
 	for p in police:
-		nearest = minf(nearest, p.global_position.distance_to(player.global_position))
+		var d := p.global_position.distance_to(player.global_position)
+		if p.chase_target != player:
+			var target := p.chase_target
+			if d < POLICE_NOTICE_DISTANCE:
+				p.chase_target = player
+			elif target == null or target.finished:
+				p.chase_target = _first_met(p)
+		if p.chase_target == player:
+			nearest = minf(nearest, d)
+	var chased := nearest < INF
 
-	if heat > 0.0 and police.size() > 0:
-		if nearest < 8.0 and absf(player.speed) < 3.5:
+	if heat > 0.0 and chased:
+		if nearest < 8.0 and absf(player.speed) < BUST_SPEED:
 			bust_t += delta
 		else:
 			bust_t = maxf(0.0, bust_t - delta * 0.5)
-		if bust_t > 3.0:
+		if bust_t > BUST_TIME:
 			_end(false, "ARRESTATO", "La polizia ti ha preso.\nNiente vincita stavolta.")
 			return
 		if nearest > ESCAPE_DISTANCE:
@@ -486,17 +587,32 @@ func _police_logic(delta: float) -> void:
 			police.clear()
 			hud.set_heat(heat)
 			hud.flash("Polizia seminata!", 2.5)
+	else:
+		bust_t = maxf(0.0, bust_t - delta * 0.5)
+		escape_t = maxf(0.0, escape_t - delta * 2.0)
 	hud.escape_bar.visible = heat > 0.0 and escape_t > 0.0
 	hud.escape_bar.value = escape_t / ESCAPE_TIME
 
 
+## The racing car (a rival still racing, or the player) nearest to a police car.
+func _first_met(p: Car) -> Car:
+	var best := player
+	var best_d := p.global_position.distance_to(player.global_position)
+	for r in racers:
+		var d := p.global_position.distance_to(r.global_position)
+		if not r.finished and d < best_d:
+			best = r
+			best_d = d
+	return best
+
+
 func _spawn_police(behind: bool) -> void:
 	var p := _make_car(Car.Driver.POLICE, Color.WHITE)
-	p.chase_target = player
 	if behind:
 		_respawn_police(p, true, 35.0, 90.0)
 	else:
 		_respawn_police(p, false)
+	p.chase_target = _first_met(p)
 	p.frozen = false
 	police.append(p)
 
@@ -555,10 +671,13 @@ func _update_camera(delta: float) -> void:
 	_cam_ray.from = pivot
 	_cam_ray.to = desired
 	_cam_ray.exclude = [player.get_rid()]
+	# Only the world (walls, rocks, buildings) pulls the camera in: a car behind the player used to
+	# drag it right up against the boot.
+	_cam_ray.collision_mask = TrafficCar.WORLD_LAYER
 	var hit := player.get_world_3d().direct_space_state.intersect_ray(_cam_ray)
 	var max_dist := pivot.distance_to(desired)
 	if not hit.is_empty():
-		max_dist = maxf(pivot.distance_to(hit.position) - 0.4, 1.5)
+		max_dist = maxf(pivot.distance_to(hit.position) - 0.4, CAM_MIN_DIST)
 	_cam_dist = minf(lerpf(_cam_dist, max_dist, clampf(4.0 * delta, 0.0, 1.0)), max_dist)
 	# Placed straight from the car's position every frame (only the angle is smoothed), so the
 	# camera never lags further behind as the speed grows.

@@ -50,7 +50,7 @@ G="xvfb-run -a -s '-screen 0 1280x720x24' godot --rendering-driver opengl3 --res
 $G -- --menushot=out/menu_track.png
 $G -- --menushot=out/menu_car.png --page=car
 # Gara: 6 immagini durante una gara guidata dal pilota automatico
-$G res://scenes/main.tscn -- --autotest --mode=sprint --level=desert --car=charger_1970 --shots=out/
+$G res://scenes/main.tscn -- --autotest --level=desert --car=charger_1970 --shots=out/
 # Panorami di un circuito (frazioni del giro; "s" = vista panoramica, "h" = dall'alto)
 $G --script tools/shot.gd -- desert out/ 0.15s 0.45s 0.3h
 # Mappe dei circuiti

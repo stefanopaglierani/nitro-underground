@@ -453,6 +453,17 @@ func _unhandled_input(event: InputEvent) -> void:
 		_swipe = 0.0
 
 
+## Android back button (the game no longer quits on it by itself): from the cars back to the
+## circuits, from the circuits out of the game.
+func _notification(what: int) -> void:
+	if what != NOTIFICATION_WM_GO_BACK_REQUEST or _leaving:
+		return
+	if _page == "car":
+		_show_page("track")
+	else:
+		get_tree().quit()
+
+
 ## VIA!: frees the title screen and opens the race scene, which builds the chosen circuit.
 func _start_race() -> void:
 	if _leaving or _page != "car":

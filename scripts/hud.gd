@@ -5,6 +5,9 @@ extends CanvasLayer
 
 signal restart_pressed
 signal menu_pressed
+## The MENU button in the race: the game pauses (see Main.pause_race).
+signal pause_pressed
+signal resume_pressed
 
 const ACCENT := Color(1, 0.18, 0.55)
 const CYAN := Color(0.1, 0.9, 1)
@@ -21,6 +24,8 @@ var end_panel: Control
 var end_title: Label
 var end_text: Label
 var pause: Button
+## "GARA IN PAUSA" panel with MENÙ and RIPRENDI GARA, over the frozen race.
+var pause_panel: Control
 var loading_panel: Control
 var loading_bar: ProgressBar
 var loading_label: Label
@@ -34,6 +39,8 @@ var _message_t := 0.0
 
 
 func _ready() -> void:
+	# Keeps working while the race is paused, so the pause panel can be used.
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	root = Control.new()
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -105,7 +112,7 @@ func _ready() -> void:
 	pause.offset_right = -24
 	pause.offset_top = 90
 	pause.offset_bottom = 140
-	pause.pressed.connect(func(): menu_pressed.emit())
+	pause.pressed.connect(func(): pause_pressed.emit())
 	root.add_child(pause)
 
 	touch = Node2D.new()
@@ -117,6 +124,7 @@ func _ready() -> void:
 	_make_touch("handbrake", 4, Color(1, 0.75, 0.2), BTN_SMALL)
 	_make_touch("nitro", 5, Color(0.3, 0.6, 1), BTN_SMALL)
 	_build_end()
+	_build_pause()
 	_build_loading()
 	get_viewport().size_changed.connect(_layout)
 	_layout()
@@ -397,6 +405,28 @@ func _build_end() -> void:
 	_big_button(box, "RIPROVA", ACCENT).pressed.connect(func(): restart_pressed.emit())
 	_big_button(box, "MENU", CYAN).pressed.connect(func(): menu_pressed.emit())
 	end_panel.visible = false
+
+
+## Pause panel: the race is frozen behind it until RIPRENDI GARA (or MENÙ to leave).
+func _build_pause() -> void:
+	var box := _panel_base()
+	pause_panel = box.get_parent()
+	var title := Label.new()
+	title.text = "GARA IN PAUSA"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 64)
+	title.add_theme_color_override("font_color", Color(1, 0.85, 0.2))
+	box.add_child(title)
+	_big_button(box, "RIPRENDI GARA", Color(0.3, 1, 0.45)).pressed.connect(func(): resume_pressed.emit())
+	_big_button(box, "MENÙ", CYAN).pressed.connect(func(): menu_pressed.emit())
+	pause_panel.visible = false
+
+
+## Shows or hides the pause panel; the touch controls and the MENU button go away meanwhile.
+func show_pause(on: bool) -> void:
+	pause_panel.visible = on
+	pause.visible = not on
+	show_controls(not on)
 
 
 ## The race is about to start: controls, info, clock and the MENU button come up.
