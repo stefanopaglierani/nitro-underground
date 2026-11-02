@@ -14,6 +14,15 @@ const DRIVE_ACCEL := 12.0
 const CRASH_DV := 4.5
 ## Gap kept to the traffic car in front on the same lane, in metres.
 const FOLLOW_GAP := 16.0
+## After any hit from a racing car (even a light rear-end) the driver stops: the car stands
+## still for this many seconds (it can still be pushed), then drives off again on its own,
+## steering round a racing car that is in its way.
+const STOP_TIME := 3.0
+## Sideways step (m) a car takes to get round a racing car blocking it, and how fast it steps.
+const DODGE_STEP := 3.2
+const DODGE_RATE := 1.6
+## How far ahead (m) a car looks for a racing car in its way.
+const DODGE_LOOK := 18.0
 ## A wreck goes back on its lane after this many seconds, once no racer is near enough to see it.
 const WRECK_TIME := 7.0
 const WRECK_HIDE_DIST := 70.0
@@ -35,6 +44,13 @@ var crashed := false
 var _length := 0.0
 var _wreck_t := 0.0
 var _lane_mates: Array[TrafficCar] = []
+## Sideways shift (m, + to the right) from the lane while getting back to it or round a car.
+var _shift := 0.0
+var _shift_goal := 0.0
+## Seconds left in which a touch doesn't stop the car: it is pulling away from the car it hit.
+var _pull_away_t := 0.0
+## A racing car is right against the front: back up a little before stepping round it.
+var _too_close := false
 
 
 func setup(track: Track, rng: RandomNumberGenerator, start_t := -1.0) -> void:
@@ -127,10 +143,10 @@ func _lane_transform(at: float) -> Transform3D:
 func _physics_process(delta: float) -> void:
 	if crashed:
 		_wreck_t += delta
-		if _wreck_t > WRECK_TIME and not _seen():
-			_back_on_lane()
-		elif _wreck_t > WRECK_TIME and _can_drive_off():
+		if _wreck_t > STOP_TIME and _can_drive_off():
 			_drive_off()
+		elif _wreck_t > WRECK_TIME and not _seen():
+			_back_on_lane()
 		elif _wreck_t > WRECK_TIME * 3.0:
 			_back_on_lane()  # still stuck in plain sight: clear the road anyway, or the lane jams
 		return
@@ -143,7 +159,15 @@ func _physics_process(delta: float) -> void:
 				continue  # the wreck lies off the lane
 			var m_speed := 0.0 if m.crashed else m.speed
 			want = minf(want, m_speed + (gap - FOLLOW_GAP) * 0.6)
-	speed = move_toward(speed, clampf(want, 0.0, cruise), 6.0 * delta)
+	# A racing car right in front: step round it, slowly. Otherwise ease back onto the lane.
+	_pull_away_t -= delta
+	_shift_goal = _dodge_goal()
+	if absf(_shift - _shift_goal) > 0.5:
+		want = minf(want, 5.0)
+	if _too_close:
+		want = -2.0  # reverse a few metres first
+	_shift = move_toward(_shift, _shift_goal, DODGE_RATE * delta)
+	speed = move_toward(speed, clampf(want, -2.0, cruise), 6.0 * delta)
 	t = _wrap(t + dir * speed * delta)
 	if not loop and (t == 0.0 or t == _length):
 		# Wrapped to the other end of an open road: jump there.
@@ -156,13 +180,18 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	if crashed:
 		return
 	var target := _lane_transform(t)
+	target.origin += target.basis.x * _shift
 	var tangent := -target.basis.z
 	# Velocity that keeps the car on its lane point: the lane speed plus a pull back to the point.
 	var desired := tangent * speed + (target.origin - state.transform.origin) * 3.0
 	var dv := desired - state.linear_velocity
-	# Only a hit counts: without contacts a big gap is a tight bend the push is catching up on.
+	# While it drives it only meets racing cars: any touch from one stops the driver (STOP_TIME).
 	var hit := state.get_contact_count() > 0
-	if dv.length() > CRASH_DV * (1.0 if hit else 3.0):
+	if hit and _pull_away_t <= 0.0:
+		_lose_control()
+		return
+	# Without contacts a big gap is a tight bend the push is catching up on.
+	if dv.length() > CRASH_DV * 3.0:
 		_lose_control()
 		return
 	state.linear_velocity += dv.limit_length(DRIVE_ACCEL * state.step)
@@ -172,7 +201,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	var axis := err.get_axis() if ang > 0.001 else Vector3.UP
 	if ang > PI:
 		ang -= TAU
-	if absf(ang) > (0.6 if hit else 1.2):
+	if absf(ang) > 1.2:
 		_lose_control()
 		return
 	state.angular_velocity = state.angular_velocity.move_toward(axis * ang * 4.0, 8.0 * state.step)
@@ -197,16 +226,45 @@ func _lose_control() -> void:
 	speed = 0.0
 
 
-## A wreck that came to rest upright, roughly along its lane, can simply drive on from there.
+## A car that came to rest upright, roughly along its lane (it may have been shoved a few metres
+## aside), can simply drive on from there.
 func _can_drive_off() -> bool:
 	if linear_velocity.length() > 1.0 or global_transform.basis.y.y < 0.85:
 		return false
 	var tr := _lane_transform(curve.get_closest_offset(global_position))
-	return tr.origin.distance_to(global_position) < 3.0 and (-global_transform.basis.z).dot(-tr.basis.z) > 0.7
+	return tr.origin.distance_to(global_position) < 6.0 and (-global_transform.basis.z).dot(-tr.basis.z) > 0.5
+
+
+## Sideways shift that takes the car round a racing car stopped or slow right in front of it.
+func _dodge_goal() -> float:
+	var fwd := -global_transform.basis.z
+	var right := global_transform.basis.x
+	_too_close = false
+	for c: Node3D in get_tree().get_nodes_in_group("cars"):
+		var rel := c.global_position - global_position
+		var along := rel.dot(fwd)
+		var lat := rel.dot(right)
+		if along > 0.0 and along < DODGE_LOOK and absf(lat) < 2.4:
+			_too_close = along < 6.0 and _pull_away_t > -3.0
+			if absf(_shift_goal) > 0.1:
+				return _shift_goal  # already stepping round it
+			return clampf(_shift + (-DODGE_STEP if lat > 0.0 else DODGE_STEP), -6.0, 6.0)
+	# Hold the step until the car it is passing is behind it.
+	if absf(_shift_goal) > 0.1:
+		for c: Node3D in get_tree().get_nodes_in_group("cars"):
+			var rel := c.global_position - global_position
+			var along := rel.dot(fwd)
+			if along > -6.0 and along < DODGE_LOOK and absf(rel.dot(right)) < 4.5:
+				return _shift_goal
+	return 0.0
 
 
 func _drive_off() -> void:
 	t = curve.get_closest_offset(global_position)
+	# Start from where it stands, then ease back onto the lane.
+	var lane := _lane_transform(t)
+	_shift = (global_position - lane.origin).dot(lane.basis.x)
+	_pull_away_t = 1.5
 	crashed = false
 	_set_driving_layers(true)
 	gravity_scale = 0.0
@@ -230,6 +288,8 @@ func _back_on_lane() -> void:
 		if n != self and n.global_position.distance_to(tr.origin) < 8.0:
 			return  # try again next frame
 	t = at
+	_shift = 0.0
+	_shift_goal = 0.0
 	crashed = false
 	_set_driving_layers(true)
 	gravity_scale = 0.0
