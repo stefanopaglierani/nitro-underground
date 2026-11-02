@@ -97,8 +97,11 @@ var _cam_dist := CAM_DIST
 var _cam_y := 0.0
 var _cam_ray := PhysicsRayQueryParameters3D.new()
 # Chase camera: behind the car and a little above it, looking down the road.
-const CAM_DIST := 6.8
-const CAM_HEIGHT := 2.5
+## Raised and pulled back 20% in v0.12 (Stefano: big pickups hid the road).
+const CAM_DIST := 8.16
+const CAM_HEIGHT := 3.0
+## Closest the camera may come when a wall is in the way: still behind the tail of a long pickup.
+const CAM_MIN_DIST := 4.0
 const CAM_LOOK_AHEAD := 8.0
 ## Always the same distance and the same field of view: only nitro widens the view a little.
 ## Civilian cars on the road (they are real rigid bodies, so they can be shoved and wrecked).
@@ -668,10 +671,13 @@ func _update_camera(delta: float) -> void:
 	_cam_ray.from = pivot
 	_cam_ray.to = desired
 	_cam_ray.exclude = [player.get_rid()]
+	# Only the world (walls, rocks, buildings) pulls the camera in: a car behind the player used to
+	# drag it right up against the boot.
+	_cam_ray.collision_mask = TrafficCar.WORLD_LAYER
 	var hit := player.get_world_3d().direct_space_state.intersect_ray(_cam_ray)
 	var max_dist := pivot.distance_to(desired)
 	if not hit.is_empty():
-		max_dist = maxf(pivot.distance_to(hit.position) - 0.4, 1.5)
+		max_dist = maxf(pivot.distance_to(hit.position) - 0.4, CAM_MIN_DIST)
 	_cam_dist = minf(lerpf(_cam_dist, max_dist, clampf(4.0 * delta, 0.0, 1.0)), max_dist)
 	# Placed straight from the car's position every frame (only the angle is smoothed), so the
 	# camera never lags further behind as the speed grows.

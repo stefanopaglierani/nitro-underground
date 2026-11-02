@@ -331,6 +331,8 @@ più veloci del 20% e più attenti agli incidenti, e un traffico che dopo un urt
 - **Traffico** (`traffic.gd`): qualsiasi urto da un'auto in gara ferma l'auto civile per
   3 secondi (si può ancora spingere); poi riparte da sola: se ha un'auto attaccata davanti fa un
   po' di retromarcia, la aggira di lato piano e torna in corsia.
+- **Telecamera** (`main.gd`): alzata e allontanata del 20% (con i pickup l'auto copriva la strada);
+  solo muri e rocce la fanno avvicinare, non più le auto che seguono, e mai a meno di 4 m.
 
 **Verifica:** banco prova della fisica a 30, 60 e 120 tick con gli stessi numeri della v0.11.1
 (la guida non è cambiata). La gara automatica, che con la v0.11.1 finiva sempre con l'arresto,
