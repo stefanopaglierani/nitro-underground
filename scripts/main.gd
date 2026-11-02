@@ -45,6 +45,13 @@ const AI_ADVANCE_RADIUS := 12.0
 ## How many race-path points ahead the player's progress looks for (a skipped stretch).
 const PLAYER_WP_LOOKAHEAD := 8
 const PRIZE := 5000
+## Seconds into the race when someone calls the police.
+const POLICE_CALL_TIME := 20.0
+## A police car busy with a rival switches to the player when the player passes this close.
+const POLICE_NOTICE_DISTANCE := 35.0
+## Busted: stopped (under BUST_SPEED m/s, i.e. 5 km/h) next to a chasing police car for BUST_TIME s.
+const BUST_SPEED := 5.0 / 3.6
+const BUST_TIME := 5.0
 const ESCAPE_DISTANCE := 110.0
 const ESCAPE_TIME := 10.0
 const OFF_TRACK_WARN := 1.0
@@ -434,7 +441,7 @@ func _race_logic(delta: float) -> void:
 		time_left = 0.0
 		_end(false, "TEMPO SCADUTO", "Non sei arrivato in tempo %s.\nNiente vincita stavolta." % ("al traguardo" if player_cp == checkpoints.size() - 1 else "al checkpoint %d" % player_cp))
 		return
-	if not police_called and race_time > 14.0:
+	if not police_called and race_time > POLICE_CALL_TIME:
 		police_called = true
 		heat = maxf(heat, 1.0)
 		hud.flash("Qualcuno ha chiamato la polizia!", 3.0)
@@ -511,16 +518,27 @@ func _police_logic(delta: float) -> void:
 	var wanted := clampi(floori(heat), 0, 3)
 	if police.size() < wanted:
 		_spawn_police(false)
+	# Each police car goes after the first racing car it meets and turns on the player only when
+	# the player drives past it. Only the cars chasing the player can arrest or be shaken off.
 	var nearest := INF
 	for p in police:
-		nearest = minf(nearest, p.global_position.distance_to(player.global_position))
+		var d := p.global_position.distance_to(player.global_position)
+		if p.chase_target != player:
+			var target := p.chase_target
+			if d < POLICE_NOTICE_DISTANCE:
+				p.chase_target = player
+			elif target == null or target.finished:
+				p.chase_target = _first_met(p)
+		if p.chase_target == player:
+			nearest = minf(nearest, d)
+	var chased := nearest < INF
 
-	if heat > 0.0 and police.size() > 0:
-		if nearest < 8.0 and absf(player.speed) < 3.5:
+	if heat > 0.0 and chased:
+		if nearest < 8.0 and absf(player.speed) < BUST_SPEED:
 			bust_t += delta
 		else:
 			bust_t = maxf(0.0, bust_t - delta * 0.5)
-		if bust_t > 3.0:
+		if bust_t > BUST_TIME:
 			_end(false, "ARRESTATO", "La polizia ti ha preso.\nNiente vincita stavolta.")
 			return
 		if nearest > ESCAPE_DISTANCE:
@@ -535,17 +553,32 @@ func _police_logic(delta: float) -> void:
 			police.clear()
 			hud.set_heat(heat)
 			hud.flash("Polizia seminata!", 2.5)
+	else:
+		bust_t = maxf(0.0, bust_t - delta * 0.5)
+		escape_t = maxf(0.0, escape_t - delta * 2.0)
 	hud.escape_bar.visible = heat > 0.0 and escape_t > 0.0
 	hud.escape_bar.value = escape_t / ESCAPE_TIME
 
 
+## The racing car (a rival still racing, or the player) nearest to a police car.
+func _first_met(p: Car) -> Car:
+	var best := player
+	var best_d := p.global_position.distance_to(player.global_position)
+	for r in racers:
+		var d := p.global_position.distance_to(r.global_position)
+		if not r.finished and d < best_d:
+			best = r
+			best_d = d
+	return best
+
+
 func _spawn_police(behind: bool) -> void:
 	var p := _make_car(Car.Driver.POLICE, Color.WHITE)
-	p.chase_target = player
 	if behind:
 		_respawn_police(p, true, 35.0, 90.0)
 	else:
 		_respawn_police(p, false)
+	p.chase_target = _first_met(p)
 	p.frozen = false
 	police.append(p)
 
