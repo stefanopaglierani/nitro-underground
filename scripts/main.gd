@@ -39,11 +39,15 @@ const CLOCK_EXTRA := 4.0
 ## On circuits that know their racing line speeds (Track.drive_time): seconds = ideal time on the
 ## racing line * CLOCK_SLACK + CLOCK_EXTRA, so a stretch full of hairpins gets more time.
 const CLOCK_SLACK := 1.55
+## Rivals' top speed and engine pull compared to v0.11 (Stefano: +20%).
+const RIVAL_BOOST := 1.2
 const RIVAL_COLORS := [Color(0.1, 0.85, 0.3), Color(1, 0.55, 0.05), Color(0.1, 0.55, 1)]
 const CHECKPOINT_RADIUS := 16.0
 const AI_ADVANCE_RADIUS := 12.0
 ## How many race-path points ahead the player's progress looks for (a skipped stretch).
 const PLAYER_WP_LOOKAHEAD := 8
+## Seconds a rival may go without reaching its next race-path point before it is put back on it.
+const RACER_STALL_TIME := 8.0
 const PRIZE := 5000
 ## Seconds into the race when someone calls the police.
 const POLICE_CALL_TIME := 20.0
@@ -86,6 +90,7 @@ var bust_t := 0.0
 var escape_t := 0.0
 var police_called := false
 var _off_track_t := {}
+var _racer_stall := {}  # racer -> [wp_index, seconds without reaching the next point]
 var _warn_t := 0.0
 var cam_yaw := 0.0
 var _cam_dist := CAM_DIST
@@ -371,7 +376,8 @@ func _start() -> void:
 		r.wp_index = 1
 		# Close to the racing line, each a little to one side so they don't all queue on it.
 		r.lane_offset = (i - 1) * 1.6 + rng.randf_range(-0.4, 0.4)
-		r.max_speed = 57.0 + i * 1.5
+		r.max_speed = (57.0 + i * 1.5) * RIVAL_BOOST
+		r.engine_force *= RIVAL_BOOST
 		racers.append(r)
 	player = _make_car(Car.Driver.PLAYER, Color(0.95, 0.1, 0.5))
 	player.place(grid[3][0], grid[3][1])
@@ -433,6 +439,7 @@ func _physics_process(_delta: float) -> void:
 
 func _race_logic(delta: float) -> void:
 	_off_track_logic(delta)
+	_racer_stall_logic(delta)
 	_checkpoints_logic()
 	if state != "race":
 		return
@@ -473,6 +480,30 @@ func _off_track_logic(delta: float) -> void:
 				cam_yaw = player.heading()
 				_snap_camera()
 	_warn_t -= delta
+
+
+## A rival that makes no progress for RACER_STALL_TIME seconds (stuck against a wall or a wreck,
+## going back and forth) is put back on the race path, on the point it was heading to.
+func _racer_stall_logic(delta: float) -> void:
+	for r in racers:
+		if r.finished:
+			continue
+		var s: Array = _racer_stall.get(r, [r.wp_index, 0.0])
+		if s[0] != r.wp_index:
+			s = [r.wp_index, 0.0]
+		s[1] += delta
+		if s[1] > RACER_STALL_TIME and r.wp_index + 1 < race_path.size():
+			# Onto the point it was heading to, past whatever held it up there.
+			var at := race_path[r.wp_index]
+			r.place(at + Vector3(0, 0.6, 0), race_path[r.wp_index + 1] - at)
+			r.wp_index += 1
+			if autotest:
+				var cop := INF
+				for c in police:
+					cop = minf(cop, c.global_position.distance_to(r.global_position))
+				print("[autotest] racer unstuck at wp %d %s, nearest police %.0f m" % [r.wp_index, r.global_position.round(), cop])
+			s = [r.wp_index, 0.0]
+		_racer_stall[r] = s
 
 
 func _checkpoints_logic() -> void:
