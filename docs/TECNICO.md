@@ -126,13 +126,20 @@ un telefono lento e uno veloce:
   frenano prima delle curve leggendo la velocità consigliata. Quando c'è traffico davanti
   calcolano uno spostamento laterale per sorpassarlo dal lato libero, poi tornano sulla linea.
   Dopo un urto perdono aderenza per un attimo (`_knocked`), così uno scontro li scompone davvero.
+  Prendono le curve al 92% della velocità consigliata e, se non raggiungono il punto successivo
+  del percorso per 8 secondi, vengono rimessi su quel punto.
 - **Traffico** (`traffic.gd`): 24 auto civili che sono **corpi rigidi con il peso di un'auto**.
   Mentre guidano, una spinta limitata le tiene in corsia alla loro velocità: un colpo più forte di
-  quella spinta le sposta, uno molto forte le fa girare e sbandare sotto gravità. Fuori dalla vista
-  dei piloti tornano in corsia e ripartono. Livelli di collisione separati evitano che il traffico
+  quella spinta le sposta, uno molto forte le fa girare e sbandare sotto gravità. Qualsiasi urto da
+  un'auto in gara le ferma per 3 secondi; poi ripartono da sole, aggirando di lato l'auto che le
+  blocca, e tornano in corsia. Se sono ribaltate, fuori dalla vista dei piloti tornano in corsia. Livelli di collisione separati evitano che il traffico
   si comporti come una massa infinita (in Jolt le collisioni sono "a senso unico").
-- **Polizia** (`main.gd`): gli incidenti alzano un livello di allerta; più è alto, più volanti
-  compaiono, dietro al giocatore e fuori dalla visuale.
+- **Polizia** (`main.gd`): chiamata dopo 20 secondi di gara; gli incidenti alzano un livello di
+  allerta e più è alto, più volanti compaiono. Ogni volante insegue la prima auto in gara che
+  incontra e passa al giocatore quando lui le passa entro 35 m. Arresto se il giocatore resta sotto
+  i 5 km/h accanto a una volante per 5 secondi; seminata se resta oltre 110 m per 10 secondi.
+- **Pausa** (`main.gd`, `hud.gd`): pulsante MENU, tasto Indietro di Android e gioco in secondo
+  piano fermano l'albero della scena (`get_tree().paused`); solo l'interfaccia resta attiva.
 - **Tempo a scalare**: per ogni tratto tra due checkpoint il gioco calcola il tempo ideale sulla
   traiettoria ideale e concede `tempo ideale × 1,55 + 4 s`. Un tratto pieno di tornanti dà più
   tempo di un rettilineo, e il tempo avanzato si somma al tratto dopo.
@@ -265,7 +272,7 @@ segnalati da Stefano:
 | Strumento | A cosa serve |
 |---|---|
 | `tests/physics_bench.gd` | Banco prova della fisica (tabella sopra), risultati in JSON |
-| `--autotest --mode=sprint` | L'auto del giocatore corre da sola l'intera gara con seme fisso e stampa un registro; con `--shots=` salva screenshot |
+| `--autotest` | L'auto del giocatore corre da sola l'intera gara con seme fisso e stampa un registro; con `--shots=` salva screenshot |
 | `tools/map_preview.gd` | Disegna le mappe e controlla le distanze minime |
 | `tools/shot.gd` | Screenshot di un circuito da punti scelti, con statistiche di rendering |
 | `tools/pack_sheet.gd`, `inspect_glb.gd` | Mostrano i pezzi dentro un pacchetto di modelli |
