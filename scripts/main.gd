@@ -42,6 +42,8 @@ const CLOCK_SLACK := 1.55
 const RIVAL_COLORS := [Color(0.1, 0.85, 0.3), Color(1, 0.55, 0.05), Color(0.1, 0.55, 1)]
 const CHECKPOINT_RADIUS := 16.0
 const AI_ADVANCE_RADIUS := 12.0
+## How many race-path points ahead the player's progress looks for (a skipped stretch).
+const PLAYER_WP_LOOKAHEAD := 8
 const PRIZE := 5000
 const ESCAPE_DISTANCE := 110.0
 const ESCAPE_TIME := 10.0
@@ -438,8 +440,15 @@ func _checkpoints_logic() -> void:
 			if r.wp_index >= race_path.size():
 				r.finished = true
 				finish_order.append(r)
-	if player_wp < race_path.size() - 1 and player.global_position.distance_to(race_path[player_wp]) < CHECKPOINT_RADIUS:
-		player_wp += 1
+	# The player may skip points (a cut through a broken guardrail, a long jump, a recovery
+	# further on): look a few points ahead too, or the race position would freeze.
+	for j in PLAYER_WP_LOOKAHEAD:
+		var k := player_wp + j
+		if k >= race_path.size() - 1:
+			break
+		if player.global_position.distance_to(race_path[k]) < CHECKPOINT_RADIUS:
+			player_wp = k + 1
+			break
 	if player.global_position.distance_to(checkpoints[player_cp]) < CHECKPOINT_RADIUS:
 		player_cp += 1
 		if player_cp >= checkpoints.size():
