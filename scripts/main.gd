@@ -125,6 +125,8 @@ func _ready() -> void:
 	hud.pause.visible = false
 	hud.restart_pressed.connect(_restart)
 	hud.menu_pressed.connect(_to_menu)
+	hud.pause_pressed.connect(pause_race)
+	hud.resume_pressed.connect(resume_race)
 	camera = Camera3D.new()
 	camera.fov = CAM_FOV
 	camera.near = 0.1
@@ -233,8 +235,43 @@ func _plan_clock() -> void:
 			_clock_times.append(roundf(length / CLOCK_SPEED + CLOCK_EXTRA))
 
 
+## Freezes the race (countdown included) behind the "GARA IN PAUSA" panel. Called by the MENU
+## button, the Android back button and when the game goes to the background (a call, the home
+## button), so the clock never runs while the player can't drive.
+func pause_race() -> void:
+	if state != "countdown" and state != "race":
+		return
+	if get_tree().paused:
+		return
+	get_tree().paused = true
+	hud.show_pause(true)
+
+
+func resume_race() -> void:
+	if not get_tree().paused:
+		return
+	get_tree().paused = false
+	hud.show_pause(false)
+
+
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_WM_GO_BACK_REQUEST:
+			# Android back button (the game no longer quits on it, see project settings).
+			if get_tree().paused:
+				resume_race()
+			elif state == "end":
+				_to_menu()
+			else:
+				pause_race()
+		NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT:
+			if not autotest:
+				pause_race()
+
+
 ## Same race again: the scene is built anew (with the loading page).
 func _restart() -> void:
+	get_tree().paused = false
 	hud.show_loading("Riavvio", 0.0)
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -243,6 +280,9 @@ func _restart() -> void:
 
 ## Back to the title screen. The race scene and its models are freed.
 func _to_menu() -> void:
+	get_tree().paused = false
+	hud.show_pause(false)
+	hud.show_controls(false)
 	hud.show_loading("Menu", 0.0)
 	await get_tree().process_frame
 	await get_tree().process_frame

@@ -9,6 +9,7 @@ config/description="Prototipo di gioco di corse clandestine"
 run/main_scene="res://scenes/menu.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
+config/quit_on_go_back=false
 
 [display]
 
