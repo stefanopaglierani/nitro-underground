@@ -15,7 +15,7 @@ game designer) e vuole capire cosa c'è dietro gli screenshot.
 3. [Fisica dell'auto](#3-fisica-dellauto)
 4. [Avversari, traffico e polizia](#4-avversari-traffico-e-polizia)
 5. [Circuiti scritti come mappe di testo](#5-circuiti-scritti-come-mappe-di-testo)
-6. [Grafica: lo stile a fumetto 2.5D](#6-grafica-lo-stile-a-fumetto-25d)
+6. [Grafica: lo stile a fumetto 2.5D (spento dalla v0.13)](#6-grafica-lo-stile-a-fumetto-25d-spento-dalla-v013)
 7. [Audio](#7-audio)
 8. [Asset: fonti, licenze e ottimizzazione](#8-asset-fonti-licenze-e-ottimizzazione)
 9. [Prestazioni su telefono](#9-prestazioni-su-telefono)
@@ -143,7 +143,8 @@ un telefono lento e uno veloce:
 - **Tempo a scalare**: per ogni tratto tra due checkpoint il gioco calcola il tempo ideale sulla
   traiettoria ideale e concede `tempo ideale × 1,55 + 4 s`. Un tratto pieno di tornanti dà più
   tempo di un rettilineo, e il tempo avanzato si somma al tratto dopo.
-- **Mondo chiuso**: un'auto che resta oltre il guardrail per 3 secondi, o cade dalla montagna,
+- **Mondo chiuso**: dalla v0.13.1 non ci sono più guardrail; un'auto che resta fuori strada per
+  3 secondi, o cade dalla montagna,
   viene rimessa in strada.
 
 ## 5. Circuiti scritti come mappe di testo
@@ -178,7 +179,6 @@ flowchart LR
     B --> C["linea centrale<br/>un punto ogni 2 m<br/>+ pendenza"]
     C --> D["strada, banchine,<br/>segnaletica"]
     C --> E["terreno a blocchi<br/>raccordato alla strada"]
-    C --> F["guardrail<br/>a tratti da 4 m"]
     C --> G["traiettoria ideale<br/>+ velocità per tratto"]
     G --> H["IA avversari,<br/>tempo dei checkpoint,<br/>linea colorata a terra"]
 ```
@@ -196,9 +196,14 @@ flowchart LR
   minima tra tratti di strada diversi (sotto ~33 m si sovrapporrebbero), così un errore si vede
   prima di avviare il gioco.
 
-## 6. Grafica: lo stile a fumetto 2.5D
+## 6. Grafica: lo stile a fumetto 2.5D (spento dalla v0.13)
 
 `scripts/comic_style.gd` · `shaders/stylize.gdshader` e altri 12 shader
+
+> **Dalla v0.13 (4 novembre 2026) questo stile è spento** (`ComicStyle.ENABLED = false`): sul
+> telefono di Stefano il gioco si bloccava al caricamento e lui ha deciso di tornare alla grafica
+> realistica, partendo dalle impostazioni di base di Godot. La descrizione qui sotto resta come
+> documentazione di come funzionava.
 
 Dopo aver provato uno stile realistico, uno anime e uno a fumetto, Stefano ha scelto il **fumetto
 2.5D** (in stile film d'animazione recenti) come unico stile. Il gioco resta 3D, ma viene

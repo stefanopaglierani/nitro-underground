@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bctkakkxkmwac"
-path="res://.godot/imported/doutrive-78-pickup_9.png-692bbfabef1ae5c0bdd8b6538c1b4ebd.ctex"
+path.s3tc="res://.godot/imported/doutrive-78-pickup_9.png-692bbfabef1ae5c0bdd8b6538c1b4ebd.s3tc.ctex"
+path.etc2="res://.godot/imported/doutrive-78-pickup_9.png-692bbfabef1ae5c0bdd8b6538c1b4ebd.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "1dc25f6805fc5269aa05c1d1c52df8b3"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_sketchfab/doutrive-78-pickup_9.png"
-dest_files=["res://.godot/imported/doutrive-78-pickup_9.png-692bbfabef1ae5c0bdd8b6538c1b4ebd.ctex"]
+dest_files=["res://.godot/imported/doutrive-78-pickup_9.png-692bbfabef1ae5c0bdd8b6538c1b4ebd.s3tc.ctex", "res://.godot/imported/doutrive-78-pickup_9.png-692bbfabef1ae5c0bdd8b6538c1b4ebd.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +41,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

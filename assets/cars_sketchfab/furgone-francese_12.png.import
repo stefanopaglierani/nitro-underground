@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://eb8720bmgm7p"
-path="res://.godot/imported/furgone-francese_12.png-bd10aed21e8a387f80bbd6124930d9ec.ctex"
+path.s3tc="res://.godot/imported/furgone-francese_12.png-bd10aed21e8a387f80bbd6124930d9ec.s3tc.ctex"
+path.etc2="res://.godot/imported/furgone-francese_12.png-bd10aed21e8a387f80bbd6124930d9ec.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "925f8442c05346ce85de0644df0dedc0"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_sketchfab/furgone-francese_12.png"
-dest_files=["res://.godot/imported/furgone-francese_12.png-bd10aed21e8a387f80bbd6124930d9ec.ctex"]
+dest_files=["res://.godot/imported/furgone-francese_12.png-bd10aed21e8a387f80bbd6124930d9ec.s3tc.ctex", "res://.godot/imported/furgone-francese_12.png-bd10aed21e8a387f80bbd6124930d9ec.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +41,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

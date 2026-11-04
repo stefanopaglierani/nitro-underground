@@ -36,6 +36,7 @@ pubblicazione sugli store**. Stefano ha deciso così il 29 ottobre 2026.
    - 2024 Ford F-150 Raptor R — VTX, CC BY-NC-SA 4.0
    - 2021 Ram 1500 TRX e 2013 Ford Mustang GT — Ddiaz Design, CC BY-NC-SA 4.0
    - 1970 Dodge Charger R/T — OUTPISTON, CC BY-NC-SA 4.0
+   - Ford Mondeo Police (auto della polizia) — TSB3DMODELS, CC BY-NC 4.0
 2. **Marchi registrati.** Nomi, forme e loghi di McLaren, Porsche, Ford, Dodge, RAM, Nissan, Toyota
    e BMW appartengono ai rispettivi proprietari. Usarli in un gioco in vendita richiede licenze
    dei costruttori, anche quando il modello 3D è CC BY.

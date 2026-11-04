@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c1hff7ir3bvq8"
-path="res://.godot/imported/ford-mustang-gt-2013_7.png-0332eb590b3c2aa3d185b2d03786b593.ctex"
+path.s3tc="res://.godot/imported/ford-mustang-gt-2013_7.png-0332eb590b3c2aa3d185b2d03786b593.s3tc.ctex"
+path.etc2="res://.godot/imported/ford-mustang-gt-2013_7.png-0332eb590b3c2aa3d185b2d03786b593.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "a47f2f7a964c19ee26129352b2ff7d65"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_sketchfab/ford-mustang-gt-2013_7.png"
-dest_files=["res://.godot/imported/ford-mustang-gt-2013_7.png-0332eb590b3c2aa3d185b2d03786b593.ctex"]
+dest_files=["res://.godot/imported/ford-mustang-gt-2013_7.png-0332eb590b3c2aa3d185b2d03786b593.s3tc.ctex", "res://.godot/imported/ford-mustang-gt-2013_7.png-0332eb590b3c2aa3d185b2d03786b593.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +41,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

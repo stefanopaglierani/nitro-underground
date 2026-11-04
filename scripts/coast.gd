@@ -30,7 +30,6 @@ func build_steps() -> Array:
 		["Costa e colline", _build_terrain],
 		["Mare", _build_sea],
 		["Asfalto", _build_road],
-		["Guardrail", _build_rails],
 		["Palme e pini", _build_trees],
 		["Case e faro", _build_village],
 		["Erba", _build_grass],

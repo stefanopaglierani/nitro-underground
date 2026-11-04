@@ -12,7 +12,8 @@ const CARS := [
 	{"id": "skyline_r34_brian", "name": "Nissan Skyline R34 \"Brian\"", "kind": "hd", "path": "res://assets/cars_sketchfab/nissan_r34_brian/scene.gltf", "len": 4.6, "tail": "red_glass"},
 	{"id": "charger_1970", "name": "Dodge Charger R/T 1970", "kind": "hd", "path": "res://assets/cars_sketchfab/dodge_charger_1970/scene.gltf", "len": 5.3, "tail": "GlassRed"},
 	{"id": "porsche_911_gt3", "name": "Porsche 911 GT3", "kind": "hd", "path": "res://assets/cars_sketchfab/porsche_911_gt3/scene.gltf", "len": 4.6, "paint": "Porsche_911GT3_2022Paint_Material", "tail": "RED_GLASS"},
-	{"id": "mustang_1969", "name": "Ford Mustang 1969 John Bowe", "kind": "hd", "path": "res://assets/cars_sketchfab/ford-mustang-1969-john-bowe.glb", "len": 4.8, "tail": "redglass"},
+	{"id": "police_mondeo", "name": "Polizia Ford Mondeo", "kind": "hd", "path": "res://assets/cars_sketchfab/police_mondeo.glb", "len": 4.85},
+	{"id": "police_car", "name": "Polizia berlina", "kind": "hd", "path": "res://assets/cars_sketchfab/police_car.glb", "len": 5.1},
 	{"id": "silvia_s15", "name": "Nissan Silvia S15 Drift", "kind": "hd", "path": "res://assets/cars_sketchfab/nissan-silvia-s15-drift.glb", "len": 4.45, "paint": "CAR_BODY_PAINT"},
 	{"id": "mr2_w20", "name": "Toyota MR2 W20", "kind": "hd", "path": "res://assets/cars_sketchfab/toyota-mr2-w20.glb", "len": 4.2, "paint": "body_paint"},
 	{"id": "bmw_m3_e36", "name": "BMW M3 E36", "kind": "hd", "path": "res://assets/cars_sketchfab/bmw-m3-e36.glb", "len": 4.4, "paint": "yellow"},
@@ -77,8 +78,8 @@ const CARS := [
 
 
 ## Driven wheels for each car: "RWD" (rear), "FWD" (front) or "AWD" (all four).
-const RWD := ["mclaren_600lt", "charger_1970", "porsche_911_gt3", "mustang_1969", "silvia_s15", "mr2_w20", "bmw_m3_e36", "mustang_gt", "kiri_86", "classic_muscle",
-	"doutrive_78", "sports", "muscle", "muscle_2", "roadster", "police_sports", "police_muscle",
+const RWD := ["mclaren_600lt", "charger_1970", "porsche_911_gt3", "silvia_s15", "mr2_w20", "bmw_m3_e36", "mustang_gt", "kiri_86", "classic_muscle",
+	"doutrive_78", "sports", "muscle", "muscle_2", "roadster", "police_sports", "police_muscle", "police_car",
 	"limousine", "truck", "truck_with_trailer", "bus", "firetruck", "k_race", "k_race_future", "k_sedan_sports",
 	"k_truck", "k_truck_flat", "k_garbage_truck", "k_firetruck", "k_tractor", "k_tractor_police",
 	"k_tractor_shovel", "k_kart_oobi", "k_kart_oodi", "k_kart_ooli", "k_kart_oopi", "k_kart_oozi"]
@@ -95,7 +96,7 @@ const TOP_SPEED := {
 	"muscle_2": 225.0, "k_sedan_sports": 225.0, "k_hatchback_sports": 215.0, "police_sports": 235.0,
 	"ford_raptor_r": 210.0, "ram_1500_trx": 210.0, "doutrive_78": 210.0, "eugene_mk6": 210.0,
 	"furgone_francese": 210.0, "monster_truck": 210.0, "charger_1970": 230.0, "skyline_r34_brian": 240.0,
-	"porsche_911_gt3": 250.0, "mustang_1969": 225.0,
+	"porsche_911_gt3": 250.0, "police_mondeo": 235.0, "police_car": 235.0,
 }
 
 
@@ -121,7 +122,7 @@ static func find(id: String) -> Dictionary:
 ## The 20 cars in the garage, in the order the garage shows them (Stefano's pick, 2026-10-30).
 ## The other CARS stay in the catalog for rivals, police and traffic.
 const GARAGE := [
-	"mclaren_600lt", "porsche_911_gt3", "mustang_1969", "skyline_r34_brian", "charger_1970",
+	"mclaren_600lt", "porsche_911_gt3", "skyline_r34_brian", "charger_1970",
 	"ford_raptor_r", "ram_1500_trx",
 ]
 

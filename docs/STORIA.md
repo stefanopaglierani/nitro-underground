@@ -34,6 +34,7 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.11 | 31/10/2026 | Circuiti scritti come mappe di testo, ambientazioni rifatte, Deserto | [#17](https://github.com/stefanopaglierani/nitro-underground/pull/17) |
 | v0.11.1 | 31/10/2026 | Sterzo più dolce, niente ribaltamenti in aria, garage da 7 | [#17](https://github.com/stefanopaglierani/nitro-underground/pull/17) |
 | v0.12 | 02/11/2026 | Stabilizzazione: pausa, polizia più giusta, rivali e traffico più furbi | [#19](https://github.com/stefanopaglierani/nitro-underground/pull/19) |
+| v0.13.1 | 04/11/2026 | Il telefono si bloccava: auto e texture alleggerite, addio fumetto 2.5D (grafica realistica di base), via i guardrail, nuova polizia | ramo `claude/project-thread-8bmj8s` |
 
 ## Le svolte principali
 
@@ -339,11 +340,52 @@ più veloci del 20% e più attenti agli incidenti, e un traffico che dopo un urt
 ora arriva al traguardo su tutti e 4 i circuiti. Pausa, Indietro, secondo piano, urti col traffico
 e posizione in gara sono stati provati con script di prova. Da provare sul telefono.
 
+## v0.13.1 — Il telefono si blocca: si torna alla grafica realistica (4 novembre)
+
+**Richiesta:** Stefano ha provato la v0.12 sul suo Samsung Galaxy A51: al passo di caricamento
+"Luci e ombre" il gioco restava fermo quasi 60 secondi e poi si chiudeva; anche l'anteprima
+dell'auto nel menù era lenta. Dopo due tentativi di alleggerimento ha preso una decisione
+"drastica, con effetto immediato": **via tutta la grafica 2.5D e cartoon, ritorno alle origini con
+grafica realistica**, partendo da una versione con le impostazioni grafiche di base, senza filtri.
+Nella stessa sera ha chiesto di **togliere i guardrail** ("danno veramente fastidio"), di eliminare
+la Mustang 1969 e di usare due nuove auto della polizia scelte da lui.
+
+**Come è stato costruito:**
+- **Diagnosi misurata** (Montagna, McLaren): 407 texture su 661 erano salvate senza compressione
+  per la scheda grafica e senza versioni ridotte per la distanza (circa 420 MB in gara); le auto del
+  garage erano modelli da PC divisi in centinaia di pezzi (1.630 la Porsche, 766 la Skyline) e ogni
+  pezzo veniva disegnato due volte per il contorno a fumetto: circa 2.900 disegni per fotogramma.
+- **Auto saldate** (`scripts/car_model.gd`): quando un'auto si carica, i suoi pezzi vengono uniti in
+  una mesh per materiale per la carrozzeria e una per ruota; i vetri restano separati, altrimenti
+  spariscono i sedili dietro i finestrini. Porsche da 8.270 a 148 disegni, Skyline da 3.869 a 309.
+  I modelli già fatti di pochi pezzi restano come sono e tengono le versioni leggere per la distanza.
+- **Texture compresse**: tutte le texture 3D ora usano la compressione per la scheda grafica con le
+  versioni ridotte per la distanza (mipmap); quelle delle auto al massimo 1024 px. In gara la memoria
+  delle texture scende da 418 a 104 MB. Prima Stefano ha visto un confronto diretto (originale,
+  ASTC, ETC2): auto identiche, asfalto anzi più pulito.
+- **Stile fumetto spento** (`scripts/comic_style.gd`, `ENABLED = false`): niente luce a bande,
+  contorni, retino, filtro a schermo intero e linee di velocità; il cielo è quello standard di
+  Godot. Il codice resta, spento, come parte della storia. Senza lo stile la Montagna passa da circa
+  1.200 a circa 200 disegni per fotogramma.
+- **Niente guardrail** su tutti e 4 i circuiti (compresse le barriere della città): se si esce di
+  strada interviene il "Torna in pista" che c'era già.
+- **Polizia nuova**: Ford Mondeo Police e una berlina della polizia, scaricate da Stefano su
+  Sketchfab (crediti in `assets/LICENSES.md`; la Mondeo è non commerciale). La Mustang 1969 è
+  uscita dal garage, che ora ha 6 auto.
+- **Due APK per ogni prova**: uno con Vulkan e uno con il motore "Compatibility" (OpenGL), per
+  capire sul telefono se il blocco dipende da Vulkan sulla scheda Mali dell'A51.
+
+**Verifica ed esito:** confronti di immagini prima/dopo per le auto saldate (identiche) e per le
+texture; gara automatica su tutti e 4 i circuiti senza guardrail (1° in Montagna in 1:56, 1° sulla
+Costa, 2° nel Deserto e in città). La v0.12.1 (solo auto saldate) sul telefono si bloccava ancora
+nello stesso modo. Le v0.13.1 (Vulkan e OpenGL) sono da provare sul telefono.
+
 ---
 
 ## Prossimi passi
 
-- Prova sul telefono della v0.12: pausa (tasto Indietro, chiamata, Home), polizia, rivali, traffico.
+- Prova sul telefono delle v0.13.1 (Vulkan e OpenGL): il caricamento deve superare "Luci e ombre".
+- Costruire il nuovo aspetto realistico (luce, cielo, ombre, materiali) un passo approvato alla volta, e sostituire lo sfondo disegnato del menù.
 - Passo 3 del piano: **vertical slice**, cioè un circuito e un'auto rifiniti al livello del gioco finale.
 - Prima di qualsiasi pubblicazione: sostituire i modelli non commerciali e di marchi reali
   (vedi [CREDITI.md](../CREDITI.md)) e aggiungere i titoli di coda con i crediti CC BY.

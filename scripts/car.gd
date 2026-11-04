@@ -41,7 +41,8 @@ const SHIFT_TIME := 0.12
 const CAST_LIFT := 0.25
 ## Car models (assets/cars_rgsdev) for the AI racers and the police.
 const RACER_BODIES := ["muscle", "roadster", "muscle_2", "hatchback"]
-const POLICE_BODIES := ["police_sedan", "police_sports", "police_muscle", "police_suv"]
+## Police: two detailed Sketchfab cars (Stefano's pick, 2026-11-04).
+const POLICE_BODIES := ["police_mondeo", "police_car"]
 ## Car the player picked in the garage (CarCatalog id); it keeps its own colours.
 static var player_body := "mclaren_600lt"
 

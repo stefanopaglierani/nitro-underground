@@ -2,23 +2,25 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://byafxmto4ys85"
-path="res://.godot/imported/ford-mustang-1969-john-bowe_0.png-108717b3861cd92d0ee6f86da06343e9.ctex"
+uid="uid://ce25ov45e51kl"
+path.s3tc="res://.godot/imported/police_mondeo_0.png-f96bcdc8380af0d3d88e47a87691339f.s3tc.ctex"
+path.etc2="res://.godot/imported/police_mondeo_0.png-f96bcdc8380af0d3d88e47a87691339f.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
-"md5": "2f8f6f362dc15bb69b2b37118ccdaaa1"
+"md5": "bffb4fbac480be1f74805999493ea1d3"
 }
 
 [deps]
 
-source_file="res://assets/cars_sketchfab/ford-mustang-1969-john-bowe_0.png"
-dest_files=["res://.godot/imported/ford-mustang-1969-john-bowe_0.png-108717b3861cd92d0ee6f86da06343e9.ctex"]
+source_file="res://assets/cars_sketchfab/police_mondeo_0.png"
+dest_files=["res://.godot/imported/police_mondeo_0.png-f96bcdc8380af0d3d88e47a87691339f.s3tc.ctex", "res://.godot/imported/police_mondeo_0.png-f96bcdc8380af0d3d88e47a87691339f.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -39,5 +41,5 @@ process/premult_alpha=false
 process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
-process/size_limit=0
+process/size_limit=1024
 detect_3d/compress_to=1

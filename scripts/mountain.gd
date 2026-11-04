@@ -1,7 +1,7 @@
 class_name Mountain
 extends Track
 ## Daytime mountain pass: a closed 2.7 km road that winds, climbs and drops across hills, with
-## guardrails on both sides, rock cuttings where it runs into the slope and pine woods around.
+## no guardrails (removed 2026-11-04), rock cuttings where it runs into the slope and pine woods around.
 ## Everything is generated from fixed seeds, so the track is the same on every run.
 ## The road is a list of samples every SAMPLE_STEP metres; the AI follows it in either direction.
 
@@ -76,7 +76,6 @@ func build_steps() -> Array:
 		["Tracciato", _make_road_line],
 		["Montagne", _build_terrain],
 		["Asfalto", _build_road],
-		["Guardrail", _build_rails],
 		["Alberi", _build_trees],
 		["Erba", _build_grass],
 		["Rocce e cartelli", _build_rocks],
@@ -478,6 +477,8 @@ func _markings() -> void:
 
 # ---------- Guardrails ----------
 
+## Not used since 2026-11-04: Stefano asked to take the guardrails off every circuit (they got in
+## the way). Put ["Guardrail", _build_rails] back in a level's build_steps() to bring them back.
 func _build_rails() -> void:
 	# Straight 4 m sections on both sides; each one can be torn off by a hard hit (GuardRails).
 	var steel := CarModel.mat(Color(0.72, 0.74, 0.76), Color.BLACK, 0.0, 0.85, 0.35)

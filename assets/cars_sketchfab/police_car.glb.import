@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://ckf5vupq6xbqs"
-path="res://.godot/imported/ford-mustang-1969-john-bowe.glb-10ccbf012d4a1a12c0b8d7426fc67d55.scn"
+uid="uid://bflvjn24xxlax"
+path="res://.godot/imported/police_car.glb-112cfa98573031544d60afe19e9393ad.scn"
 
 [deps]
 
-source_file="res://assets/cars_sketchfab/ford-mustang-1969-john-bowe.glb"
-dest_files=["res://.godot/imported/ford-mustang-1969-john-bowe.glb-10ccbf012d4a1a12c0b8d7426fc67d55.scn"]
+source_file="res://assets/cars_sketchfab/police_car.glb"
+dest_files=["res://.godot/imported/police_car.glb-112cfa98573031544d60afe19e9393ad.scn"]
 
 [params]
 

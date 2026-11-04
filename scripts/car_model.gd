@@ -30,12 +30,17 @@ const WHEEL_PARTS := ["wheel", "_rim", "calliper", "caliper", "tire", "tyre", "b
 const REAR_PARTS := ["tail", "brakelight", "brake_light", "rear", "reverse", "trunk", "exhaust"]
 const FRONT_PARTS := ["headlight", "head_light", "front", "hood", "grill", "windshield"]
 static var _scenes := {}
+## Detailed cars already merged: path -> {"body": meshes, "wheels": {pivot: [position, meshes]}, "height"}.
+static var _merged := {}
+## Models with more pieces than this are welded together when built (see build_generic).
+const MERGE_MIN_SURFACES := 40
 
 
 ## Forgets the car models read so far, so their memory is freed once no car uses them (the title
 ## screen keeps only the car on show; leaving a race frees the race cars).
 static func clear_cache() -> void:
 	_scenes.clear()
+	_merged.clear()
 static var _paint_shader: Shader = preload("res://shaders/car_paint.gdshader")
 
 
@@ -210,13 +215,6 @@ static func _xf_in(node: Node3D, root: Node3D) -> Transform3D:
 ## the pivot of their corner; the paint and the tail lights get materials car.gd can drive.
 static func build_generic(paint: Color, entry: Dictionary) -> Node3D:
 	var path := CarCatalog.model_path(entry)
-	if not _scenes.has(path):
-		_scenes[path] = load(path)
-	var root := Node3D.new()
-	root.name = "Model"
-	var model := (_scenes[path] as PackedScene).instantiate() as Node3D
-	root.add_child(model)
-
 	var tail := mat(Color(0.6, 0, 0), Color(1, 0.05, 0.05), 1.5)
 	var paint_mat: Material = null
 	if paint.a > 0.0:
@@ -225,6 +223,14 @@ static func build_generic(paint: Color, entry: Dictionary) -> Node3D:
 		pm.clearcoat = 1.0
 		pm.clearcoat_roughness = 0.05
 		paint_mat = pm
+	if _merged.has(path):
+		return _from_merged(_merged[path], entry, paint_mat, tail)
+	if not _scenes.has(path):
+		_scenes[path] = load(path)
+	var root := Node3D.new()
+	root.name = "Model"
+	var model := (_scenes[path] as PackedScene).instantiate() as Node3D
+	root.add_child(model)
 	_unskin(model)
 	# Bounds of the car body, leaving out flat ground planes (shadow cards), which are hidden.
 	var meshes: Array[MeshInstance3D] = []
@@ -279,10 +285,6 @@ static func build_generic(paint: Color, entry: Dictionary) -> Node3D:
 		for i in mi.mesh.get_surface_count():
 			var src := mi.mesh.surface_get_material(i)
 			var key: String = src.resource_name if src else ""
-			if key != "" and key == entry.get("paint", "") and paint_mat:
-				mi.set_surface_override_material(i, paint_mat)
-			elif key != "" and key == entry.get("tail", ""):
-				mi.set_surface_override_material(i, tail)
 			if not named:
 				var is_wheel := false
 				var low := key.to_lower()
@@ -320,15 +322,115 @@ static func build_generic(paint: Color, entry: Dictionary) -> Node3D:
 			mi.owner = null
 			pivot.add_child(mi)
 			mi.transform = Transform3D(Basis(), -pivot.position) * (e[1] as Transform3D)
+	# A detailed model comes in hundreds of pieces (1,630 for the Porsche): each one is a separate
+	# draw on the phone, twice with the comic outline. Weld them into one mesh per material for the
+	# body and one per wheel; the look does not change. A model already in few pieces stays as it
+	# is, so it keeps the lighter versions (LODs) the importer made for when it is far away.
+	var surfaces := 0
+	for mi in meshes:
+		surfaces += mi.mesh.get_surface_count()
+	if surfaces <= MERGE_MIN_SURFACES:
+		for mi in meshes:
+			_apply_paint(mi, entry, paint_mat, tail)
+		return _finish(root, entry, tail, bounds.size.y * k)
+	var data := {"body": _merge_meshes(model, root), "wheels": {}, "height": bounds.size.y * k}
+	for corner in corners:
+		var pivot := root.get_node(corner) as Node3D
+		data["wheels"][corner] = [pivot.position, _merge_meshes(pivot, pivot)]
+	root.free()
+	_merged[path] = data
+	return _from_merged(data, entry, paint_mat, tail)
+
+
+## Model node made from a merged detailed car: body mesh, wheel pivots, paint and tail materials.
+static func _from_merged(data: Dictionary, entry: Dictionary, paint_mat: Material, tail: StandardMaterial3D) -> Node3D:
+	var root := Node3D.new()
+	root.name = "Model"
+	_add_merged(root, "Body", data["body"], entry, paint_mat, tail)
+	for corner in data["wheels"]:
+		var pivot := Node3D.new()
+		pivot.name = corner
+		pivot.position = data["wheels"][corner][0]
+		root.add_child(pivot)
+		_add_merged(pivot, "Wheel", data["wheels"][corner][1], entry, paint_mat, tail)
+	return _finish(root, entry, tail, data["height"])
+
+
+## Tail-light material and, for the police, the siren lights on the roof.
+static func _finish(root: Node3D, entry: Dictionary, tail: StandardMaterial3D, bounds_y: float) -> Node3D:
 	root.set_meta("tail_mat", tail)
 	if entry["id"].contains("police"):
 		var red := mat(Color(0.5, 0, 0), Color(1, 0.05, 0.05), 0.3)
 		var blue := mat(Color(0, 0, 0.5), Color(0.1, 0.3, 1), 0.3)
-		box(root, Vector3(0.5, 0.12, 0.3), Vector3(-0.3, bounds.size.y * k + 0.02, 0.0), red)
-		box(root, Vector3(0.5, 0.12, 0.3), Vector3(0.3, bounds.size.y * k + 0.02, 0.0), blue)
+		box(root, Vector3(0.5, 0.12, 0.3), Vector3(-0.3, bounds_y + 0.02, 0.0), red)
+		box(root, Vector3(0.5, 0.12, 0.3), Vector3(0.3, bounds_y + 0.02, 0.0), blue)
 		root.set_meta("siren_red", red)
 		root.set_meta("siren_blue", blue)
 	return root
+
+
+static func _add_merged(parent: Node3D, node_name: String, meshes: Array[ArrayMesh], entry: Dictionary, paint_mat: Material, tail: StandardMaterial3D) -> void:
+	for mesh in meshes:
+		var mi := MeshInstance3D.new()
+		mi.name = node_name
+		mi.mesh = mesh
+		parent.add_child(mi)
+		_apply_paint(mi, entry, paint_mat, tail)
+
+
+## Gives the catalog's paint and tail-light surfaces the materials car.gd drives.
+static func _apply_paint(mi: MeshInstance3D, entry: Dictionary, paint_mat: Material, tail: StandardMaterial3D) -> void:
+	for i in mi.mesh.get_surface_count():
+		var src := mi.mesh.surface_get_material(i)
+		var key: String = src.resource_name if src else ""
+		if key != "" and key == entry.get("paint", "") and paint_mat:
+			mi.set_surface_override_material(i, paint_mat)
+		elif key != "" and key == entry.get("tail", ""):
+			mi.set_surface_override_material(i, tail)
+
+
+## The visible meshes under `node` welded into as few meshes as possible, in the space of `space`.
+## Solid parts become one mesh with a surface per material and vertex format. See-through parts
+## (glass) stay one mesh per original part: the phone sorts see-through things by object, and a
+## single welded glass mesh would hide the seats behind the windows.
+static func _merge_meshes(node: Node3D, space: Node3D) -> Array[ArrayMesh]:
+	var tools := {}
+	var order := []
+	for n in node.find_children("*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		if mi.mesh == null or not mi.visible:
+			continue
+		var hidden := false
+		var q: Node = mi
+		while q and q != node:
+			if q is Node3D and not (q as Node3D).visible:
+				hidden = true
+			q = q.get_parent()
+		if hidden:
+			continue
+		var xf := _xf_in(mi, space)
+		for si in mi.mesh.get_surface_count():
+			if mi.mesh.surface_get_primitive_type(si) != Mesh.PRIMITIVE_TRIANGLES:
+				continue
+			var m: Material = mi.mesh.surface_get_material(si)
+			var fmt: int = mi.mesh.surface_get_format(si) & (Mesh.ARRAY_FORMAT_NORMAL | Mesh.ARRAY_FORMAT_TANGENT | Mesh.ARRAY_FORMAT_COLOR | Mesh.ARRAY_FORMAT_TEX_UV | Mesh.ARRAY_FORMAT_TEX_UV2)
+			var solid := m is BaseMaterial3D and (m as BaseMaterial3D).transparency == BaseMaterial3D.TRANSPARENCY_DISABLED
+			var key := [m, fmt, 0 if solid else mi.get_instance_id()]
+			if not tools.has(key):
+				tools[key] = SurfaceTool.new()
+				order.append(key)
+			(tools[key] as SurfaceTool).append_from(mi.mesh, si, xf)
+	var out: Array[ArrayMesh] = []
+	var meshes := {}  # 0 for the solid mesh, else the id of the see-through part
+	for key in order:
+		if not meshes.has(key[2]):
+			meshes[key[2]] = ArrayMesh.new()
+			out.append(meshes[key[2]])
+		var mesh: ArrayMesh = meshes[key[2]]
+		(tools[key] as SurfaceTool).commit(mesh)
+		if key[0] is Material:
+			mesh.surface_set_material(mesh.get_surface_count() - 1, key[0])
+	return out
 
 
 ## Some Sketchfab cars (rigged for opening doors) come as skinned meshes: in glTF their own node

@@ -46,7 +46,6 @@ func build_steps() -> Array:
 		["Tracciato", _make_road_line],
 		["Deserto e canyon", _build_terrain],
 		["Asfalto", _build_road],
-		["Guardrail", _build_rails],
 		["Cactus e rocce", _build_desert_plants],
 		["Paese", _build_town],
 		["Cartelli", _build_rocks],
