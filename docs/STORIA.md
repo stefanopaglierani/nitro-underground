@@ -35,6 +35,7 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.11.1 | 31/10/2026 | Sterzo più dolce, niente ribaltamenti in aria, garage da 7 | [#17](https://github.com/stefanopaglierani/nitro-underground/pull/17) |
 | v0.12 | 02/11/2026 | Stabilizzazione: pausa, polizia più giusta, rivali e traffico più furbi | [#19](https://github.com/stefanopaglierani/nitro-underground/pull/19) |
 | v0.13.1 | 04/11/2026 | Il telefono si bloccava: auto e texture alleggerite, addio fumetto 2.5D (grafica realistica di base), via i guardrail, nuova polizia | ramo `claude/project-thread-8bmj8s` |
+| v0.14 | 05/11/2026 | OpenGL sul telefono, nuovo garage di 5 auto guidato anche dai rivali, traffico con 9 auto dettagliate, auto "pre-cotte" per un menù più veloce, via tutte le auto low poly | ramo `claude/project-thread-8bmj8s` |
 
 ## Le svolte principali
 
@@ -378,13 +379,53 @@ la Mustang 1969 e di usare due nuove auto della polizia scelte da lui.
 **Verifica ed esito:** confronti di immagini prima/dopo per le auto saldate (identiche) e per le
 texture; gara automatica su tutti e 4 i circuiti senza guardrail (1° in Montagna in 1:56, 1° sulla
 Costa, 2° nel Deserto e in città). La v0.12.1 (solo auto saldate) sul telefono si bloccava ancora
-nello stesso modo. Le v0.13.1 (Vulkan e OpenGL) sono da provare sul telefono.
+nello stesso modo. Sul telefono la v0.13 e la v0.13.1 funzionano di nuovo bene. Tra i due motori
+Stefano ha scelto **OpenGL "tutta la vita"**: con Vulkan la gara era "particolarmente ricca di lag,
+quasi ingiocabile", con OpenGL "gira tutto in maniera fluida". Restava lenta l'anteprima dell'auto
+nel menù: più di 20 secondi.
+
+## v0.14 — Auto nuove e pronte all'uso (5 novembre)
+
+**Richiesta:** fissare OpenGL sul telefono; per gli avversari "le stesse auto a disposizione del
+giocatore", per il traffico solo i modelli della cartella "Auto-scaricate" del PC di Stefano,
+eliminando "tutti i vecchi low-poly", sempre con le texture compresse; e risolvere l'anteprima del
+menù, "quasi più di 20 s per vedere l'auto". Poco dopo Stefano ha scelto il nuovo garage: Dodge
+Charger R/T 1970, Chevrolet Corvette Z06, BMW M3 GTR E46, Toyota Supra A80 e Mercedes Classe C W203.
+
+**Come è stato costruito:**
+- **OpenGL su Android** (`project.godot`): il telefono usa il motore "Compatibility", il PC resta su Vulkan.
+- **Auto "pre-cotte"** (`tools/bake_cars.gd`, `scripts/baked_car.gd`, `assets/cars_baked/`): misurando,
+  il tempo dell'anteprima non andava nel leggere i file ma nel lavoro fatto subito dopo (girare,
+  scalare, separare le ruote, saldare i pezzi) e nel primo disegno di modelli molto pesanti (la
+  Mercedes W203 aveva 645 mila triangoli). Ora questo lavoro si fa una volta sola sul computer di
+  sviluppo: ogni auto viene salvata già pronta e alleggerita (al massimo circa 90 mila triangoli in
+  garage, 30 mila nel traffico; le gomme meno, perché diventano subito poligonali). Il telefono
+  legge solo il risultato; gli originali restano nel repository ma non entrano nell'APK.
+- **Ruote che sterzano anche quando il modello le ha tutte in un pezzo** (BMW M3 GTR, Supra, Camaro,
+  Impala): il pezzo viene tagliato in quattro, uno per angolo dell'auto.
+- **Menù**: le auto già viste restano in memoria e, mentre si guarda la prima, le altre del garage
+  vengono lette in sottofondo una alla volta.
+- **Rivali** (`scripts/car.gd`, `scripts/main.gd`): i 3 avversari guidano le auto del garage, tranne
+  quella scelta dal giocatore.
+- **Traffico** (`scripts/traffic.gd`): 9 auto dettagliate (Corvette 1969, due Camaro, Impala 1967,
+  GMC Sierra, Defender 90, BMW E46, Mercedes 190E, Jeep), texture a 512 px; il corpo che urta è
+  lungo quanto l'auto.
+- **Via le auto low poly**: rgsdev, Kenney, KayKit e le auto low poly della libreria sono state tolte
+  dal repository. McLaren, Porsche, Skyline "Brian", Raptor e RAM non sono più nel garage.
+- Crediti e licenze dei 13 nuovi modelli in `assets/LICENSES.md`; sono tutti marchi reali e 6 sono
+  non commerciali (elenco in [CREDITI.md](../CREDITI.md)).
+
+**Verifica ed esito:** foto di confronto originale/alleggerita per ogni auto (corretti così un
+fondale da showroom nel modello BMW, la Mercedes girata al contrario e le gomme troppo poligonali);
+nel banco prova con OpenGL il primo disegno di un'auto del menù passa da circa 1,4-6 secondi a circa
+0,6-1,7, e la preparazione da 50-350 a circa 10 millisecondi. Gara automatica completata in Montagna
+con la Supra. Da provare sul telefono.
 
 ---
 
 ## Prossimi passi
 
-- Prova sul telefono delle v0.13.1 (Vulkan e OpenGL): il caricamento deve superare "Luci e ombre".
+- Prova sul telefono della v0.14: tempo dell'anteprima nel menù, fluidità in gara con traffico e rivali nuovi.
 - Costruire il nuovo aspetto realistico (luce, cielo, ombre, materiali) un passo approvato alla volta, e sostituire lo sfondo disegnato del menù.
 - Passo 3 del piano: **vertical slice**, cioè un circuito e un'auto rifiniti al livello del gioco finale.
 - Prima di qualsiasi pubblicazione: sostituire i modelli non commerciali e di marchi reali

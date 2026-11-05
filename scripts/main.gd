@@ -222,9 +222,11 @@ func _loading(text: String, progress: float) -> void:
 ## police. Returns the paths being read.
 func _request_car_models() -> Array[String]:
 	var paths: Array[String] = []
-	for id in [Car.player_body] + Car.RACER_BODIES + Car.POLICE_BODIES:
+	for id in [Car.player_body] + Car.rival_bodies().slice(0, 3) + Car.POLICE_BODIES:
 		var entry := CarCatalog.find(id)
-		var path: String = CarModel.RGSDEV_DIR + id + ".fbx" if entry.is_empty() else CarCatalog.model_path(entry)
+		var path: String = CarModel.baked_path(id)
+		if not ResourceLoader.exists(path) and not entry.is_empty():
+			path = CarCatalog.model_path(entry)
 		if ResourceLoader.exists(path) and not ResourceLoader.has_cached(path) and not paths.has(path):
 			paths.append(path)
 			ResourceLoader.load_threaded_request(path)
@@ -361,8 +363,9 @@ func _build_markers() -> void:
 	arrow.visible = false
 
 
-func _make_car(kind: Car.Driver, paint: Color) -> Car:
+func _make_car(kind: Car.Driver, paint: Color, body := "") -> Car:
 	var c := Car.new()
+	c.racer_body = body
 	add_child(c)
 	c.setup(kind, paint, city)
 	c.crashed.connect(_on_crash.bind(c))
@@ -372,8 +375,9 @@ func _make_car(kind: Car.Driver, paint: Color) -> Car:
 func _start() -> void:
 	countdown = 3.5
 	var grid := city.start_grid(4)
+	var rivals := Car.rival_bodies()
 	for i in 3:
-		var r := _make_car(Car.Driver.RACER, RIVAL_COLORS[i])
+		var r := _make_car(Car.Driver.RACER, RIVAL_COLORS[i], rivals[i % rivals.size()])
 		r.place(grid[i][0], grid[i][1])
 		r.waypoints = race_path
 		r.wp_index = 1

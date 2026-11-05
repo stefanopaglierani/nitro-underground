@@ -47,14 +47,9 @@ Formato glTF 2.0 (`.gltf` + `.bin` + texture 1K), importato direttamente da Godo
 
 Nota: `street_lamp_02` (20 mila triangoli) e `concrete_road_barrier_02` (42 mila) sono pesanti per un telefono se ripetuti molte volte; prima dell'uso in massa andranno semplificati (LOD o riduzione poligoni) e la modifica andrà annotata qui.
 
-## KayKit City Builder Bits 1.0 — `assets/kaykit_city_builder_bits/`
+## KayKit City Builder Bits 1.0 (tolto nella v0.14)
 
-| Pack | Autore | Link | Licenza | Download | Modifiche |
-|---|---|---|---|---|---|
-| City Builder Bits 1.0 (solo la cartella glTF: 41 modelli + `citybits_texture.png`) | Kay Lousberg (www.kaylousberg.com) | https://github.com/KayKit-Game-Assets/KayKit-City-Builder-Bits-1.0 (commit `6397691`) | CC0 1.0 (vedi `LICENSE.txt` nella cartella) | 2026-10-28 | Nessuna |
-
-Contiene 5 auto low poly con ruote separate (berlina, hatchback, station wagon, taxi, **polizia**), edifici, strade, lampioni, semafori, cassonetti, idranti, panchine. Stile cartoon: adatto a traffico e segnaposto. Scala circa 1/5 del reale (un'auto è lunga 0,94 m): va scalata ×5 circa quando si usa. Prima di usare la volante in gioco va controllata la livrea (niente scritte di corpi di polizia reali).
-
+Il pack KayKit (CC0, Kay Lousberg) dava solo le auto low poly di riserva: è stato tolto dal repository il 05/11/2026 con le altre auto low poly.
 
 ## Percorso di montagna (Poly Haven)
 
@@ -79,16 +74,9 @@ Modifiche comuni a tutti i pacchetti: tenuti solo i formati che Godot legge (glT
 
 | Cartella | Contenuto | Autore | Pagina | Licenza |
 |---|---|---|---|---|
-| `kenney_car_kit/` | 50 veicoli GLB (berline, sportive, polizia, ambulanza, camion, furgoni) e ruote | Kenney | https://opengameart.org/content/car-kit | CC0 (`License.txt`) |
 | `kenney_racing_kit/` | 71 pezzi di pista glTF (rettilinei, curve, barriere, gomme, bandiere, tribune, auto da corsa) | Kenney | https://opengameart.org/content/racing-kit | CC0 (`License.txt`) |
 | `kenney_city_kit_roads/` | 95 pezzi GLB di strade, incroci, ponti, segnaletica, lampioni | Kenney | https://opengameart.org/content/city-kit-roads | CC0 (`License.txt`) |
 | `kenney_nature_kit/` | 329 modelli glTF di natura (alberi, pini, rocce, cespugli, erba, sentieri, staccionate) | Kenney | https://opengameart.org/content/nature-kit | CC0 (`License.txt`) |
-| `rgsdev_vehicles/` | 21 veicoli FBX: berlina, hatchback, sportiva, 2 muscle, roadster, SUV, pickup, van, taxi, limousine, bus, camion, ambulanza, pompieri, monster truck e 4 volanti (berlina, sportiva, muscle, SUV) | rgsdev | https://opengameart.org/content/free-low-poly-vehicles-pack | CC0 (`License.txt`) |
-| `street_racing_car/` | Auto da strada FBX con texture | Alexander123 | https://opengameart.org/content/street-racing-car | CC0 |
-| `red_car/` | Auto rossa GLB con ruote separate | mabaci | https://opengameart.org/content/3d-car-model-for-unity-unreal-engine-ready-for-car-controller-%F0%9F%9A%97 | CC0 |
-| `ggbotnet_psx_cars/` | 8 auto stile PSX (OBJ con texture) e ombra | GGBotNet | https://opengameart.org/content/psx-style-cars | CC0 |
-| `byzmod3d_cars/` | Auto FBX (versione normale ed effetto) | byzmod3d | https://opengameart.org/content/low-poly-car-update-pack | CC0 |
-| `lyricsz_cars/` | 20 auto GLB con interni e animazioni | Lyricsz | https://opengameart.org/content/ultimate-3d-car-assets-pack-w-interiors-and-animations | CC0 |
 | `quaternius_textured_trees/` | 45 alberi FBX con texture (pini, betulle, aceri, alberi secchi) | Quaternius | https://opengameart.org/content/lowpoly-textured-trees | CC0 (versione pubblicata su OpenGameArt nel 2020, prima del cambio di licenza di Quaternius) |
 | `emaceart_meadows/` | 276 GLB di prato: erba, fiori, cespugli, sassi, alberi | EmacEArt | https://opengameart.org/content/free-remastered-free-mid-poly-meadows | CC0 |
 | `yughues_grass/` | Ciuffi d'erba realistici con texture alfa, una sottocartella per pacchetto | Yughues (Nobiax) | https://opengameart.org/content/grass-pack-01 , -02 , -03 | CC0 (`readme.txt`; l'autore chiede, senza obbligo, un link al risultato) |
@@ -102,17 +90,20 @@ Modifiche comuni a tutti i pacchetti: tenuti solo i formati che Godot legge (glT
 | `elnineo_racing_circuit/` | Circuito completo FBX con texture | elnineo | https://opengameart.org/content/racing-circuit | CC0 |
 | `fsp_modular_racetrack/` | 20 pezzi di pista OBJ | Keith at Fertile Soil Productions | https://opengameart.org/content/modular-racetrack-3d-models | CC0 |
 
-Note: sono quasi tutti modelli low poly o "mid poly", non realistici. Le volanti (Kenney, rgsdev) vanno controllate prima dell'uso: niente scritte o stemmi di corpi di polizia reali. Non scaricati perché troppo pesanti per un telefono: le rocce fotogrammetriche di Yughues (120–165 MB l'una) e il Mossy Rock Environment Pack (237 MB); sono comunque CC0 e si possono prendere se servono. Non scaricato perché esiste solo in formato `.blend` (qui non c'è Blender per convertirlo): Spruce Deforestation Models (abeti, CC0).
+Il 05/11/2026 (v0.14) sono state tolte dalla libreria tutte le auto low poly (Kenney Car Kit, rgsdev, Alexander123, mabaci, GGBotNet, byzmod3d, Lyricsz, tutte CC0): il gioco usa solo auto dettagliate.
+
+Note: sono quasi tutti modelli low poly o "mid poly", non realistici. Non scaricati perché troppo pesanti per un telefono: le rocce fotogrammetriche di Yughues (120–165 MB l'una) e il Mossy Rock Environment Pack (237 MB); sono comunque CC0 e si possono prendere se servono. Non scaricato perché esiste solo in formato `.blend` (qui non c'è Blender per convertirlo): Spruce Deforestation Models (abeti, CC0).
 
 ### Modelli della libreria usati nel gioco (v0.4)
 
 | File e uso | Preso da | Modifiche |
 |---|---|---|
-| `assets/cars_rgsdev/*.fbx`, auto del giocatore, degli avversari, del traffico e volanti | `library/rgsdev_vehicles/` (rgsdev, CC0) | File rinominati in minuscolo. In gioco: scala 0,78, girati di 180°, materiali rifatti nel codice (vernice lucida, vetri, fari e lampeggianti luminosi) |
 | `assets/props/trees/*.fbx` e texture, pini e betulle della montagna | `library/quaternius_textured_trees/` (Quaternius, CC0 su OpenGameArt) | Solo Pine_1, 2, 3, 5 e Birch_1, 3. In gioco: ingranditi da 1,7 a 2,7 volte e foglie scurite |
 | `assets/props/grass/grass_01.png`, `grass_02.png`, `grass_04.png`, ciuffi d'erba a bordo strada | `library/yughues_grass/` (Yughues, CC0) | Solo la texture diffusa con alfa, rinominata. In gioco: due quadrati incrociati, colore più verde |
 
 ## Garage della v0.5
+
+Dalla v0.14 (05/11/2026) McLaren, Raptor, RAM, Porsche e Skyline "Brian" non sono più nel garage: restano nel repository ma non entrano nell'APK.
 
 ### Auto realistiche da Sketchfab — `assets/cars_sketchfab/`
 
@@ -126,15 +117,9 @@ Scaricate da Stefano e caricate il 2026-10-29. Licenze **non commerciali**: vann
 
 Crediti richiesti: "This work is based on "McLaren 600LT" by Outlaw Games™, "2024 Ford F-150 Raptor R" by VTX and "2021 Ram 1500 TRX" by Ddiaz Design (links above), licensed under CC-BY-NC-4.0 / CC-BY-NC-SA-4.0."
 
-### Altri veicoli del garage
+### Altri veicoli del garage (tolti nella v0.14)
 
-| File | Preso da | Licenza |
-|---|---|---|
-| `assets/cars_rgsdev/*.fbx` (ora tutti i 21 veicoli) | `library/rgsdev_vehicles/` (rgsdev) | CC0 |
-| `assets/cars_kenney/*.glb` e `Textures/` (25 veicoli, senza detriti, coni e ruote sciolte) | `library/kenney_car_kit/` (Kenney Car Kit 3.1) | CC0 (`License.txt`) |
-| `assets/kaykit_city_builder_bits/car_*.gltf` | KayKit (vedi sopra) | CC0 |
-
-In gioco i veicoli vengono scalati alla loro lunghezza reale e appoggiati a terra; le volanti Kenney ricevono lampeggianti fatti nel codice. L'elenco completo con i nomi mostrati nel menu è in `scripts/car_catalog.gd`.
+Le auto low poly rgsdev (`assets/cars_rgsdev`), Kenney Car Kit (`assets/cars_kenney`) e KayKit, tutte CC0, sono state tolte dal repository il 05/11/2026 su richiesta di Stefano: avversari e traffico ora usano solo modelli dettagliati.
 
 ## Audio delle auto — `assets/audio/`
 
@@ -209,6 +194,30 @@ La Mondeo è di un marchio reale (Ford) ed è **non commerciale**: va bene per i
 |---|---|---|---|---|
 | `police_mondeo.glb` | Ford Mondeo Police (Ver.1) | TSB3DMODELS | CC BY-NC 4.0 | https://sketchfab.com/3d-models/ford-mondeo-police-ver1-0f116808d3194ca79255a0563eccf939 |
 | `police_car.glb` | Police car | Mateusz Woliński (jeandiz) | CC BY 4.0 | https://sketchfab.com/3d-models/police-car-9166b13b6ae341f4bfc093edb71d74f4 |
+
+### Garage, avversari e traffico della v0.14 (05/11/2026)
+
+Scaricati a mano da Stefano su Sketchfab (cartella "Auto-scaricate" del suo PC). File non modificati, ognuno con il suo `license.txt` (per i GLB è nello zip originale; i dati sono qui sotto). Le texture sono compresse per il telefono (1024 px nel garage, 512 px nel traffico).
+In gioco ogni auto è preparata da `tools/bake_cars.gd` in `assets/cars_baked/<id>.res`: girata, scalata, divisa in carrozzeria e ruote, saldata in pochi pezzi e alleggerita (meno triangoli) per il telefono. Sono versioni modificate, quindi valgono le stesse licenze degli originali.
+Sono tutte **marchi reali**; quelle **NC** sono non commerciali. Vanno bene per il prototipo e il portfolio (decisione di Stefano), da sostituire prima di pubblicare sugli store. La Corvette 1969 è anche **SA**: le versioni modificate vanno condivise con la stessa licenza.
+
+| File | Uso | Modello | Autore | Licenza | Pagina |
+|---|---|---|---|---|---|
+| `cars_sketchfab/corvette_z06/` | garage | 2013 Chevrolet Corvette Z06 | Outlaw Games™ | CC BY-NC 4.0 | https://sketchfab.com/3d-models/2013-chevrolet-corvette-z06-f8d8ef6c9c254ea79767d16897f711f1 |
+| `cars_sketchfab/bmw_m3_gtr.glb` (+ texture `bmw_m3_gtr_*`) | garage | BMW M3 GTR E46 Street ACschnitzer BlackEdition | Alex.Ka. | CC BY-NC 4.0 | https://sketchfab.com/3d-models/bmw-m3-gtr-e46-street-acschnitzer-blackedition-7f060f9d44b74c34a5184399a6cfc6d7 |
+| `cars_sketchfab/supra_a80/` | garage | Toyota Supra (A80) 1993 | Lexyc16 | CC BY-NC 4.0 | https://sketchfab.com/3d-models/toyota-supra-a80-1993-dd897d7823784bc5893c183c1328e8cb |
+| `cars_sketchfab/mercedes_w203.glb` | garage | 2000 Mercedes C-class W203 | RES1N | CC BY 4.0 | https://sketchfab.com/3d-models/2000-mercedes-c-class-w203-6cf3d6203793450ba9e6a572fc164c77 |
+| `cars_traffic/corvette_1969.glb` | traffico | 1969 Chevrolet Corvette Stingray 427 | Ddiaz Design | CC BY-NC-SA 4.0 | https://sketchfab.com/3d-models/1969-chevrolet-corvette-stingray-427-1114862363224283b50070bb79217b13 |
+| `cars_traffic/camaro_2012.glb` | traffico | 2012 Chevrolet Camaro ZL1 | Ddiaz Design | CC BY 4.0 | https://sketchfab.com/3d-models/2012-chevrolet-camaro-zl1-cf2c1a032fa14828b94176ad526821f3 |
+| `cars_traffic/camaro_zl1.glb` | traffico | Chevrolet Camaro ZL1 | Outlaw Games™ | CC BY-NC 4.0 | https://sketchfab.com/3d-models/chevrolet-camaro-zl1-4b58ae26e90f4d3fad00a40a93dcbbea |
+| `cars_traffic/impala_1967.glb` | traffico | Chevrolet Impala 1967 | Eques_inferno | CC BY 4.0 | https://sketchfab.com/3d-models/chevrolet-impala-1967-bce35ef0c10d41fdb3f7d8c4225144d2 |
+| `cars_traffic/gmc_sierra.glb` | traffico | Gmc Sierra Work Truck | Renafox (kryik1023) | CC BY-NC 4.0 | https://sketchfab.com/3d-models/gmc-sierra-work-truck-1fae2b50fbe14d2c98296a2560a38399 |
+| `cars_traffic/defender_90.glb` | traffico | Land Rover Defender 90 Lowpoly | kekis69 | CC BY 4.0 | https://sketchfab.com/3d-models/land-rover-defender-90-lowpoly-88e5f30687ec4d508cebafa876e014d6 |
+| `cars_traffic/bmw_e46.glb` | traffico | Low Poly Car - BMW E46 1998 | ROH3D | CC BY 4.0 | https://sketchfab.com/3d-models/low-poly-car-bmw-e46-1998-d9bfd8126e754164b48ded833c017bbf |
+| `cars_traffic/mercedes_190e.glb` | traffico | Mercedes 190E EVO 1982 3D Model Free | Betier Models | CC BY 4.0 | https://sketchfab.com/3d-models/mercedes-190e-evo-1982-3d-model-free-15e5576f4b724f2db357165caed3492b |
+| `cars_traffic/jeep/` | traffico | jeep | mortalityrexotable | CC BY 4.0 | https://sketchfab.com/3d-models/jeep-81bfdc1da40647048b2f1da045f8d090 |
+
+Le texture estratte dai GLB (`<nome>_<n>.png/.jpg`) sono quelle contenute nei file originali.
 
 ## Paesaggio realistico (Sketchfab, CC-BY 4.0) — `assets/scenery/`
 

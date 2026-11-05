@@ -31,6 +31,7 @@ var _stage: Node3D
 var _preview: Node3D
 var _cam: Camera3D
 var _pending: Array[String] = []  # car models being read in the background
+var _loaded := {}  # car models already read, kept so switching back to a car is instant
 var _swipe := 0.0
 var _turn := 0.0
 var _leaving := false
@@ -387,8 +388,8 @@ func _show_car() -> void:
 	_car_name.text = entry["name"]
 	var drive := {"RWD": "trazione posteriore", "FWD": "trazione anteriore", "AWD": "4 ruote motrici"}
 	_car_info.text = "%d / %d  ·  %d km/h  ·  %s" % [car_index + 1, _garage.size(), CarCatalog.top_speed(entry["id"]), drive[CarCatalog.drivetrain(entry["id"])]]
-	var path := CarCatalog.model_path(entry)
-	if ResourceLoader.has_cached(path):
+	var path := _model_file(entry)
+	if _loaded.has(path) or ResourceLoader.has_cached(path):
 		_build_preview()
 		return
 	if _preview:
@@ -397,6 +398,12 @@ func _show_car() -> void:
 	if not _pending.has(path):
 		_pending.append(path)
 		ResourceLoader.load_threaded_request(path)
+
+
+## The file read for a car: its ready-made light version (assets/cars_baked) when there is one.
+func _model_file(entry: Dictionary) -> String:
+	var baked := CarModel.baked_path(entry["id"])
+	return baked if ResourceLoader.exists(baked) else CarCatalog.model_path(entry)
 
 
 func _build_preview() -> void:
@@ -408,8 +415,6 @@ func _build_preview() -> void:
 	_preview.set_meta("comic_ink", true)
 	_stage.add_child(_preview)
 	_preview.rotation.y = _turn
-	# Keep only this model in memory: the others the player looked at are let go.
-	CarModel.clear_cache()
 	var length := 4.5
 	for mi in _preview.find_children("*", "MeshInstance3D", true, false):
 		var bb: AABB = CarModel._xf_in(mi, _preview) * (mi as MeshInstance3D).get_aabb()
@@ -426,8 +431,18 @@ func _process(delta: float) -> void:
 			continue
 		_pending.erase(path)
 		var res := ResourceLoader.load_threaded_get(path)
-		if res and not _garage.is_empty() and CarCatalog.model_path(_garage[car_index]) == path and not _leaving:
+		_loaded[path] = res  # null if it could not be read: not asked for again
+		if res and not _garage.is_empty() and _model_file(_garage[car_index]) == path and not _leaving:
 			_build_preview()
+	# Then read the other garage cars in the background, one at a time, so the arrows show them
+	# straight away.
+	if _pending.is_empty() and not _leaving:
+		for entry in _garage:
+			var next := _model_file(entry)
+			if not _loaded.has(next):
+				_pending.append(next)
+				ResourceLoader.load_threaded_request(next)
+				break
 	_turn += delta * 0.5
 	if _preview:
 		_preview.rotation.y = _turn
@@ -480,5 +495,6 @@ func _start_race() -> void:
 	for path in _pending:
 		ResourceLoader.load_threaded_get(path)
 	_pending.clear()
+	_loaded.clear()
 	CarModel.clear_cache()
 	get_tree().change_scene_to_file(RACE_SCENE)

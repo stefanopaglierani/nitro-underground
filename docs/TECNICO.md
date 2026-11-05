@@ -38,7 +38,7 @@ game designer) e vuole capire cosa c'è dietro gli screenshot.
 
 ## 2. Architettura
 
-Il gioco è fatto con **Godot 4.7** in **GDScript**, renderer **Mobile (Vulkan)**, fisica **Jolt**.
+Il gioco è fatto con **Godot 4.7** in **GDScript**, renderer **Mobile (Vulkan)** sul PC e **Compatibility (OpenGL)** sul telefono (v0.14: con Vulkan la gara sull'A51 di Stefano andava a scatti), fisica **Jolt**.
 Una scelta presa al primo giorno: quasi tutto viene **costruito dal codice**. Le scene `.tscn`
 sono due file quasi vuoti (menu e gara); strade, terreno, guardrail, alberi, auto, interfaccia e
 materiali nascono dagli script. Così ogni cosa è testo leggibile, versionabile e modificabile senza
@@ -246,8 +246,9 @@ Dopo aver provato uno stile realistico, uno anime e uno a fumetto, Stefano ha sc
 - **Budget zero e licenze tracciate**: ogni file in `assets/` è registrato in
   [`assets/LICENSES.md`](../assets/LICENSES.md) con fonte, autore, link, licenza alla data del
   download e modifiche. Le eccezioni non commerciali sono dichiarate in [`CREDITI.md`](../CREDITI.md).
-- **Fonti**: Poly Haven (cieli, texture PBR), Kenney, KayKit, OpenGameArt, Freesound (CC0) e
-  Sketchfab (CC BY), quest'ultimo scaricato via API.
+- **Fonti**: Poly Haven (cieli, texture PBR), Kenney, OpenGameArt, Freesound (CC0) e
+  Sketchfab (CC BY e, per le auto, anche NC). Dalla v0.14 tutte le auto sono modelli Sketchfab
+  dettagliati: le auto low poly (rgsdev, Kenney, KayKit) sono state tolte.
 - **`Scenery`**: ogni modello viene scalato all'altezza reale, appoggiato a terra e **fuso in una
   sola mesh con una superficie per materiale**. Un modello fatto di 123 pezzi passava da oltre
   1.000 chiamate di disegno a una manciata.
@@ -265,8 +266,14 @@ segnalati da Stefano:
   spegnendo il 3D durante la costruzione e correggendo due cause trovate nel codice: un cielo che
   ricalcolava la mappa dei riflessi a ogni fotogramma e un panorama 2K inutilizzato che finiva nell'APK.
 - **Barra di caricamento sempre visibile**, perché il giocatore deve capire se il gioco lavora o è bloccato.
-- **Memoria**: tornando al menu i modelli delle auto della gara vengono liberati; il menu tiene
-  solo l'auto in mostra.
+- **Memoria**: tornando al menu i modelli delle auto della gara vengono liberati.
+- **Auto pre-cotte (v0.14)**: `tools/bake_cars.gd` prepara ogni auto sul computer di sviluppo
+  (girata, scalata, ruote separate in quattro perni, pezzi saldati per materiale, triangoli ridotti
+  con il generatore di LOD di Godot fino a circa 90 mila in garage e 30 mila nel traffico) e la salva
+  in `assets/cars_baked/<id>.res` (`BakedCar`). Il telefono carica solo quel file: la preparazione
+  passa da 50-350 ms a circa 10 ms per auto nel banco prova, e i modelli originali restano fuori
+  dall'APK. Il menu tiene in memoria le auto già viste e legge le altre del garage in sottofondo.
+  Dopo aver cambiato o aggiunto un'auto nel catalogo va rilanciato lo strumento.
 - **Terreno a blocchi** (32×32 celle) e alberi disegnati con MultiMesh; guardrail raggruppati in
   pochi corpi fisici, così la rottura di un tratto ricostruisce solo un pezzo piccolo.
 - **Misure**: lo strumento di screenshot stampa triangoli e chiamate di disegno per inquadratura,

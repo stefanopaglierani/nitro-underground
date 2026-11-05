@@ -16,11 +16,10 @@ l'elenco completo, file per file, con autore, link, licenza e modifiche, è in
 | Fonte | Cosa | Licenza |
 |---|---|---|
 | [Poly Haven](https://polyhaven.com) | Cieli HDRI, texture di asfalto, roccia, erba, sabbia; lampioni e rocce | CC0 |
-| [KayKit](https://kaylousberg.com) (Kay Lousberg) | City Builder Bits | CC0 |
-| [OpenGameArt](https://opengameart.org) | Kenney (auto, piste, natura, strade), rgsdev (veicoli), Quaternius (alberi, versione 2020), Yughues (erba, barriere) e altri | CC0 |
+| [OpenGameArt](https://opengameart.org) | Kenney (piste, natura, strade), Quaternius (alberi, versione 2020), Yughues (erba, barriere) e altri | CC0 |
 | [Freesound](https://freesound.org), OpenGameArt | Registrazioni di urti, cambiate, gomme, freno a mano | CC0 |
 | [Sketchfab](https://sketchfab.com) | Alberi, chalet, cartelli, barriere, palazzi, palme, faro, motel, cactus, rocce | **CC BY 4.0** (attribuzione obbligatoria) |
-| Sketchfab | Modelli delle auto del garage | CC BY 4.0, **CC BY-NC 4.0**, **CC BY-NC-SA 4.0** (vedi sotto) |
+| Sketchfab | Tutte le auto: garage e avversari, polizia, traffico | CC BY 4.0, **CC BY-NC 4.0**, **CC BY-NC-SA 4.0** (vedi sotto) |
 
 Tutti gli autori Sketchfab sono citati per nome in `assets/LICENSES.md`.
 
@@ -32,13 +31,16 @@ pubblicazione sugli store**. Stefano ha deciso così il 29 ottobre 2026.
 
 1. **Licenze non commerciali (NC).** Questi modelli si possono condividere solo senza scopo di
    lucro e citando l'autore; quelli "SA" vanno ridistribuiti con la stessa licenza:
-   - McLaren 600LT e Porsche 911 GT3 — Outlaw Games™, CC BY-NC 4.0
-   - 2024 Ford F-150 Raptor R — VTX, CC BY-NC-SA 4.0
-   - 2021 Ram 1500 TRX e 2013 Ford Mustang GT — Ddiaz Design, CC BY-NC-SA 4.0
-   - 1970 Dodge Charger R/T — OUTPISTON, CC BY-NC-SA 4.0
+   - Garage: 1970 Dodge Charger R/T — OUTPISTON, CC BY-NC-SA 4.0; 2013 Chevrolet Corvette Z06 —
+     Outlaw Games™, CC BY-NC 4.0; BMW M3 GTR E46 — Alex.Ka., CC BY-NC 4.0; Toyota Supra A80 —
+     Lexyc16, CC BY-NC 4.0
+   - Traffico: 1969 Chevrolet Corvette Stingray — Ddiaz Design, CC BY-NC-SA 4.0; Chevrolet Camaro
+     ZL1 — Outlaw Games™, CC BY-NC 4.0; GMC Sierra Work Truck — Renafox, CC BY-NC 4.0
    - Ford Mondeo Police (auto della polizia) — TSB3DMODELS, CC BY-NC 4.0
-2. **Marchi registrati.** Nomi, forme e loghi di McLaren, Porsche, Ford, Dodge, RAM, Nissan, Toyota
-   e BMW appartengono ai rispettivi proprietari. Usarli in un gioco in vendita richiede licenze
+   - Non più nel gioco ma ancora nel repository: McLaren 600LT e Porsche 911 GT3 (Outlaw Games™,
+     CC BY-NC 4.0), Ford F-150 Raptor R (VTX), Ram 1500 TRX e Mustang GT (Ddiaz Design), CC BY-NC-SA 4.0
+2. **Marchi registrati.** Nomi, forme e loghi di Dodge, Chevrolet, BMW, Toyota, Mercedes-Benz, GMC,
+   Land Rover, Jeep, Ford e degli altri costruttori appartengono ai rispettivi proprietari. Usarli in un gioco in vendita richiede licenze
    dei costruttori, anche quando il modello 3D è CC BY.
 3. **Riferimenti ai film.** La Skyline R34 "Brian" e la Charger "Fast And Furious Edition" si
    ispirano ad auto di film famosi: in una versione commerciale non devono comparire.
