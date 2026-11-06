@@ -37,6 +37,7 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.13.1 | 04/11/2026 | Il telefono si bloccava: auto e texture alleggerite, addio fumetto 2.5D (grafica realistica di base), via i guardrail, nuova polizia | ramo `claude/project-thread-8bmj8s` |
 | v0.14 | 05/11/2026 | OpenGL sul telefono, nuovo garage di 5 auto guidato anche dai rivali, traffico con 9 auto dettagliate, auto "pre-cotte" per un menù più veloce, via tutte le auto low poly | ramo `claude/project-thread-8bmj8s` |
 | v0.15 | 06/11/2026 | Solo auto "vendibili" (CC BY): 14 nel garage e per i rivali, 4 volanti, 13 mezzi nel traffico; nomi inventati e loghi tolti alle auto di marchi reali | ramo `claude/project-thread-8bmj8s` |
+| v0.16 | 06/11/2026 | Auto lontane in versione leggera contro gli scatti, asfalto a filo del terreno, avviso rosso di contromano, Petalo Roadster non più sospesa | ramo `claude/project-thread-8bmj8s` |
 
 ## Le svolte principali
 
@@ -455,6 +456,39 @@ gioco in vendita. Dopo una ricerca fatta in un altro filone di lavoro ha scelto 
 **Verifica ed esito:** foto davanti/dietro di ogni auto preparata (corrette così tre auto montate al
 contrario o fuori scala); gare automatiche sulla Costa e nel Deserto con la Falco Turbo. Da provare
 sul telefono.
+
+---
+
+## v0.16 — Più fluido, asfalto a filo e senso di marcia (6 novembre)
+
+**Richiesta:** provata la v0.15 sul telefono, Stefano ha segnalato quattro cose: il gioco andava di
+nuovo "veramente tanto a scatti"; le auto che uscivano di strada saltavano o si ribaltavano per lo
+scalino tra asfalto e terreno ("terrei l'asfalto alla stessa altezza del mondo"); andare contromano
+non aveva conseguenze ("un label in rosso al centro dello schermo"); la Petalo Roadster fluttuava,
+anche nel menù, "come se ci fosse un blocco invisibile" sotto.
+
+**Come è stato costruito:**
+- **Perché scattava:** fino alla v0.13.1 solo l'auto del giocatore era un modello dettagliato; dalla
+  v0.14 lo sono anche i 3 avversari, la polizia e i 24 mezzi del traffico, tutti disegnati sempre al
+  massimo dettaglio.
+- **Versione leggera da lontano:** `tools/bake_cars.gd` prepara per ogni auto anche una copia di
+  circa 4.000 triangoli, ruote comprese, in un solo pezzo. Oltre 25 metri dalla telecamera il gioco
+  mostra quella, senza ombra (`visibility_range` di Godot). L'auto del giocatore resta sempre dettagliata.
+- **Meno triangoli da vicino:** tetto di 45.000 triangoli per le auto del garage (prima 70.000),
+  30.000 per la polizia e 18.000 per il traffico; la berlina della polizia scende da 95.000 a 48.000.
+- **Asfalto a filo:** il terreno ai lati della strada ora è alla stessa altezza dell'asfalto e della
+  ghiaia (prima 40 cm sotto; resta un margine di 3 cm, solo perché le due superfici non tremolino sullo
+  schermo), così uscire di strada e rientrare non fa più da trampolino. Stefano ha chiesto "zero"
+  dopo una prima prova a 10 cm.
+- **Contromano:** se il giocatore va contro il senso della gara per un secondo e mezzo sopra i 30 km/h, al centro
+  dello schermo lampeggia in rosso "SENSO DI MARCIA SBAGLIATO".
+- **Petalo Roadster:** il modello aveva un pannello verticale invisibile (lo sfondo della vetrina
+  dell'autore) alto più del doppio dell'auto, che la sollevava. Il catalogo ora lo nasconde.
+
+**Verifica ed esito:** nella stessa scena di partenza in montagna (render senza GPU nel cloud) si
+passa da 1,19 milioni di triangoli e 982 chiamate di disegno a 0,93 milioni e 810; la Petalo
+appoggia a terra; l'avviso rosso compare (provato forzandolo). Nelle gare automatiche su Costa e Montagna è comparso
+solo dopo due testacoda, per poco: la soglia è stata alzata a 1,5 secondi e 30 km/h. Da provare sul telefono.
 
 ---
 

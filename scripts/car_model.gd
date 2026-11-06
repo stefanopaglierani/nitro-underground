@@ -19,6 +19,11 @@ static var bake_mode := false
 ## Node or material names left out of the car being built (catalog "hide": logos, a backdrop).
 static var _hide: Array = []
 const BAKED_DIR := "res://assets/cars_baked/"
+## Beyond this distance from the camera (metres) a prepared car shows its light far version: the
+## detailed body and wheels are drawn only up close (v0.16, the phone lagged with 30 detailed cars).
+const FAR_DISTANCE := 25.0
+## Margin where both versions overlap, so the switch is not a pop of empty space.
+const FAR_MARGIN := 2.0
 ## Models with more pieces than this are welded together when built (see build_generic).
 const MERGE_MIN_SURFACES := 40
 
@@ -245,14 +250,35 @@ static func baked_path(id: String) -> String:
 static func _from_merged(data: Dictionary, entry: Dictionary, paint_mat: Material, tail: StandardMaterial3D) -> Node3D:
 	var root := Node3D.new()
 	root.name = "Model"
-	_add_merged(root, "Body", data["body"], entry, paint_mat, tail)
+	var far: Array = data.get("far", [])
+	var near_end := FAR_DISTANCE + FAR_MARGIN if not far.is_empty() else 0.0
+	_add_merged(root, "Body", data["body"], entry, paint_mat, tail, near_end)
 	for corner in data["wheels"]:
 		var pivot := Node3D.new()
 		pivot.name = corner
 		pivot.position = data["wheels"][corner][0]
 		root.add_child(pivot)
-		_add_merged(pivot, "Wheel", data["wheels"][corner][1], entry, paint_mat, tail)
+		_add_merged(pivot, "Wheel", data["wheels"][corner][1], entry, paint_mat, tail, near_end)
+	for mesh: ArrayMesh in far:
+		var mi := MeshInstance3D.new()
+		mi.name = "Far"
+		mi.mesh = mesh
+		mi.visibility_range_begin = FAR_DISTANCE
+		# Far away its shadow is too small to see: save the extra draw.
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		root.add_child(mi)
+		_apply_paint(mi, entry, paint_mat, tail)
 	return _finish(root, entry, tail, data["height"])
+
+
+## Drops the far version of a model and always shows the detailed one (the player's car).
+static func keep_detailed(model: Node3D) -> void:
+	for n in model.find_children("*", "MeshInstance3D", true, false):
+		if n.name.begins_with("Far"):
+			n.get_parent().remove_child(n)
+			n.free()
+		else:
+			(n as MeshInstance3D).visibility_range_end = 0.0
 
 
 ## Tail-light material and, for the police, the siren lights on the roof.
@@ -268,11 +294,12 @@ static func _finish(root: Node3D, entry: Dictionary, tail: StandardMaterial3D, b
 	return root
 
 
-static func _add_merged(parent: Node3D, node_name: String, meshes: Array[ArrayMesh], entry: Dictionary, paint_mat: Material, tail: StandardMaterial3D) -> void:
+static func _add_merged(parent: Node3D, node_name: String, meshes: Array[ArrayMesh], entry: Dictionary, paint_mat: Material, tail: StandardMaterial3D, range_end := 0.0) -> void:
 	for mesh in meshes:
 		var mi := MeshInstance3D.new()
 		mi.name = node_name
 		mi.mesh = mesh
+		mi.visibility_range_end = range_end
 		parent.add_child(mi)
 		_apply_paint(mi, entry, paint_mat, tail)
 

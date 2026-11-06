@@ -168,7 +168,7 @@ Scaricate ma non usate: Muscle Car Concept (ViktorKom; il modello ha porte e cof
 | `nsx_1990.glb` | Nova SX '90 | Honda NSX 1990 | Lexyc16 | https://sketchfab.com/3d-models/honda-nsx-1990-1cc15628a00a4739a6b6c01128927c8d | Honda; targhe nascoste |
 | `silvia_s13.glb` | Shiro 13 | 1992 Nissan Silvia S13 | lstance | https://sketchfab.com/3d-models/1992-nissan-silvia-s13-6fa8f1948f954e3b980b5e96f203815a | Nissan; scritta e stemma posteriori nascosti |
 | `silvia_s14.glb` | Shiro 14 | Nissan 200SX Silvia S14 | Lexyc16 | https://sketchfab.com/3d-models/nissan-200sx-silvia-s14-f2a917a924734a89a020e7f970e55e7c | Nissan |
-| `miata_na.glb` | Petalo Roadster | Mazda Miata MX-5 NA | Lexyc16 | https://sketchfab.com/3d-models/mazda-miata-mx-5-na-d51fcd44b74f4daf8012c41e0400c041 | Mazda |
+| `miata_na.glb` | Petalo Roadster | Mazda Miata MX-5 NA | Lexyc16 | https://sketchfab.com/3d-models/mazda-miata-mx-5-na-d51fcd44b74f4daf8012c41e0400c041 | Mazda; nascosto il pannello di sfondo che la sollevava (v0.16) |
 | `nissan_z_proto.glb` | Zenith Proto | Nissan Z Proto | Lexyc16 | https://sketchfab.com/3d-models/nissan-z-proto-db9a5f7ae9d84a0fb01cac96afe3e69c | Nissan; stemmi ancora dipinti nella texture |
 | `porsche_930.glb` | Falco Turbo '75 | Porsche 911 (930) Turbo 1975 | Lexyc16 | https://sketchfab.com/3d-models/porsche-911-930-turbo-1975-de1ffd344c41481892511f7fd332c136 | Porsche |
 | `bmw_m3_e30.glb` | Kraft Sport '87 | [FREE] BMW M3 E30 | TinoD2 | https://sketchfab.com/3d-models/free-bmw-m3-e30-ac3c7013434e403e8faff87948caf422 | BMW; stemmi e loghi dei freni nascosti |

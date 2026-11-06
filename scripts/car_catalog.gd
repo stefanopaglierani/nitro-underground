@@ -16,7 +16,7 @@ const CARS := [
 	{"id": "nova_sx", "name": "Nova SX '90", "kind": "hd", "path": "res://assets/cars_cc/nsx_1990.glb", "len": 4.4, "hide": ["Material.016"]},
 	{"id": "shiro_13", "name": "Shiro 13", "kind": "hd", "path": "res://assets/cars_cc/silvia_s13.glb", "len": 4.5, "hide": ["Object_4", "Object_8"]},
 	{"id": "shiro_14", "name": "Shiro 14", "kind": "hd", "path": "res://assets/cars_cc/silvia_s14.glb", "len": 4.5},
-	{"id": "petalo_roadster", "name": "Petalo Roadster", "kind": "hd", "path": "res://assets/cars_cc/miata_na.glb", "len": 3.95},
+	{"id": "petalo_roadster", "name": "Petalo Roadster", "kind": "hd", "path": "res://assets/cars_cc/miata_na.glb", "len": 3.95, "hide": ["Plane_Material_005_0"]},
 	{"id": "zenith_proto", "name": "Zenith Proto", "kind": "hd", "path": "res://assets/cars_cc/nissan_z_proto.glb", "len": 4.38},
 	{"id": "falco_turbo", "name": "Falco Turbo '75", "kind": "hd", "path": "res://assets/cars_cc/porsche_930.glb", "len": 4.29},
 	{"id": "kraft_sport", "name": "Kraft Sport '87", "kind": "hd", "path": "res://assets/cars_cc/bmw_m3_e30.glb", "len": 4.35, "hide": ["BMW_E30_M3_EMBLEMS", "Logo_Plane"]},

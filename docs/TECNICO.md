@@ -270,11 +270,16 @@ segnalati da Stefano:
 - **Memoria**: tornando al menu i modelli delle auto della gara vengono liberati.
 - **Auto pre-cotte (v0.14)**: `tools/bake_cars.gd` prepara ogni auto sul computer di sviluppo
   (girata, scalata, ruote separate in quattro perni, pezzi saldati per materiale, triangoli ridotti
-  con il generatore di LOD di Godot fino a circa 90 mila in garage e 30 mila nel traffico) e la salva
+  con il generatore di LOD di Godot fino a circa 45 mila in garage e 18 mila nel traffico, v0.16) e la salva
   in `assets/cars_baked/<id>.res` (`BakedCar`). Il telefono carica solo quel file: la preparazione
   passa da 50-350 ms a circa 10 ms per auto nel banco prova, e i modelli originali restano fuori
   dall'APK. Il menu tiene in memoria l'auto in mostra, la precedente e la successiva, e legge queste ultime in sottofondo.
   Dopo aver cambiato o aggiunto un'auto nel catalogo va rilanciato lo strumento.
+- **Auto lontane leggere (v0.16)**: dalla v0.14 anche avversari, polizia e 24 mezzi del traffico
+  sono modelli dettagliati, e il telefono è tornato a scattare. Ogni auto pre-cotta ha ora anche una
+  copia da circa 4.000 triangoli in un solo pezzo (ruote comprese, per materiale); con le
+  `visibility_range` di Godot oltre 25 m si vede quella, senza ombra, mentre l'auto del giocatore resta
+  sempre dettagliata. Tetti da vicino: 45 mila triangoli in garage, 30 mila polizia, 18 mila traffico.
 - **Terreno a blocchi** (32×32 celle) e alberi disegnati con MultiMesh; guardrail raggruppati in
   pochi corpi fisici, così la rottura di un tratto ricostruisce solo un pezzo piccolo.
 - **Misure**: lo strumento di screenshot stampa triangoli e chiamate di disegno per inquadratura,

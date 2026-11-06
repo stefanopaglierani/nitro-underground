@@ -262,7 +262,9 @@ func _build_terrain() -> void:
 			if d == INF:
 				_heights[i] = nat
 			else:
-				var bed := road_h[i] - 0.4
+				# Level with the road (v0.16, Stefano: no step at the edge). 3 cm under it only so the
+				# two surfaces do not flicker into each other on screen.
+				var bed := road_h[i] - 0.03
 				_heights[i] = lerpf(bed, nat, smoothstep(flat_r, BLEND, d))
 
 	var mat := _terrain_material()
@@ -371,8 +373,8 @@ func _build_road() -> void:
 	var asphalt_mat := _pbr("asphalt_02")
 	asphalt_mat.albedo_color = road_tint
 	asphalt.surface_set_material(0, asphalt_mat)
-	var verge_l := _ribbon([-RAIL_OFFSET, -ROAD_HALF], -0.03, 4.0)
-	var verge_r := _ribbon([ROAD_HALF, RAIL_OFFSET], -0.03, 4.0)
+	var verge_l := _ribbon([-RAIL_OFFSET, -ROAD_HALF], 0.0, 4.0)
+	var verge_r := _ribbon([ROAD_HALF, RAIL_OFFSET], 0.0, 4.0)
 	var gravel := _pbr("clean_asphalt")
 	gravel.albedo_color = verge_tint
 	verge_l.surface_set_material(0, gravel)

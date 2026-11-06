@@ -48,6 +48,9 @@ const AI_ADVANCE_RADIUS := 12.0
 const PLAYER_WP_LOOKAHEAD := 8
 ## Seconds a rival may go without reaching its next race-path point before it is put back on it.
 const RACER_STALL_TIME := 8.0
+## Wrong way: the player drives against the race above this speed (m/s) for this many seconds.
+const WRONG_WAY_SPEED := 8.0
+const WRONG_WAY_TIME := 1.5
 const PRIZE := 5000
 ## Seconds into the race when someone calls the police.
 const POLICE_CALL_TIME := 20.0
@@ -86,6 +89,7 @@ var time_left := 0.0
 var _clock_times: Array[float] = []  # seconds given for the stretch that ends at checkpoint i
 var player_cp := 1
 var player_wp := 1  # index in race_path, for the race position
+var _wrong_way_t := 0.0
 var finish_order: Array[Car] = []
 var heat := 0.0
 var bust_t := 0.0
@@ -423,11 +427,40 @@ func _process(delta: float) -> void:
 		"race":
 			race_time += delta
 			_race_logic(delta)
+			_check_wrong_way(delta)
 	if player:
 		_update_camera(delta)
 		_update_hud()
 	if autotest:
 		_autotest_tick(delta)
+
+
+## Red warning when the player drives against the race: the car moves opposite to the race path
+## around the last point it passed.
+func _check_wrong_way(delta: float) -> void:
+	var wrong := false
+	if player_wp > 0 and player_wp < race_path.size() and not finish_order.has(player):
+		# The race-path segment nearest to the car, around the last point it passed.
+		var dir := Vector3.ZERO
+		var best := INF
+		for k in range(maxi(player_wp - 2, 1), mini(player_wp + 2, race_path.size())):
+			var p := Geometry3D.get_closest_point_to_segment(player.global_position, race_path[k - 1], race_path[k])
+			var d := p.distance_to(player.global_position)
+			if d < best:
+				best = d
+				dir = race_path[k] - race_path[k - 1]
+		dir.y = 0.0
+		var v := player.linear_velocity
+		v.y = 0.0
+		if dir.length() > 0.1 and v.length() > WRONG_WAY_SPEED:
+			wrong = v.normalized().dot(dir.normalized()) < -0.5
+	_wrong_way_t = clampf(_wrong_way_t + (delta if wrong else -2.0 * delta), 0.0, WRONG_WAY_TIME)
+	if wrong and _wrong_way_t >= WRONG_WAY_TIME:
+		if autotest and not hud.wrong_way_label.visible:
+			print("[autotest] WRONG WAY at wp %d" % player_wp)
+		hud.set_wrong_way(true)
+	elif _wrong_way_t <= 0.0:
+		hud.set_wrong_way(false)
 
 
 func _go() -> void:

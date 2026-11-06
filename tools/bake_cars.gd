@@ -6,11 +6,14 @@ extends SceneTree
 ## Run after adding or changing a car:
 ##   godot --headless --path . --script tools/bake_cars.gd [-- id id ...]
 
-const BUDGET_GARAGE := 70000
-const BUDGET_POLICE := 50000
-const BUDGET_TRAFFIC := 30000
+const BUDGET_GARAGE := 45000
+const BUDGET_POLICE := 30000
+const BUDGET_TRAFFIC := 18000
+## Triangles of the far version (whole car in one mesh), shown beyond CarModel.FAR_DISTANCE.
+const BUDGET_FAR := 4000
 ## Surfaces with fewer triangles than this are left as they are.
 const MIN_TRIS := 400
+const MIN_TRIS_FAR := 60
 
 
 func _init() -> void:
@@ -58,12 +61,17 @@ func _run() -> void:
 			var list: Array[ArrayMesh] = []
 			for m in data["wheels"][corner][1]:
 				# Round tyres turn polygonal quickly: they are lightened at most by half.
-				var s := _lighten(m, maxf(ratio, 0.5))
+				var s := _lighten(m, maxf(ratio, 0.3))
 				after += _tris(s)
 				list.append(s)
 			baked.wheel_meshes[corner] = list
+		# Far version: body and wheels welded by material, then lightened hard.
+		var far := _weld(data)
+		var far_before := _tris(far)
+		var lean := _lighten(far, minf(1.0, float(BUDGET_FAR) / maxf(far_before, 1.0)), MIN_TRIS_FAR)
+		baked.far.append(lean)
 		var err := ResourceSaver.save(baked, CarModel.baked_path(id), ResourceSaver.FLAG_COMPRESS)
-		print("%s: %d -> %d triangles (%s)" % [id, before, after, error_string(err)])
+		print("%s: %d -> %d triangles, far %d, %d draws near / %d far (%s)" % [id, before, after, _tris(lean), _surfaces(baked), lean.get_surface_count(), error_string(err)])
 		CarModel.clear_cache()
 	quit()
 
@@ -76,8 +84,48 @@ static func _tris(m: ArrayMesh) -> int:
 	return n
 
 
+static func _surfaces(b: BakedCar) -> int:
+	var n := 0
+	for m in b.body:
+		n += m.get_surface_count()
+	for c in b.wheel_meshes:
+		for m in b.wheel_meshes[c]:
+			n += (m as ArrayMesh).get_surface_count()
+	return n
+
+
+## Body and wheels (moved to their pivots) in one mesh, one surface per material and format.
+static func _weld(data: Dictionary) -> ArrayMesh:
+	var parts := []
+	for m in data["body"]:
+		parts.append([m, Transform3D()])
+	for corner in data["wheels"]:
+		for m in data["wheels"][corner][1]:
+			parts.append([m, Transform3D(Basis(), data["wheels"][corner][0])])
+	var tools := {}
+	var order := []
+	for e in parts:
+		var m: ArrayMesh = e[0]
+		for s in m.get_surface_count():
+			var mat := m.surface_get_material(s)
+			var key := "%d/%d" % [mat.get_instance_id() if mat else 0, m.surface_get_format(s) & Mesh.ARRAY_FORMAT_CUSTOM_BASE - 1]
+			if not tools.has(key):
+				var st := SurfaceTool.new()
+				st.begin(Mesh.PRIMITIVE_TRIANGLES)
+				st.set_material(mat)
+				tools[key] = st
+				order.append(key)
+			(tools[key] as SurfaceTool).append_from(m, s, e[1])
+	var out := ArrayMesh.new()
+	for key in order:
+		var st: SurfaceTool = tools[key]
+		st.index()
+		out = st.commit(out)
+	return out
+
+
 ## The mesh with each big surface simplified to about `ratio` of its triangles.
-static func _lighten(mesh: ArrayMesh, ratio: float) -> ArrayMesh:
+static func _lighten(mesh: ArrayMesh, ratio: float, min_tris := MIN_TRIS) -> ArrayMesh:
 	var out := ArrayMesh.new()
 	for s in mesh.get_surface_count():
 		var arrays := mesh.surface_get_arrays(s)
@@ -86,10 +134,10 @@ static func _lighten(mesh: ArrayMesh, ratio: float) -> ArrayMesh:
 			arrays[k] = null
 		var mat := mesh.surface_get_material(s)
 		var tris := _tris_of(arrays)
-		if ratio < 0.95 and tris >= MIN_TRIS:
+		if ratio < 0.95 and tris >= min_tris:
 			# Each pass halves the triangles at most: repeat until near the target.
 			var target := int(tris * ratio)
-			for i in 4:
+			for i in 6:
 				arrays = _simplify(arrays, mat, target)
 				var now := _tris_of(arrays)
 				if now < target * 1.3 or now > tris * 0.9:

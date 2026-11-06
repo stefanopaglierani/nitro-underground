@@ -36,6 +36,8 @@ var clock_bonus_label: Label
 var _bonus_t := 0.0
 var _buttons: Dictionary = {}
 var _message_t := 0.0
+var wrong_way_label: Label
+var _wrong_way_t := 0.0
 
 
 func _ready() -> void:
@@ -79,6 +81,19 @@ func _ready() -> void:
 	clock_bonus_label.offset_top = 84
 	clock_bonus_label.offset_bottom = 130
 	clock_bonus_label.visible = false
+
+	# Red warning in the middle of the screen when the player drives against the race (v0.16).
+	wrong_way_label = _label(56, Color(1, 0.15, 0.1))
+	wrong_way_label.text = "SENSO DI MARCIA SBAGLIATO"
+	wrong_way_label.set_anchors_preset(Control.PRESET_CENTER)
+	wrong_way_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	wrong_way_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	wrong_way_label.offset_left = -600
+	wrong_way_label.offset_right = 600
+	wrong_way_label.offset_top = -60
+	wrong_way_label.offset_bottom = 20
+	wrong_way_label.add_theme_constant_override("outline_size", 14)
+	wrong_way_label.visible = false
 
 	heat_label = _label(22, Color(0.8, 0.85, 1))
 	heat_label.text = "POLIZIA"
@@ -257,7 +272,17 @@ func flash(text: String, seconds := 2.5) -> void:
 	_message_t = seconds
 
 
+## Shows or hides the blinking wrong-way warning.
+func set_wrong_way(on: bool) -> void:
+	if on and not wrong_way_label.visible:
+		_wrong_way_t = 0.0
+	wrong_way_label.visible = on
+
+
 func _process(delta: float) -> void:
+	if wrong_way_label.visible:
+		_wrong_way_t += delta
+		wrong_way_label.modulate.a = 1.0 if fmod(_wrong_way_t, 0.8) < 0.55 else 0.25
 	if _message_t > 0.0:
 		_message_t -= delta
 		if _message_t < 0.5:
@@ -445,6 +470,7 @@ func _show_race_info(on: bool) -> void:
 
 
 func show_end(won: bool, title: String, text: String) -> void:
+	set_wrong_way(false)
 	end_title.text = title
 	end_title.add_theme_color_override("font_color", Color(0.3, 1, 0.5) if won else Color(1, 0.3, 0.3))
 	end_text.text = text

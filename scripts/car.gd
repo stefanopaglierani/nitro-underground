@@ -240,6 +240,8 @@ func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 		# Air drag holds the car about 5% under max_speed, so aim a little higher.
 		max_speed = CarCatalog.top_speed(body) / 3.6 * 1.05
 	_model = CarModel.build(model_paint, kind == Driver.POLICE, body)
+	if kind == Driver.PLAYER:
+		CarModel.keep_detailed(_model)  # always close to the camera
 	add_child(_model)
 	for n in ["WheelFL", "WheelFR", "WheelRL", "WheelRR"]:
 		_wheel_nodes.append(_model.get_node(n))
