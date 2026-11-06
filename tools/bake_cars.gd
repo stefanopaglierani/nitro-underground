@@ -6,7 +6,7 @@ extends SceneTree
 ## Run after adding or changing a car:
 ##   godot --headless --path . --script tools/bake_cars.gd [-- id id ...]
 
-const BUDGET_GARAGE := 90000
+const BUDGET_GARAGE := 70000
 const BUDGET_POLICE := 50000
 const BUDGET_TRAFFIC := 30000
 ## Surfaces with fewer triangles than this are left as they are.
@@ -22,7 +22,7 @@ func _run() -> void:
 	var args := OS.get_cmdline_user_args()
 	if args.is_empty():
 		ids.append_array(CarCatalog.GARAGE)
-		ids.append_array(["police_mondeo", "police_car"])
+		ids.append_array(Car.POLICE_BODIES)
 		ids.append_array(CarCatalog.TRAFFIC)
 	else:
 		ids.append_array(args)

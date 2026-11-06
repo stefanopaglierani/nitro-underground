@@ -247,8 +247,9 @@ Dopo aver provato uno stile realistico, uno anime e uno a fumetto, Stefano ha sc
   [`assets/LICENSES.md`](../assets/LICENSES.md) con fonte, autore, link, licenza alla data del
   download e modifiche. Le eccezioni non commerciali sono dichiarate in [`CREDITI.md`](../CREDITI.md).
 - **Fonti**: Poly Haven (cieli, texture PBR), Kenney, OpenGameArt, Freesound (CC0) e
-  Sketchfab (CC BY e, per le auto, anche NC). Dalla v0.14 tutte le auto sono modelli Sketchfab
-  dettagliati: le auto low poly (rgsdev, Kenney, KayKit) sono state tolte.
+  Sketchfab (CC BY). Dalla v0.14 tutte le auto sono modelli Sketchfab
+  dettagliati; dalla v0.15 solo CC BY (vendibili), con nomi inventati e i loghi separati nascosti
+  dal catalogo (`"hide"`).
 - **`Scenery`**: ogni modello viene scalato all'altezza reale, appoggiato a terra e **fuso in una
   sola mesh con una superficie per materiale**. Un modello fatto di 123 pezzi passava da oltre
   1.000 chiamate di disegno a una manciata.
@@ -272,7 +273,7 @@ segnalati da Stefano:
   con il generatore di LOD di Godot fino a circa 90 mila in garage e 30 mila nel traffico) e la salva
   in `assets/cars_baked/<id>.res` (`BakedCar`). Il telefono carica solo quel file: la preparazione
   passa da 50-350 ms a circa 10 ms per auto nel banco prova, e i modelli originali restano fuori
-  dall'APK. Il menu tiene in memoria le auto già viste e legge le altre del garage in sottofondo.
+  dall'APK. Il menu tiene in memoria l'auto in mostra, la precedente e la successiva, e legge queste ultime in sottofondo.
   Dopo aver cambiato o aggiunto un'auto nel catalogo va rilanciato lo strumento.
 - **Terreno a blocchi** (32×32 celle) e alberi disegnati con MultiMesh; guardrail raggruppati in
   pochi corpi fisici, così la rottura di un tratto ricostruisce solo un pezzo piccolo.

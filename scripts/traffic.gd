@@ -76,13 +76,21 @@ func setup(track: Track, rng: RandomNumberGenerator, start_t := -1.0) -> void:
 	phys.bounce = 0.1
 	physics_material_override = phys
 	var body: String = CarCatalog.TRAFFIC[rng.randi() % CarCatalog.TRAFFIC.size()]
+	var model := CarModel.build(Color(0, 0, 0, 0), false, body)
+	add_child(model)
+	# The body that hits is a box as big as the vehicle (a bus is much longer and taller than a car),
+	# kept a little inside the bodywork and off the ground.
+	var bounds := AABB()
+	for mi in model.find_children("*", "MeshInstance3D", true, false):
+		var bb: AABB = CarModel._xf_in(mi, model) * (mi as MeshInstance3D).get_aabb()
+		bounds = bb if bounds.size == Vector3.ZERO else bounds.merge(bb)
 	var shape := BoxShape3D.new()
-	shape.size = Vector3(1.9, 1.5, minf(float(CarCatalog.find(body).get("len", 4.5)) - 0.3, 5.4))
+	var size := bounds.size if bounds.size != Vector3.ZERO else Vector3(1.9, 1.6, 4.5)
+	shape.size = Vector3(clampf(size.x - 0.1, 1.6, 2.6), clampf(size.y - 0.3, 1.2, 3.2), maxf(size.z - 0.3, 3.0))
 	var col := CollisionShape3D.new()
 	col.shape = shape
-	col.position.y = 0.85
+	col.position.y = 0.2 + shape.size.y * 0.5
 	add_child(col)
-	add_child(CarModel.build(Color(0, 0, 0, 0), false, body))
 	contact_monitor = true
 	max_contacts_reported = 4
 	_set_driving_layers(true)

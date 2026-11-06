@@ -16,6 +16,8 @@ static var _scenes := {}
 static var _merged := {}
 ## True while tools/bake_cars.gd prepares the cars: always weld, never read a baked file.
 static var bake_mode := false
+## Node or material names left out of the car being built (catalog "hide": logos, a backdrop).
+static var _hide: Array = []
 const BAKED_DIR := "res://assets/cars_baked/"
 ## Models with more pieces than this are welded together when built (see build_generic).
 const MERGE_MIN_SURFACES := 40
@@ -23,6 +25,12 @@ const MERGE_MIN_SURFACES := 40
 
 ## Forgets the car models read so far, so their memory is freed once no car uses them (the title
 ## screen keeps only the car on show; leaving a race frees the race cars).
+## Lets go of one car's model, read again the next time it is built.
+static func forget(path: String) -> void:
+	_merged.erase(path)
+	_scenes.erase(path)
+
+
 static func clear_cache() -> void:
 	_scenes.clear()
 	_merged.clear()
@@ -104,13 +112,14 @@ static func build_generic(paint: Color, entry: Dictionary) -> Node3D:
 	root.add_child(model)
 	_unskin(model)
 	# Bounds of the car body, leaving out flat ground planes (shadow cards), which are hidden.
+	_hide = entry.get("hide", [])
 	var meshes: Array[MeshInstance3D] = []
 	var boxes: Array[AABB] = []
 	var bounds := AABB()
 	for node in model.find_children("*", "MeshInstance3D", true, false):
 		var mi := node as MeshInstance3D
 		# Parts the catalog leaves out (a showroom backdrop shipped with the model).
-		if entry.has("hide") and (String(mi.name) in entry["hide"] or _material_names(mi) in entry["hide"]):
+		if String(mi.name) in _hide or _all_hidden(mi):
 			mi.visible = false
 			continue
 		var bb: AABB = _xf_in(mi, model) * mi.get_aabb()
@@ -303,6 +312,8 @@ static func _merge_meshes(node: Node3D, space: Node3D) -> Array[ArrayMesh]:
 			if mi.mesh.surface_get_primitive_type(si) != Mesh.PRIMITIVE_TRIANGLES:
 				continue
 			var m: Material = mi.mesh.surface_get_material(si)
+			if m and m.resource_name in _hide:
+				continue
 			var fmt: int = mi.mesh.surface_get_format(si) & (Mesh.ARRAY_FORMAT_NORMAL | Mesh.ARRAY_FORMAT_TANGENT | Mesh.ARRAY_FORMAT_COLOR | Mesh.ARRAY_FORMAT_TEX_UV | Mesh.ARRAY_FORMAT_TEX_UV2)
 			var solid := m is BaseMaterial3D and (m as BaseMaterial3D).transparency == BaseMaterial3D.TRANSPARENCY_DISABLED
 			var key := [m, fmt, 0 if solid else mi.get_instance_id()]
@@ -416,6 +427,17 @@ static func subset_arrays(src: Array, indices: PackedInt32Array) -> Array:
 		out[k] = b
 	out[Mesh.ARRAY_INDEX] = new_idx
 	return out
+
+
+## True if every surface of the mesh uses a material the catalog hides.
+static func _all_hidden(mi: MeshInstance3D) -> bool:
+	if _hide.is_empty():
+		return false
+	for i in mi.mesh.get_surface_count():
+		var m := mi.mesh.surface_get_material(i)
+		if m == null or not (m.resource_name in _hide):
+			return false
+	return true
 
 
 static func _material_names(mi: MeshInstance3D) -> String:

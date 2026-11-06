@@ -400,6 +400,21 @@ func _show_car() -> void:
 		ResourceLoader.load_threaded_request(path)
 
 
+## Lets go of the cars more than one step away from the one on show.
+func _forget_far_cars() -> void:
+	var keep := {}
+	for step in [-1, 0, 1]:
+		var entry: Dictionary = _garage[posmod(car_index + step, _garage.size())]
+		keep[_model_file(entry)] = true
+		keep[CarCatalog.model_path(entry)] = true
+	for path in _loaded.keys():
+		if not keep.has(path):
+			_loaded.erase(path)
+	for entry in _garage:
+		if not keep.has(CarCatalog.model_path(entry)):
+			CarModel.forget(CarCatalog.model_path(entry))
+
+
 ## The file read for a car: its ready-made light version (assets/cars_baked) when there is one.
 func _model_file(entry: Dictionary) -> String:
 	var baked := CarModel.baked_path(entry["id"])
@@ -415,6 +430,7 @@ func _build_preview() -> void:
 	_preview.set_meta("comic_ink", true)
 	_stage.add_child(_preview)
 	_preview.rotation.y = _turn
+	_forget_far_cars()
 	var length := 4.5
 	for mi in _preview.find_children("*", "MeshInstance3D", true, false):
 		var bb: AABB = CarModel._xf_in(mi, _preview) * (mi as MeshInstance3D).get_aabb()
@@ -434,11 +450,11 @@ func _process(delta: float) -> void:
 		_loaded[path] = res  # null if it could not be read: not asked for again
 		if res and not _garage.is_empty() and _model_file(_garage[car_index]) == path and not _leaving:
 			_build_preview()
-	# Then read the other garage cars in the background, one at a time, so the arrows show them
-	# straight away.
-	if _pending.is_empty() and not _leaving:
-		for entry in _garage:
-			var next := _model_file(entry)
+	# Then read the next and the previous garage car in the background, so the arrows show them
+	# straight away. Only these three stay in memory: the garage has many cars and the phone little RAM.
+	if _pending.is_empty() and not _leaving and not _garage.is_empty():
+		for step in [1, -1]:
+			var next := _model_file(_garage[posmod(car_index + step, _garage.size())])
 			if not _loaded.has(next):
 				_pending.append(next)
 				ResourceLoader.load_threaded_request(next)

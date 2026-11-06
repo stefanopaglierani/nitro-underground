@@ -75,6 +75,8 @@ var cp_marker: Node3D
 var cp_beam: Node3D
 var arrow: Node3D
 var rng := RandomNumberGenerator.new()
+## Garage cars the three rivals drive in this race.
+var _rivals: Array = []
 
 var state := "loading"  # loading, countdown, race, end
 var countdown := 0.0
@@ -222,7 +224,12 @@ func _loading(text: String, progress: float) -> void:
 ## police. Returns the paths being read.
 func _request_car_models() -> Array[String]:
 	var paths: Array[String] = []
-	for id in [Car.player_body] + Car.rival_bodies().slice(0, 3) + Car.POLICE_BODIES:
+	# Three rivals picked at random among the garage cars the player did not take.
+	var pool := Car.rival_bodies()
+	_rivals.clear()
+	while _rivals.size() < 3 and not pool.is_empty():
+		_rivals.append(pool.pop_at(rng.randi() % pool.size()))
+	for id in [Car.player_body] + _rivals + Car.POLICE_BODIES:
 		var entry := CarCatalog.find(id)
 		var path: String = CarModel.baked_path(id)
 		if not ResourceLoader.exists(path) and not entry.is_empty():
@@ -375,7 +382,7 @@ func _make_car(kind: Car.Driver, paint: Color, body := "") -> Car:
 func _start() -> void:
 	countdown = 3.5
 	var grid := city.start_grid(4)
-	var rivals := Car.rival_bodies()
+	var rivals := _rivals if not _rivals.is_empty() else Car.rival_bodies()
 	for i in 3:
 		var r := _make_car(Car.Driver.RACER, RIVAL_COLORS[i], rivals[i % rivals.size()])
 		r.place(grid[i][0], grid[i][1])

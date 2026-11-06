@@ -101,25 +101,9 @@ Note: sono quasi tutti modelli low poly o "mid poly", non realistici. Non scaric
 | `assets/props/trees/*.fbx` e texture, pini e betulle della montagna | `library/quaternius_textured_trees/` (Quaternius, CC0 su OpenGameArt) | Solo Pine_1, 2, 3, 5 e Birch_1, 3. In gioco: ingranditi da 1,7 a 2,7 volte e foglie scurite |
 | `assets/props/grass/grass_01.png`, `grass_02.png`, `grass_04.png`, ciuffi d'erba a bordo strada | `library/yughues_grass/` (Yughues, CC0) | Solo la texture diffusa con alfa, rinominata. In gioco: due quadrati incrociati, colore più verde |
 
-## Garage della v0.5
+## Auto tolte dal repository (06/11/2026)
 
-Dalla v0.14 (05/11/2026) McLaren, Raptor, RAM, Porsche e Skyline "Brian" non sono più nel garage: restano nel repository ma non entrano nell'APK.
-
-### Auto realistiche da Sketchfab — `assets/cars_sketchfab/`
-
-Scaricate da Stefano e caricate il 2026-10-29. Licenze **non commerciali**: vanno bene finché il gioco resta un prototipo o portfolio (decisione di Stefano del 2026-10-29). Prima di un'eventuale pubblicazione sugli store vanno sostituite. I marchi (McLaren, Ford, RAM) sono dei rispettivi proprietari. Dai nomi interni dei file sembrano modelli derivati da un altro videogioco: è un motivo in più per non usarli in una versione commerciale.
-
-| Cartella | Modello | Autore | Link | Licenza | Modifiche |
-|---|---|---|---|---|---|
-| `mclaren_600lt/` | McLaren 600LT | Outlaw Games™ | https://sketchfab.com/3d-models/mclaren-600lt-23d87647c2b840d99ff06215613e8788 | CC BY-NC 4.0 (`license.txt`) | Nessuna sui file; in gioco viene scalata, girata e le ruote anteriori sterzano |
-| `2024_ford_f-150_raptor_r/` | 2024 Ford F-150 Raptor R | VTX | https://sketchfab.com/3d-models/2024-ford-f-150-raptor-r-9fbd01c5acfb45e7a7bbdf4c8e2c4aa8 | CC BY-NC-SA 4.0 (`license.txt`) | Come sopra. Le versioni modificate vanno condivise con la stessa licenza |
-| `2021_ram_1500_trx/` | 2021 Ram 1500 TRX | Ddiaz Design | https://sketchfab.com/3d-models/2021-ram-1500-trx-372fbf37230c46eca1997841bfaf0758 | CC BY-NC-SA 4.0 (`license.txt`) | Come sopra; le ruote sono un unico oggetto e non sterzano |
-
-Crediti richiesti: "This work is based on "McLaren 600LT" by Outlaw Games™, "2024 Ford F-150 Raptor R" by VTX and "2021 Ram 1500 TRX" by Ddiaz Design (links above), licensed under CC-BY-NC-4.0 / CC-BY-NC-SA-4.0."
-
-### Altri veicoli del garage (tolti nella v0.14)
-
-Le auto low poly rgsdev (`assets/cars_rgsdev`), Kenney Car Kit (`assets/cars_kenney`) e KayKit, tutte CC0, sono state tolte dal repository il 05/11/2026 su richiesta di Stefano: avversari e traffico ora usano solo modelli dettagliati.
+Su richiesta di Stefano, con la v0.15 sono stati cancellati dal repository i file di tutte le auto che non si potrebbero vendere o che il gioco non usa più: la cartella `assets/cars_sketchfab/` intera (McLaren 600LT, Porsche 911 GT3, Skyline R34 "Brian", Ford F-150 Raptor R, RAM 1500 TRX, Charger 1970, Corvette Z06, BMW M3 GTR, Supra A80, Mercedes W203, Ford Mondeo Police, Mustang GT 2013 e le auto Sketchfab della v0.6) e, dal traffico, Corvette 1969, Camaro 2012, Camaro ZL1, GMC Sierra e Mercedes 190E. Restano nella cronologia git e nella cartella del PC di Stefano. Le auto low poly rgsdev, Kenney e KayKit (CC0) erano già state tolte il 05/11/2026.
 
 ## Audio delle auto — `assets/audio/`
 
@@ -154,70 +138,54 @@ Tutte **CC0 1.0**, licenza verificata sulla pagina di ogni suono il 2026-10-30. 
 | `tyre_squeal.wav` | Chrysler LHS tire squeal 03 | audible-edge | https://freesound.org/people/audible-edge/sounds/71738/ | CC0 1.0 | 8,3–9,35 s, reso un loop |
 | `handbrake.wav` | Car Parking Brake (Car Sound Effects Pack) | ggbotnet | https://opengameart.org/content/car-sound-effects-pack-low-quality | CC0 1.0 | Normalizzato |
 
-### Auto Sketchfab aggiunte nella v0.6 — `assets/cars_sketchfab/*.glb`
+### Traffico dalla v0.14 (05/11/2026) — `assets/cars_traffic/`
 
-Scaricate il 30/10/2026 con l'API di Sketchfab (file GLB non modificati). In gioco vengono scalate alla lunghezza reale, girate col muso in avanti e appoggiate a terra; dove le ruote sono oggetti separati sterzano. Skyline, Silvia e M3 hanno le quattro ruote in un unico oggetto, quindi restano ferme.
-Le auto di marchi reali (Nissan, Toyota, BMW, Ford) vanno bene per il prototipo e il portfolio, da rivedere prima di pubblicare sugli store. La Mustang è non commerciale.
-
-| File | Modello | Autore | Licenza | Pagina |
-|---|---|---|---|---|
-| `nissan-skyline-r34.glb` | Low Poly Nissan Skyline GT-R R34 | Arifido._ | CC BY 4.0 | https://sketchfab.com/3d-models/8ecbe8e4e432439fa7159d2e61f6bc9b |
-| `toyota-mr2-w20.glb` | 1996 Toyota MR2 W20 | _shobh19 | CC BY 4.0 | https://sketchfab.com/3d-models/f66020ee62d741ebb0adc1ba351300db |
-| `kiri-86.glb` | Kiri '86 (inventata) | Daniel Zhabotinsky | CC BY 4.0 | https://sketchfab.com/3d-models/5c17c582ef9549798f694b660feea42a |
-| `doutrive-78-pickup.glb` | Doutrive '78 (inventata) | Daniel Zhabotinsky | CC BY 4.0 | https://sketchfab.com/3d-models/30700a84311c4bea9ef722f0773ce92a |
-| `eugene-mk6-65-suv.glb` | Eugene MK6 '65 (inventata) | Daniel Zhabotinsky | CC BY 4.0 | https://sketchfab.com/3d-models/22732575b0644cc9b65cf21857288189 |
-| `furgone-francese.glb` | French delivery van (inventato) | Daniel Zhabotinsky | CC BY 4.0 | https://sketchfab.com/3d-models/a350a422d200485ea57778dc42139edc |
-| `classic-muscle-car.glb` | Classic Muscle car | Lexyc16 | CC BY 4.0 | https://sketchfab.com/3d-models/641efc889e5f4543bae51d0922e6f4b3 |
-| `nissan-silvia-s15-drift.glb` | Nissan Silvia Drift Tuned (S15) | VuckyZ | CC BY 4.0 | https://sketchfab.com/3d-models/84b63a057e36488589392a19b9313e2b |
-| `bmw-m3-e36.glb` | Low poly BMW M3 E36 | sebbelon | CC BY 4.0 | https://sketchfab.com/3d-models/84c207be5933481fa754add04f196926 |
-| `ford-mustang-gt-2013.glb` | 2013 Ford Mustang GT | Ddiaz Design | CC BY-NC-SA 4.0 | https://sketchfab.com/3d-models/1368b104aa8148a3be15f4dfc8832045 |
-
-### Auto scaricate da Stefano (30/10/2026) — `assets/cars_sketchfab/`
-
-Scaricate a mano da Stefano su Sketchfab. Charger, Skyline "Brian" e Porsche sono la versione glTF di Sketchfab (non modificata, con il suo `license.txt`). In gioco vengono scalate, girate e appoggiate a terra come le altre.
-Marchi reali e auto dei film: vanno bene per il prototipo e il portfolio, da rivedere prima di pubblicare sugli store. Charger e Porsche sono non commerciali.
-
-| File | Modello | Autore | Licenza | Pagina |
-|---|---|---|---|---|
-| `dodge_charger_1970/` | 1970 Dodge Charger R/T Fast And Furious Edition | OUTPISTON | CC BY-NC-SA 4.0 (`license.txt`) | https://sketchfab.com/3d-models/fd195aaa9dad4aefbace532050b7fca6 |
-| `nissan_r34_brian/` | Nissan R34 Brians Fast Furious \| www.vecarz.com | vecarz | CC BY 4.0 (`license.txt`) | https://sketchfab.com/3d-models/412aa249c2f548eebf64bdb35f3553af |
-| `porsche_911_gt3/` | Porsche 911 GT3 | Outlaw Games™ | CC BY-NC 4.0 (`license.txt`) | https://sketchfab.com/3d-models/593c83f3662a4a45a016f95dedd9f243 |
-
-La Mustang 1969 John Bowe (vecarz, CC BY 4.0) è stata tolta dal gioco il 04/11/2026 su richiesta di Stefano.
-
-### Auto della polizia (04/11/2026) — `assets/cars_sketchfab/police_*.glb`
-
-Scaricate a mano da Stefano su Sketchfab (GLB non modificati, con il loro `license.txt` nello zip). In gioco sono le due auto della polizia.
-La Mondeo è di un marchio reale (Ford) ed è **non commerciale**: va bene per il prototipo e il portfolio, da sostituire prima di pubblicare sugli store.
-
-| File | Modello | Autore | Licenza | Pagina |
-|---|---|---|---|---|
-| `police_mondeo.glb` | Ford Mondeo Police (Ver.1) | TSB3DMODELS | CC BY-NC 4.0 | https://sketchfab.com/3d-models/ford-mondeo-police-ver1-0f116808d3194ca79255a0563eccf939 |
-| `police_car.glb` | Police car | Mateusz Woliński (jeandiz) | CC BY 4.0 | https://sketchfab.com/3d-models/police-car-9166b13b6ae341f4bfc093edb71d74f4 |
-
-### Garage, avversari e traffico della v0.14 (05/11/2026)
-
-Scaricati a mano da Stefano su Sketchfab (cartella "Auto-scaricate" del suo PC). File non modificati, ognuno con il suo `license.txt` (per i GLB è nello zip originale; i dati sono qui sotto). Le texture sono compresse per il telefono (1024 px nel garage, 512 px nel traffico).
-In gioco ogni auto è preparata da `tools/bake_cars.gd` in `assets/cars_baked/<id>.res`: girata, scalata, divisa in carrozzeria e ruote, saldata in pochi pezzi e alleggerita (meno triangoli) per il telefono. Sono versioni modificate, quindi valgono le stesse licenze degli originali.
-Sono tutte **marchi reali**; quelle **NC** sono non commerciali. Vanno bene per il prototipo e il portfolio (decisione di Stefano), da sostituire prima di pubblicare sugli store. La Corvette 1969 è anche **SA**: le versioni modificate vanno condivise con la stessa licenza.
+Scaricati a mano da Stefano su Sketchfab (cartella "Auto-scaricate" del suo PC), tutti **CC BY 4.0**. File non modificati; in gioco sono preparati da `tools/bake_cars.gd` in `assets/cars_baked/` e le texture sono compresse a 512 px. Sono marchi reali con nomi inventati in gioco (Cruiser '67, Ranger 90, Kraft Berlina '98, Trail 4x4).
 
 | File | Uso | Modello | Autore | Licenza | Pagina |
 |---|---|---|---|---|---|
-| `cars_sketchfab/corvette_z06/` | garage | 2013 Chevrolet Corvette Z06 | Outlaw Games™ | CC BY-NC 4.0 | https://sketchfab.com/3d-models/2013-chevrolet-corvette-z06-f8d8ef6c9c254ea79767d16897f711f1 |
-| `cars_sketchfab/bmw_m3_gtr.glb` (+ texture `bmw_m3_gtr_*`) | garage | BMW M3 GTR E46 Street ACschnitzer BlackEdition | Alex.Ka. | CC BY-NC 4.0 | https://sketchfab.com/3d-models/bmw-m3-gtr-e46-street-acschnitzer-blackedition-7f060f9d44b74c34a5184399a6cfc6d7 |
-| `cars_sketchfab/supra_a80/` | garage | Toyota Supra (A80) 1993 | Lexyc16 | CC BY-NC 4.0 | https://sketchfab.com/3d-models/toyota-supra-a80-1993-dd897d7823784bc5893c183c1328e8cb |
-| `cars_sketchfab/mercedes_w203.glb` | garage | 2000 Mercedes C-class W203 | RES1N | CC BY 4.0 | https://sketchfab.com/3d-models/2000-mercedes-c-class-w203-6cf3d6203793450ba9e6a572fc164c77 |
-| `cars_traffic/corvette_1969.glb` | traffico | 1969 Chevrolet Corvette Stingray 427 | Ddiaz Design | CC BY-NC-SA 4.0 | https://sketchfab.com/3d-models/1969-chevrolet-corvette-stingray-427-1114862363224283b50070bb79217b13 |
-| `cars_traffic/camaro_2012.glb` | traffico | 2012 Chevrolet Camaro ZL1 | Ddiaz Design | CC BY 4.0 | https://sketchfab.com/3d-models/2012-chevrolet-camaro-zl1-cf2c1a032fa14828b94176ad526821f3 |
-| `cars_traffic/camaro_zl1.glb` | traffico | Chevrolet Camaro ZL1 | Outlaw Games™ | CC BY-NC 4.0 | https://sketchfab.com/3d-models/chevrolet-camaro-zl1-4b58ae26e90f4d3fad00a40a93dcbbea |
 | `cars_traffic/impala_1967.glb` | traffico | Chevrolet Impala 1967 | Eques_inferno | CC BY 4.0 | https://sketchfab.com/3d-models/chevrolet-impala-1967-bce35ef0c10d41fdb3f7d8c4225144d2 |
-| `cars_traffic/gmc_sierra.glb` | traffico | Gmc Sierra Work Truck | Renafox (kryik1023) | CC BY-NC 4.0 | https://sketchfab.com/3d-models/gmc-sierra-work-truck-1fae2b50fbe14d2c98296a2560a38399 |
 | `cars_traffic/defender_90.glb` | traffico | Land Rover Defender 90 Lowpoly | kekis69 | CC BY 4.0 | https://sketchfab.com/3d-models/land-rover-defender-90-lowpoly-88e5f30687ec4d508cebafa876e014d6 |
 | `cars_traffic/bmw_e46.glb` | traffico | Low Poly Car - BMW E46 1998 | ROH3D | CC BY 4.0 | https://sketchfab.com/3d-models/low-poly-car-bmw-e46-1998-d9bfd8126e754164b48ded833c017bbf |
-| `cars_traffic/mercedes_190e.glb` | traffico | Mercedes 190E EVO 1982 3D Model Free | Betier Models | CC BY 4.0 | https://sketchfab.com/3d-models/mercedes-190e-evo-1982-3d-model-free-15e5576f4b724f2db357165caed3492b |
 | `cars_traffic/jeep/` | traffico | jeep | mortalityrexotable | CC BY 4.0 | https://sketchfab.com/3d-models/jeep-81bfdc1da40647048b2f1da045f8d090 |
 
-Le texture estratte dai GLB (`<nome>_<n>.png/.jpg`) sono quelle contenute nei file originali.
+La "Police car" di Mateusz Woliński (jeandiz, CC BY 4.0, https://sketchfab.com/3d-models/police-car-9166b13b6ae341f4bfc093edb71d74f4) è in `assets/cars_cc/police_car.glb` dal 04/11/2026.
+
+### Auto vendibili della v0.15 (06/11/2026) — `assets/cars_cc/`
+
+Su richiesta di Stefano il gioco usa solo auto che si potrebbero vendere: tutte **CC BY 4.0**, scaricate da Sketchfab il 06/11/2026 (elenco in `/mnt/project-files/nitro-underground/assets-auto/vendibili/CREDITI.md` e nella cartella "Auto-scaricate" del suo PC). Uso commerciale ammesso citando l'autore.
+Le auto di marchi reali hanno in gioco un **nome inventato** e, dove il logo è un pezzo separato del modello, il logo è nascosto dal catalogo (`"hide"` in `scripts/car_catalog.gd`). I loghi dipinti dentro le texture e la forma riconoscibile delle carrozzerie restano: prima di una vendita vanno controllati.
+In gioco ogni auto è preparata da `tools/bake_cars.gd` in `assets/cars_baked/` (girata, scalata, saldata, alleggerita). Texture compresse, 1024 px (512 per il traffico).
+Scaricate ma non usate: Muscle Car Concept (ViktorKom; il modello ha porte e cofano aperti) e Mazda RX-7 FD (Lexyc16; il modello ha una posa sbagliata nel file): non sono nel repository.
+
+| File | Nome in gioco | Modello originale | Autore | Pagina | Marchio e modifiche |
+|---|---|---|---|---|---|
+| `phoenix_455_71.glb` | Phoenix 455 | Phoenix 455 '71 - Low poly model | DanielZhabotinsky | https://sketchfab.com/3d-models/phoenix-455-71-low-poly-model-955edc733c6d44fabc0ad7c246a15896 | inventata |
+| `tiara_gt_83_tuned.glb` | Tiara GT '83 Tuned | Tiara GT '83 Tuned - Low poly model | DanielZhabotinsky | https://sketchfab.com/3d-models/tiara-gt-83-tuned-low-poly-model-59a0eaaa2af144b2956957e7032d0221 | inventata |
+| `saba_v12_95.glb` | Saba V12 '95 | Saba V12 '95 - Low poly model | DanielZhabotinsky | https://sketchfab.com/3d-models/saba-v12-95-low-poly-model-3ab977050c334c13b6abb5de078b4957 | inventata |
+| `goblin_v12.glb` | Goblin V12 | Fictional supercar - V12 Goblin | ollitei | https://sketchfab.com/3d-models/fictional-supercar-v12-goblin-0a20e49ad5774d778567cb5c3f345786 | inventata |
+| `skyline_r34_gtr.glb` | Kaze R-34 | Nissan Skyline R34 GT-R | Lexyc16 | https://sketchfab.com/3d-models/nissan-skyline-r34-gt-r-ff8fb2251dfa4bb9979e7022c5a6666c | Nissan |
+| `nsx_1990.glb` | Nova SX '90 | Honda NSX 1990 | Lexyc16 | https://sketchfab.com/3d-models/honda-nsx-1990-1cc15628a00a4739a6b6c01128927c8d | Honda; targhe nascoste |
+| `silvia_s13.glb` | Shiro 13 | 1992 Nissan Silvia S13 | lstance | https://sketchfab.com/3d-models/1992-nissan-silvia-s13-6fa8f1948f954e3b980b5e96f203815a | Nissan; scritta e stemma posteriori nascosti |
+| `silvia_s14.glb` | Shiro 14 | Nissan 200SX Silvia S14 | Lexyc16 | https://sketchfab.com/3d-models/nissan-200sx-silvia-s14-f2a917a924734a89a020e7f970e55e7c | Nissan |
+| `miata_na.glb` | Petalo Roadster | Mazda Miata MX-5 NA | Lexyc16 | https://sketchfab.com/3d-models/mazda-miata-mx-5-na-d51fcd44b74f4daf8012c41e0400c041 | Mazda |
+| `nissan_z_proto.glb` | Zenith Proto | Nissan Z Proto | Lexyc16 | https://sketchfab.com/3d-models/nissan-z-proto-db9a5f7ae9d84a0fb01cac96afe3e69c | Nissan; stemmi ancora dipinti nella texture |
+| `porsche_930.glb` | Falco Turbo '75 | Porsche 911 (930) Turbo 1975 | Lexyc16 | https://sketchfab.com/3d-models/porsche-911-930-turbo-1975-de1ffd344c41481892511f7fd332c136 | Porsche |
+| `bmw_m3_e30.glb` | Kraft Sport '87 | [FREE] BMW M3 E30 | TinoD2 | https://sketchfab.com/3d-models/free-bmw-m3-e30-ac3c7013434e403e8faff87948caf422 | BMW; stemmi e loghi dei freni nascosti |
+| `datsun_280z.glb` | Sakura GT '78 | [FREE] Datsun 280Z | TinoD2 | https://sketchfab.com/3d-models/free-datsun-280z-0789ab2ece9442de94b3c41595e0ecbd | Datsun |
+| `delta_integrale.glb` | Sterrato Evo | FREE Lancia Delta HF Integrale evo 2 | begemot.988888 | https://sketchfab.com/3d-models/free-lancia-delta-hf-integrale-evo-2-85614131e0dc4613a948472aaa935fc7 | Lancia; stemma nascosto, adesivi di sponsor ancora nella texture |
+| `illinois_90_police.glb` | Polizia Illinois '90 | Illinois '90 Police cruiser - Low poly model | DanielZhabotinsky | https://sketchfab.com/3d-models/illinois-90-police-cruiser-low-poly-model-dc81625478a744649b210c7f248b0b6a | inventata |
+| `negotiator_80_police.glb` | Polizia Negotiator '80 | Negotiator '80 Cop Cruiser - Low poly model | DanielZhabotinsky | https://sketchfab.com/3d-models/negotiator-80-cop-cruiser-low-poly-model-945fd09f513f4d1ab19b6388a7ea7323 | inventata |
+| `crown_victoria_police.glb` | Polizia Interceptor '01 | 2001 Crown Victoria Police Interceptor Game Prop | haoliu95 | https://sketchfab.com/3d-models/2001-crown-victoria-police-interceptor-game-prop-9f30d360cee343efb5a441978ddb57bd | Ford |
+| `carter_98.glb` | Carter '98 (traffico) | Carter '98 - Low Poly Model | DanielZhabotinsky | https://sketchfab.com/3d-models/carter-98-low-poly-model-3af773617c7f481da2ba5d307412ce35 | inventata |
+| `conquer_89_pickup.glb` | Conquer '89 Pickup (traffico) | Conquer '89 Pickup - Low poly model | DanielZhabotinsky | https://sketchfab.com/3d-models/conquer-89-pickup-low-poly-model-6c48c94be8974dc7a5932f697c0ba68f | inventata |
+| `cutlass_71.glb` | Monarch '71 (traffico) | Oldsmobile Cutlass Supreme Sedan '71 | barbo-autos | https://sketchfab.com/3d-models/oldsmobile-cutlass-supreme-sedan-71-78f76d386a4341b0b71745bdc50fd5ab | Oldsmobile; stemmi nascosti |
+| `ace_11.glb` | Ace '11 (traffico) | Ace '11 - Low Poly model | DanielZhabotinsky | https://sketchfab.com/3d-models/ace-11-low-poly-model-055ff8a21b8d4d279debca089e2fafcd | inventata |
+| `sigil_07.glb` | Sigil '07 (traffico) | Sigil '07 - Low poly model | DanielZhabotinsky | https://sketchfab.com/3d-models/sigil-07-low-poly-model-22abe5284d4c4b55920b8462eb24a8c1 | inventata; stemmi nascosti |
+| `shvan_92.glb` | Ambulanza Shvan '92 (traffico) | Shvan '92 Ambulance - Low Poly model | DanielZhabotinsky | https://sketchfab.com/3d-models/shvan-92-ambulance-low-poly-model-2856dd3c61f940909dced9a5c0379484 | inventata |
+| `lightbody_90_tow.glb` | Carro attrezzi Lightbody '90 (traffico) | Lightbody '90 MD Tow Truck - Low poly model | DanielZhabotinsky | https://sketchfab.com/3d-models/lightbody-90-md-tow-truck-low-poly-model-5cba208001c64e8ea164f89e4dde91e7 | inventata |
+| `lct_3000_07.glb` | LCT 3000 '07 (traffico) | LCT 3000 '07- Low poly model | DanielZhabotinsky | https://sketchfab.com/3d-models/lct-3000-07-low-poly-model-3be03b6a43aa41898c9ca806b8787052 | inventato |
+| `town_bus.glb` | Autobus di città (traffico) | Generic Town Bus | own.guest | https://sketchfab.com/3d-models/generic-town-bus-14fe03d792914d51b6c6250b393c44fd | inventato; alleggerito da 55 a 25 mila triangoli |
 
 ## Paesaggio realistico (Sketchfab, CC-BY 4.0) — `assets/scenery/`
 

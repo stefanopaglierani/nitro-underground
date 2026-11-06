@@ -39,10 +39,10 @@ const REDLINE_RPM := 7800.0
 const SHIFT_TIME := 0.12
 ## The wheel cast starts this far above the mount.
 const CAST_LIFT := 0.25
-## Police: two detailed Sketchfab cars (Stefano's pick, 2026-11-04).
-const POLICE_BODIES := ["police_mondeo", "police_car"]
+## Police: sellable CC BY models (2026-11-06).
+const POLICE_BODIES := ["police_illinois", "police_negotiator", "police_interceptor", "police_car"]
 ## Car the player picked in the garage (CarCatalog id); it keeps its own colours.
-static var player_body := "charger_1970"
+static var player_body := "phoenix_455"
 ## Model of an AI racer, set before setup(): one of rival_bodies().
 var racer_body := ""
 

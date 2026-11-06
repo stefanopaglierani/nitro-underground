@@ -36,6 +36,7 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.12 | 02/11/2026 | Stabilizzazione: pausa, polizia più giusta, rivali e traffico più furbi | [#19](https://github.com/stefanopaglierani/nitro-underground/pull/19) |
 | v0.13.1 | 04/11/2026 | Il telefono si bloccava: auto e texture alleggerite, addio fumetto 2.5D (grafica realistica di base), via i guardrail, nuova polizia | ramo `claude/project-thread-8bmj8s` |
 | v0.14 | 05/11/2026 | OpenGL sul telefono, nuovo garage di 5 auto guidato anche dai rivali, traffico con 9 auto dettagliate, auto "pre-cotte" per un menù più veloce, via tutte le auto low poly | ramo `claude/project-thread-8bmj8s` |
+| v0.15 | 06/11/2026 | Solo auto "vendibili" (CC BY): 14 nel garage e per i rivali, 4 volanti, 13 mezzi nel traffico; nomi inventati e loghi tolti alle auto di marchi reali | ramo `claude/project-thread-8bmj8s` |
 
 ## Le svolte principali
 
@@ -421,11 +422,46 @@ nel banco prova con OpenGL il primo disegno di un'auto del menù passa da circa 
 0,6-1,7, e la preparazione da 50-350 a circa 10 millisecondi. Gara automatica completata in Montagna
 con la Supra. Da provare sul telefono.
 
+## v0.15 — Solo auto che si potrebbero vendere (6 novembre)
+
+**Richiesta:** Stefano ha deciso di sostituire tutte le auto che non si potrebbero usare in un
+gioco in vendita. Dopo una ricerca fatta in un altro filone di lavoro ha scelto le auto inventate
+(senza marchi) e quelle di marchi reali con licenza commerciale, chiedendo per queste ultime di
+"eliminare il marchio e modificare il nome", e di usarle per giocatore, avversari, traffico e polizia.
+
+**Come è stato costruito:**
+- **22 modelli CC BY** scaricati da Sketchfab, in `assets/cars_cc/`. In gioco ne entrano 20: la Muscle
+  Car Concept ha porte e cofano aperti nel modello e la RX-7 ha una posa sbagliata nel file.
+- **Garage di 14 auto**, guidate anche dai rivali (3 scelti a caso per gara tra quelle che il
+  giocatore non ha preso): Phoenix 455 '71, Tiara GT '83 Tuned, Saba V12 '95 e Goblin V12 (inventate),
+  e Kaze R-34, Nova SX '90, Shiro 13, Shiro 14, Petalo Roadster, Zenith Proto, Falco Turbo '75, Kraft
+  Sport '87, Sakura GT '78, Sterrato Evo (marchi reali con nome inventato).
+- **Polizia**: Illinois '90, Negotiator '80, Interceptor '01 e la berlina della v0.13.
+- **Traffico di città**: Carter '98, Conquer '89 Pickup, Monarch '71, Ace '11, Sigil '07, un'ambulanza,
+  un carro attrezzi, un camion LCT 3000 e un autobus, più le auto CC BY che c'erano già (Cruiser '67,
+  Ranger 90, Kraft Berlina '98, Trail 4x4). Il corpo che urta ora ha la misura del mezzo: l'autobus
+  è lungo 11 metri.
+- **In archivio per dopo**: 15 mezzi della seconda ricerca (fuoristrada, SUV, pick-up, buggy) per
+  giocatore e avversari, come chiesto non sono nella versione di prova.
+- **Loghi**: il catalogo (`scripts/car_catalog.gd`) può nascondere pezzi o materiali di un modello;
+  così sono spariti gli stemmi di Kraft Sport, Sterrato Evo, Monarch e Shiro 13, le targhe "NSX" e la
+  scritta sul cofano della Ranger. I loghi dipinti dentro le texture (per esempio sulla Zenith Proto)
+  restano: servirà modificare le immagini.
+- **Memoria del menù**: con 14 auto il menù tiene in memoria solo quella in mostra, la precedente e la
+  successiva.
+- Le auto non utilizzabili sono fuori dal gioco e dall'APK e, su richiesta di Stefano, i loro file
+  sono stati cancellati dal repository (circa 290 MB in meno; restano nella cronologia git).
+
+**Verifica ed esito:** foto davanti/dietro di ogni auto preparata (corrette così tre auto montate al
+contrario o fuori scala); gare automatiche sulla Costa e nel Deserto con la Falco Turbo. Da provare
+sul telefono.
+
 ---
 
 ## Prossimi passi
 
-- Prova sul telefono della v0.14: tempo dell'anteprima nel menù, fluidità in gara con traffico e rivali nuovi.
+- Prova sul telefono della v0.15: tempo dell'anteprima nel menù, fluidità in gara con le auto nuove.
+- Togliere i loghi dipinti nelle texture delle auto di marchi reali; aggiungere i mezzi della seconda ricerca (fuoristrada, pick-up, buggy, traffico di città).
 - Costruire il nuovo aspetto realistico (luce, cielo, ombre, materiali) un passo approvato alla volta, e sostituire lo sfondo disegnato del menù.
 - Passo 3 del piano: **vertical slice**, cioè un circuito e un'auto rifiniti al livello del gioco finale.
 - Prima di qualsiasi pubblicazione: sostituire i modelli non commerciali e di marchi reali
