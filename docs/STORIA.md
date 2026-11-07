@@ -1,6 +1,6 @@
 # Storia dello sviluppo
 
-Il diario di bordo di Nitro Underground, dalla prima idea alla v0.12, in 7 giorni e 13 versioni.
+Il diario di bordo di Nitro Underground, dalla prima idea alla v0.18, in 12 giorni e 19 versioni.
 
 Ogni versione segue lo stesso ciclo: **Stefano prova la build** sul telefono Android o sul PC,
 scrive cosa non va e cosa vuole, **Claude la costruisce** e la verifica con le prove automatiche,
@@ -55,6 +55,12 @@ di Stefano sul telefono:
 4. **Da circuiti generati con formule a circuiti scritti come mappe** (v0.11): ora i circuiti li
    può disegnare chiunque, anche senza programmare.
 5. **Da 54 auto a 7** (v0.5 → v0.11.1): meno auto, ma dettagliate e scelte una per una.
+6. **Dal fumetto 2.5D di nuovo al realistico** (v0.13): sul telefono di prova il gioco si
+   bloccava al caricamento; Stefano ha deciso di tornare alla grafica realistica, e poi a OpenGL (v0.14).
+7. **Solo auto che si potrebbero vendere** (v0.15): tutte le auto in gioco sono CC BY, con nomi
+   inventati; i modelli non commerciali sono usciti anche dal repository.
+8. **Dal menu al garage** (v0.17-v0.18): il gioco si apre con una pagina START e un garage con
+   denaro e reputazione che si guadagnano in gara, le prime fondamenta di una carriera.
 
 ---
 

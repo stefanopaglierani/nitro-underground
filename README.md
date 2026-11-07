@@ -6,7 +6,7 @@ Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come
 ![Nitro Underground: gara sul passo di montagna](docs/immagini/gara-montagna.jpg)
 
 [![Godot 4.7](https://img.shields.io/badge/Godot-4.7-478CBF?logo=godotengine&logoColor=white)](https://godotengine.org)
-![GDScript](https://img.shields.io/badge/GDScript-~7.500_righe-355570)
+![GDScript](https://img.shields.io/badge/GDScript-~8.400_righe-355570)
 ![Android](https://img.shields.io/badge/Android-arm64-3DDC84?logo=android&logoColor=white)
 ![Versione](https://img.shields.io/badge/versione-0.18-ff3d8b)
 ![Stato](https://img.shields.io/badge/stato-prototipo_giocabile-f5a623)
@@ -29,7 +29,16 @@ Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come
   prova → feedback → nuova versione, uso dell'intelligenza artificiale come squadra di sviluppo,
   attenzione alle licenze degli asset e alle prestazioni su telefono.
 
-## Screenshot (v0.11.1, ancora con lo stile a fumetto abbandonato nella v0.13)
+## Screenshot (v0.17-v0.18, grafica realistica)
+
+| | |
+|---|---|
+| ![Pagina d'attesa con il pulsante START](docs/immagini/v0.18-start.jpg) | ![Garage iniziale con la scelta dell'auto](docs/immagini/v0.17-garage.jpg) |
+| *Pagina d'attesa: l'immagine scelta da Stefano e il pulsante START* | *Garage: 3 auto, scelta definitiva, denaro e reputazione* |
+| ![Caricamento con la serranda del garage](docs/immagini/v0.17-caricamento.jpg) | ![Gara sulla costa con la minimappa](docs/immagini/v0.17-minimappa.jpg) |
+| *Caricamento: la serranda del garage si alza con la percentuale* | *Gara sulla costa: minimappa con le frecce delle auto* |
+
+### Com'era nella v0.11.1 (stile a fumetto 2.5D, abbandonato nella v0.13)
 
 | | |
 |---|---|
@@ -47,7 +56,7 @@ Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come
 | | |
 |---|---|
 | 🏠 **Garage** | Dopo la pagina START: scelta definitiva fra 3 auto, denaro (5.000 a gara) e reputazione (vittorie, derapate in combo, polizia seminata), poi la prima gara sulla costa |
-| 🏁 **4 circuiti** | Montagna (passo alpino con tornanti), Costa (riviera), Città di notte (downtown), Deserto (Route 66) |
+| 🏁 **4 circuiti** | Montagna (passo alpino con tornanti), Costa (riviera), Città di notte (downtown), Deserto (Route 66). Dal garage si parte sulla Costa; gli altri tre sono pronti nel codice |
 | 🚗 **14 auto** | Tutte con licenza commerciale (CC BY), con nomi inventati: le guidano anche i rivali; 4 volanti e 13 mezzi nel traffico, autobus compreso |
 | ⏱️ **Gara sprint** | 3 avversari guidati dal computer, checkpoint con tempo a scalare |
 | 🚓 **Polizia** | Gli incidenti alzano il livello di allerta e arrivano le volanti |
@@ -71,6 +80,9 @@ Il dettaglio completo, con diagrammi e numeri, è in **[docs/TECNICO.md](docs/TE
   traiettoria ideale, velocità in curva per l'IA e tempo dei checkpoint.
 - **Grafica realistica** con le impostazioni di base di Godot. Lo stile a fumetto fatto con shader
   (v0.9-v0.12) è spento dalla v0.13: sul telefono era troppo pesante e Stefano è tornato al realistico.
+- **Progressi salvati sul telefono** (`scripts/save_game.gd`): auto scelta, denaro e
+  reputazione in un piccolo file di configurazione; la reputazione cresce con vittorie, polizia
+  seminata e derapate in combinazione che raddoppiano il valore.
 - **Costruito dal codice**: le scene sono quasi vuote, strade, terreno, auto, interfaccia e
   materiali nascono dagli script. Tutto è testo leggibile e versionato.
 - **Pensato per il telefono**: caricamento a passi con modelli letti in thread paralleli, modelli
@@ -127,7 +139,7 @@ e [`gioca-nitro.ps1`](tools/windows/gioca-nitro.ps1) nella stessa cartella e fai
 
 | Percorso | Contenuto |
 |---|---|
-| `scripts/` | Tutto il gioco: menu, gara, auto, circuiti, traffico, audio, stile, interfaccia |
+| `scripts/` | Tutto il gioco: pagina START, garage, salvataggio, gara, auto, circuiti, traffico, audio, minimappa, interfaccia |
 | `shaders/` | Stile a fumetto (spento), cielo, terreno, mare, facciate illuminate |
 | `tracks/` | Le mappe dei circuiti in testo e la guida [`COME_FARE.md`](tracks/COME_FARE.md) |
 | `assets/` | Modelli, texture e suoni, con il registro [`LICENSES.md`](assets/LICENSES.md) |
@@ -160,8 +172,8 @@ built with **Godot 4.7** (GDScript, Compatibility/OpenGL renderer on Android, Jo
 
 **Who made it.** **Stefano Paglierani** conceived and directed the game: concept, art direction,
 circuits, cars, controls and every product decision, testing each build on his Android phone.
-The code was written by **Claude** (Anthropic's AI assistant) from his direction. 14 versions were
-designed, built and play-tested in 9 days (27 October - 4 November 2026).
+The code was written by **Claude** (Anthropic's AI assistant) from his direction. 19 versions were
+designed, built and play-tested in 12 days (27 October - 7 November 2026).
 
 **Highlights**
 - **Custom vehicle physics** on a `RigidBody3D`: shape-cast wheels that climb kerbs,
@@ -173,6 +185,10 @@ designed, built and play-tested in 9 days (27 October - 4 November 2026).
   racing line with a speed profile for the AI, and checkpoint times.
 - **Realistic rendering** with Godot's base settings since v0.13; the earlier 2.5D comic shaders
   (toon materials, full-screen ink/halftone pass) are kept in the code but switched off, as they were too heavy for the phone.
+- **Career loop foundations** (v0.17-v0.18): a start page, a garage where the first car is picked
+  for good, money earned per race and reputation earned from wins, police escapes and chained
+  drifts, all saved on the device; an in-race minimap and a loading screen where a garage door
+  rises with the progress.
 - **Synthesized V8 engine audio**, crossfaded and pitched to RPM in real time.
 - **Mobile-minded**: staged, threaded loading; models merged into one mesh per material
   (a 123-part model went from 1,000+ draw calls to a handful); GPU-compressed textures.
