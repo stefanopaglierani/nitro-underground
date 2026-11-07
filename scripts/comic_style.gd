@@ -6,6 +6,11 @@ class_name ComicStyle
 ## hatching and misprinted colour plates; the sky is a painted pop-art one and speed lines appear
 ## at high speed or with nitro.
 
+## Off since 2026-11-04 (Stefano): back to the plain realistic look with Godot's base settings,
+## first as a test. With false nothing here changes the game: no toon materials, no outlines, no
+## full-screen comic pass, no speed lines, Godot's default sky. true brings the comic look back.
+const ENABLED := false
+
 static var _materials := {}  # original material -> toon copy
 static var _shaders := {}  # original shader -> toon copy
 static var _outline: ShaderMaterial
@@ -15,6 +20,8 @@ static var _flush_queued := false
 
 ## Converts what is already in the tree and everything added later (cars, debris, the garage car).
 static func install(tree: SceneTree) -> void:
+	if not ENABLED:
+		return
 	_materials.clear()  # the level was rebuilt: its materials are new
 	_scan(tree.root)
 	if not tree.node_added.is_connected(_on_node_added):
@@ -158,6 +165,11 @@ static func setup_environment(parent: Node, night := false) -> void:
 			we = c
 		elif c is DirectionalLight3D:
 			sun = c
+	if not ENABLED:
+		# The levels leave the sky to this function: give them Godot's default daylight sky.
+		if we and we.environment and we.environment.sky and we.environment.sky.sky_material == null:
+			we.environment.sky.sky_material = ProceduralSkyMaterial.new()
+		return
 	if night:
 		if we and we.environment:
 			var env := we.environment
@@ -208,6 +220,8 @@ static func setup_environment(parent: Node, night := false) -> void:
 
 ## Full-screen stylize pass (cel bands, ink lines, comic print), as a child of the camera.
 static func add_stylize_pass(camera: Camera3D) -> void:
+	if not ENABLED:
+		return
 	var quad := QuadMesh.new()
 	quad.size = Vector2(2, 2)
 	quad.flip_faces = true
@@ -232,4 +246,5 @@ static func make_speed_lines() -> ColorRect:
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://shaders/comic_speed_lines.gdshader")
 	r.material = mat
+	r.visible = ENABLED
 	return r

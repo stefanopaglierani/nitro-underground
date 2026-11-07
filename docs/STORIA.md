@@ -1,6 +1,6 @@
 # Storia dello sviluppo
 
-Il diario di bordo di Nitro Underground, dalla prima idea alla v0.12, in 7 giorni e 13 versioni.
+Il diario di bordo di Nitro Underground, dalla prima idea alla v0.18, in 12 giorni e 19 versioni.
 
 Ogni versione segue lo stesso ciclo: **Stefano prova la build** sul telefono Android o sul PC,
 scrive cosa non va e cosa vuole, **Claude la costruisce** e la verifica con le prove automatiche,
@@ -34,6 +34,12 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.11 | 31/10/2026 | Circuiti scritti come mappe di testo, ambientazioni rifatte, Deserto | [#17](https://github.com/stefanopaglierani/nitro-underground/pull/17) |
 | v0.11.1 | 31/10/2026 | Sterzo più dolce, niente ribaltamenti in aria, garage da 7 | [#17](https://github.com/stefanopaglierani/nitro-underground/pull/17) |
 | v0.12 | 02/11/2026 | Stabilizzazione: pausa, polizia più giusta, rivali e traffico più furbi | [#19](https://github.com/stefanopaglierani/nitro-underground/pull/19) |
+| v0.13.1 | 04/11/2026 | Il telefono si bloccava: auto e texture alleggerite, addio fumetto 2.5D (grafica realistica di base), via i guardrail, nuova polizia | ramo `claude/project-thread-8bmj8s` |
+| v0.14 | 05/11/2026 | OpenGL sul telefono, nuovo garage di 5 auto guidato anche dai rivali, traffico con 9 auto dettagliate, auto "pre-cotte" per un menù più veloce, via tutte le auto low poly | ramo `claude/project-thread-8bmj8s` |
+| v0.15 | 06/11/2026 | Solo auto "vendibili" (CC BY): 14 nel garage e per i rivali, 4 volanti, 13 mezzi nel traffico; nomi inventati e loghi tolti alle auto di marchi reali | ramo `claude/project-thread-8bmj8s` |
+| v0.16 | 06/11/2026 | Auto lontane in versione leggera contro gli scatti, asfalto a filo del terreno, avviso rosso di contromano, Petalo Roadster non più sospesa | ramo `claude/project-thread-8bmj8s` |
+| v0.17 | 07/11/2026 | Si entra direttamente nel garage (3 auto, scelta definitiva, denaro e reputazione), minimappa in gara, caricamento con la serranda del garage che si apre | ramo `claude/project-thread-v3cjse` |
+| v0.18 | 07/11/2026 | Pagina d'attesa con START, denaro e reputazione che si guadagnano in gara, asfalto 10 cm sopra il terreno, traiettoria semitrasparente | ramo `claude/project-thread-v3cjse` |
 
 ## Le svolte principali
 
@@ -49,6 +55,12 @@ di Stefano sul telefono:
 4. **Da circuiti generati con formule a circuiti scritti come mappe** (v0.11): ora i circuiti li
    può disegnare chiunque, anche senza programmare.
 5. **Da 54 auto a 7** (v0.5 → v0.11.1): meno auto, ma dettagliate e scelte una per una.
+6. **Dal fumetto 2.5D di nuovo al realistico** (v0.13): sul telefono di prova il gioco si
+   bloccava al caricamento; Stefano ha deciso di tornare alla grafica realistica, e poi a OpenGL (v0.14).
+7. **Solo auto che si potrebbero vendere** (v0.15): tutte le auto in gioco sono CC BY, con nomi
+   inventati; i modelli non commerciali sono usciti anche dal repository.
+8. **Dal menu al garage** (v0.17-v0.18): il gioco si apre con una pagina START e un garage con
+   denaro e reputazione che si guadagnano in gara, le prime fondamenta di una carriera.
 
 ---
 
@@ -339,11 +351,232 @@ più veloci del 20% e più attenti agli incidenti, e un traffico che dopo un urt
 ora arriva al traguardo su tutti e 4 i circuiti. Pausa, Indietro, secondo piano, urti col traffico
 e posizione in gara sono stati provati con script di prova. Da provare sul telefono.
 
+## v0.13.1 — Il telefono si blocca: si torna alla grafica realistica (4 novembre)
+
+**Richiesta:** Stefano ha provato la v0.12 sul suo Samsung Galaxy A51: al passo di caricamento
+"Luci e ombre" il gioco restava fermo quasi 60 secondi e poi si chiudeva; anche l'anteprima
+dell'auto nel menù era lenta. Dopo due tentativi di alleggerimento ha preso una decisione
+"drastica, con effetto immediato": **via tutta la grafica 2.5D e cartoon, ritorno alle origini con
+grafica realistica**, partendo da una versione con le impostazioni grafiche di base, senza filtri.
+Nella stessa sera ha chiesto di **togliere i guardrail** ("danno veramente fastidio"), di eliminare
+la Mustang 1969 e di usare due nuove auto della polizia scelte da lui.
+
+**Come è stato costruito:**
+- **Diagnosi misurata** (Montagna, McLaren): 407 texture su 661 erano salvate senza compressione
+  per la scheda grafica e senza versioni ridotte per la distanza (circa 420 MB in gara); le auto del
+  garage erano modelli da PC divisi in centinaia di pezzi (1.630 la Porsche, 766 la Skyline) e ogni
+  pezzo veniva disegnato due volte per il contorno a fumetto: circa 2.900 disegni per fotogramma.
+- **Auto saldate** (`scripts/car_model.gd`): quando un'auto si carica, i suoi pezzi vengono uniti in
+  una mesh per materiale per la carrozzeria e una per ruota; i vetri restano separati, altrimenti
+  spariscono i sedili dietro i finestrini. Porsche da 8.270 a 148 disegni, Skyline da 3.869 a 309.
+  I modelli già fatti di pochi pezzi restano come sono e tengono le versioni leggere per la distanza.
+- **Texture compresse**: tutte le texture 3D ora usano la compressione per la scheda grafica con le
+  versioni ridotte per la distanza (mipmap); quelle delle auto al massimo 1024 px. In gara la memoria
+  delle texture scende da 418 a 104 MB. Prima Stefano ha visto un confronto diretto (originale,
+  ASTC, ETC2): auto identiche, asfalto anzi più pulito.
+- **Stile fumetto spento** (`scripts/comic_style.gd`, `ENABLED = false`): niente luce a bande,
+  contorni, retino, filtro a schermo intero e linee di velocità; il cielo è quello standard di
+  Godot. Il codice resta, spento, come parte della storia. Senza lo stile la Montagna passa da circa
+  1.200 a circa 200 disegni per fotogramma.
+- **Niente guardrail** su tutti e 4 i circuiti (compresse le barriere della città): se si esce di
+  strada interviene il "Torna in pista" che c'era già.
+- **Polizia nuova**: Ford Mondeo Police e una berlina della polizia, scaricate da Stefano su
+  Sketchfab (crediti in `assets/LICENSES.md`; la Mondeo è non commerciale). La Mustang 1969 è
+  uscita dal garage, che ora ha 6 auto.
+- **Due APK per ogni prova**: uno con Vulkan e uno con il motore "Compatibility" (OpenGL), per
+  capire sul telefono se il blocco dipende da Vulkan sulla scheda Mali dell'A51.
+
+**Verifica ed esito:** confronti di immagini prima/dopo per le auto saldate (identiche) e per le
+texture; gara automatica su tutti e 4 i circuiti senza guardrail (1° in Montagna in 1:56, 1° sulla
+Costa, 2° nel Deserto e in città). La v0.12.1 (solo auto saldate) sul telefono si bloccava ancora
+nello stesso modo. Sul telefono la v0.13 e la v0.13.1 funzionano di nuovo bene. Tra i due motori
+Stefano ha scelto **OpenGL "tutta la vita"**: con Vulkan la gara era "particolarmente ricca di lag,
+quasi ingiocabile", con OpenGL "gira tutto in maniera fluida". Restava lenta l'anteprima dell'auto
+nel menù: più di 20 secondi.
+
+## v0.14 — Auto nuove e pronte all'uso (5 novembre)
+
+**Richiesta:** fissare OpenGL sul telefono; per gli avversari "le stesse auto a disposizione del
+giocatore", per il traffico solo i modelli della cartella "Auto-scaricate" del PC di Stefano,
+eliminando "tutti i vecchi low-poly", sempre con le texture compresse; e risolvere l'anteprima del
+menù, "quasi più di 20 s per vedere l'auto". Poco dopo Stefano ha scelto il nuovo garage: Dodge
+Charger R/T 1970, Chevrolet Corvette Z06, BMW M3 GTR E46, Toyota Supra A80 e Mercedes Classe C W203.
+
+**Come è stato costruito:**
+- **OpenGL su Android** (`project.godot`): il telefono usa il motore "Compatibility", il PC resta su Vulkan.
+- **Auto "pre-cotte"** (`tools/bake_cars.gd`, `scripts/baked_car.gd`, `assets/cars_baked/`): misurando,
+  il tempo dell'anteprima non andava nel leggere i file ma nel lavoro fatto subito dopo (girare,
+  scalare, separare le ruote, saldare i pezzi) e nel primo disegno di modelli molto pesanti (la
+  Mercedes W203 aveva 645 mila triangoli). Ora questo lavoro si fa una volta sola sul computer di
+  sviluppo: ogni auto viene salvata già pronta e alleggerita (al massimo circa 90 mila triangoli in
+  garage, 30 mila nel traffico; le gomme meno, perché diventano subito poligonali). Il telefono
+  legge solo il risultato; gli originali restano nel repository ma non entrano nell'APK.
+- **Ruote che sterzano anche quando il modello le ha tutte in un pezzo** (BMW M3 GTR, Supra, Camaro,
+  Impala): il pezzo viene tagliato in quattro, uno per angolo dell'auto.
+- **Menù**: le auto già viste restano in memoria e, mentre si guarda la prima, le altre del garage
+  vengono lette in sottofondo una alla volta.
+- **Rivali** (`scripts/car.gd`, `scripts/main.gd`): i 3 avversari guidano le auto del garage, tranne
+  quella scelta dal giocatore.
+- **Traffico** (`scripts/traffic.gd`): 9 auto dettagliate (Corvette 1969, due Camaro, Impala 1967,
+  GMC Sierra, Defender 90, BMW E46, Mercedes 190E, Jeep), texture a 512 px; il corpo che urta è
+  lungo quanto l'auto.
+- **Via le auto low poly**: rgsdev, Kenney, KayKit e le auto low poly della libreria sono state tolte
+  dal repository. McLaren, Porsche, Skyline "Brian", Raptor e RAM non sono più nel garage.
+- Crediti e licenze dei 13 nuovi modelli in `assets/LICENSES.md`; sono tutti marchi reali e 6 sono
+  non commerciali (elenco in [CREDITI.md](../CREDITI.md)).
+
+**Verifica ed esito:** foto di confronto originale/alleggerita per ogni auto (corretti così un
+fondale da showroom nel modello BMW, la Mercedes girata al contrario e le gomme troppo poligonali);
+nel banco prova con OpenGL il primo disegno di un'auto del menù passa da circa 1,4-6 secondi a circa
+0,6-1,7, e la preparazione da 50-350 a circa 10 millisecondi. Gara automatica completata in Montagna
+con la Supra. Da provare sul telefono.
+
+## v0.15 — Solo auto che si potrebbero vendere (6 novembre)
+
+**Richiesta:** Stefano ha deciso di sostituire tutte le auto che non si potrebbero usare in un
+gioco in vendita. Dopo una ricerca fatta in un altro filone di lavoro ha scelto le auto inventate
+(senza marchi) e quelle di marchi reali con licenza commerciale, chiedendo per queste ultime di
+"eliminare il marchio e modificare il nome", e di usarle per giocatore, avversari, traffico e polizia.
+
+**Come è stato costruito:**
+- **22 modelli CC BY** scaricati da Sketchfab, in `assets/cars_cc/`. In gioco ne entrano 20: la Muscle
+  Car Concept ha porte e cofano aperti nel modello e la RX-7 ha una posa sbagliata nel file.
+- **Garage di 14 auto**, guidate anche dai rivali (3 scelti a caso per gara tra quelle che il
+  giocatore non ha preso): Phoenix 455 '71, Tiara GT '83 Tuned, Saba V12 '95 e Goblin V12 (inventate),
+  e Kaze R-34, Nova SX '90, Shiro 13, Shiro 14, Petalo Roadster, Zenith Proto, Falco Turbo '75, Kraft
+  Sport '87, Sakura GT '78, Sterrato Evo (marchi reali con nome inventato).
+- **Polizia**: Illinois '90, Negotiator '80, Interceptor '01 e la berlina della v0.13.
+- **Traffico di città**: Carter '98, Conquer '89 Pickup, Monarch '71, Ace '11, Sigil '07, un'ambulanza,
+  un carro attrezzi, un camion LCT 3000 e un autobus, più le auto CC BY che c'erano già (Cruiser '67,
+  Ranger 90, Kraft Berlina '98, Trail 4x4). Il corpo che urta ora ha la misura del mezzo: l'autobus
+  è lungo 11 metri.
+- **In archivio per dopo**: 15 mezzi della seconda ricerca (fuoristrada, SUV, pick-up, buggy) per
+  giocatore e avversari, come chiesto non sono nella versione di prova.
+- **Loghi**: il catalogo (`scripts/car_catalog.gd`) può nascondere pezzi o materiali di un modello;
+  così sono spariti gli stemmi di Kraft Sport, Sterrato Evo, Monarch e Shiro 13, le targhe "NSX" e la
+  scritta sul cofano della Ranger. I loghi dipinti dentro le texture (per esempio sulla Zenith Proto)
+  restano: servirà modificare le immagini.
+- **Memoria del menù**: con 14 auto il menù tiene in memoria solo quella in mostra, la precedente e la
+  successiva.
+- Le auto non utilizzabili sono fuori dal gioco e dall'APK e, su richiesta di Stefano, i loro file
+  sono stati cancellati dal repository (circa 290 MB in meno; restano nella cronologia git).
+
+**Verifica ed esito:** foto davanti/dietro di ogni auto preparata (corrette così tre auto montate al
+contrario o fuori scala); gare automatiche sulla Costa e nel Deserto con la Falco Turbo. Da provare
+sul telefono.
+
+---
+
+## v0.16 — Più fluido, asfalto a filo e senso di marcia (6 novembre)
+
+**Richiesta:** provata la v0.15 sul telefono, Stefano ha segnalato quattro cose: il gioco andava di
+nuovo "veramente tanto a scatti"; le auto che uscivano di strada saltavano o si ribaltavano per lo
+scalino tra asfalto e terreno ("terrei l'asfalto alla stessa altezza del mondo"); andare contromano
+non aveva conseguenze ("un label in rosso al centro dello schermo"); la Petalo Roadster fluttuava,
+anche nel menù, "come se ci fosse un blocco invisibile" sotto.
+
+**Come è stato costruito:**
+- **Perché scattava:** fino alla v0.13.1 solo l'auto del giocatore era un modello dettagliato; dalla
+  v0.14 lo sono anche i 3 avversari, la polizia e i 24 mezzi del traffico, tutti disegnati sempre al
+  massimo dettaglio.
+- **Versione leggera da lontano:** `tools/bake_cars.gd` prepara per ogni auto anche una copia di
+  circa 4.000 triangoli, ruote comprese, in un solo pezzo. Oltre 25 metri dalla telecamera il gioco
+  mostra quella, senza ombra (`visibility_range` di Godot). L'auto del giocatore resta sempre dettagliata.
+- **Meno triangoli da vicino:** tetto di 45.000 triangoli per le auto del garage (prima 70.000),
+  30.000 per la polizia e 18.000 per il traffico; la berlina della polizia scende da 95.000 a 48.000.
+- **Asfalto a filo:** il terreno ai lati della strada ora è alla stessa altezza dell'asfalto e della
+  ghiaia (prima 40 cm sotto; resta un margine di 3 cm, solo perché le due superfici non tremolino sullo
+  schermo), così uscire di strada e rientrare non fa più da trampolino. Stefano ha chiesto "zero"
+  dopo una prima prova a 10 cm.
+- **Contromano:** se il giocatore va contro il senso della gara per un secondo e mezzo sopra i 30 km/h, al centro
+  dello schermo lampeggia in rosso "SENSO DI MARCIA SBAGLIATO".
+- **Petalo Roadster:** il modello aveva un pannello verticale invisibile (lo sfondo della vetrina
+  dell'autore) alto più del doppio dell'auto, che la sollevava. Il catalogo ora lo nasconde.
+
+**Verifica ed esito:** nella stessa scena di partenza in montagna (render senza GPU nel cloud) si
+passa da 1,19 milioni di triangoli e 982 chiamate di disegno a 0,93 milioni e 810; la Petalo
+appoggia a terra; l'avviso rosso compare (provato forzandolo). Nelle gare automatiche su Costa e Montagna è comparso
+solo dopo due testacoda, per poco: la soglia è stata alzata a 1,5 secondi e 30 km/h. Da provare sul telefono.
+
+---
+
+## v0.17 — Il garage, la minimappa e la serranda (7 novembre)
+
+![Il nuovo garage iniziale](immagini/v0.17-garage.jpg)
+
+**Richiesta:** Stefano ha chiesto "diverse modifiche strutturali". Niente più menù iniziale: "il
+giocatore si troverà ad entrare direttamente nel garage", con un'auto "bella in grande" al centro,
+nome e caratteristiche sotto, due frecce ai lati per scegliere fra 3 modelli, un pulsante
+"Seleziona" sopra ("una volta selezionata l'auto il giocatore non potrà più cambiare"), denaro e
+reputazione in alto a destra, il pulsante della mappa in alto a sinistra e "Inizio gara" in basso a
+destra, che porta alla prima gara sulla costa. In gara, "una piccola mappa interattiva" con una
+freccia nera per il giocatore e tre rosse per gli avversari. E al posto della barra di caricamento,
+un'immagine sua: il garage visto dal cofano, con la serranda che si apre man mano che il
+caricamento avanza.
+
+**Come è stato costruito:**
+- **Garage** (`scripts/menu.gd`): lo sfondo è la sua immagine senza il cofano in primo piano;
+  l'auto è un modello 3D che gira lentamente su un'ombra morbida, in una finestra larga quasi metà
+  schermo. Le frecce (disegnate in codice) scorrono le 3 auto di partenza, per ora segnaposto
+  (`CarCatalog.STARTER`). "Seleziona" chiede una conferma con un secondo tocco, poi l'auto è
+  salvata sul telefono (`scripts/save_game.gd`, file `user://partita.cfg`), le frecce spariscono
+  e si sblocca "Inizio gara". Denaro e reputazione si leggono dallo stesso file e per ora restano a
+  0: nessuna gara li cambia ancora. La mappa mostra solo "arriverà presto".
+- **Minimappa** (`scripts/minimap.gd`): in alto a sinistra, il percorso della gara visto dall'alto,
+  con partenza verde e arrivo bianco; le frecce seguono posizione e direzione delle auto. Il
+  percorso è disegnato una volta sola, ogni fotogramma si ridisegnano solo le 4 frecce.
+- **Caricamento** (`scripts/hud.gd`): `tools/art/garage_images.py` ritaglia dall'immagine la
+  serranda e la allunga ripetendo le sue lamelle, così da chiusa arriva fino a terra. Il
+  caricamento la fa salire dal pavimento fino a dove è nell'immagine, con un breve scorrimento;
+  il pavimento e il cofano si illuminano man mano che entra la luce. In alto il titolo, la
+  percentuale e la fase.
+
+![La serranda del caricamento a 0, 35, 65 e 94%](immagini/v0.17-caricamento.jpg)
+
+![La minimappa in gara](immagini/v0.17-minimappa.jpg)
+
+**Verifica ed esito:** screenshot del garage prima e dopo la scelta e una gara automatica sulla
+costa con le immagini del caricamento e della minimappa (render senza GPU nel cloud). Da provare
+sul telefono. Stefano l'ha provata sul PC: "lavora molto bene, soprattutto il caricamento della
+partita. Ottima la mappa. E anche la selezione del veicolo." Le tre auto segnaposto restano.
+
+---
+
+## v0.18 — START, denaro e reputazione (7 novembre)
+
+![La pagina d'attesa](immagini/v0.18-start.jpg)
+
+**Richiesta:** dopo la prova della v0.17 sul PC, Stefano ha fissato le regole: si parte con 2.000
+di denaro e se ne guadagnano 5.000 a ogni gara; la reputazione parte da zero, +1.000 a ogni
+vittoria, +20 a ogni derapata, "in combo raddoppia la vincita se la successiva derapata arriva
+entro 3 s", +100 per ogni inseguimento della polizia vinto. Poi: asfalto 10 cm sopra il terreno
+("avevi ragione tu", a filo spesso il terreno lo copriva), tratteggio della traiettoria trasparente
+al 50%, e una pagina d'attesa con una sua immagine e solo un pulsante START in basso al centro.
+
+**Come è stato costruito:**
+- **Pagina d'attesa** (`scripts/title.gd`, `scenes/title.tscn`): è la prima scena del gioco;
+  l'immagine copre lo schermo e START, che pulsa piano, apre il garage.
+- **Denaro** (`scripts/main.gd`, `scripts/save_game.gd`): 5.000 a ogni gara portata al traguardo,
+  qualunque sia il piazzamento; niente se scade il tempo o se arriva l'arresto. Le partite salvate
+  dalla v0.17 con 0 passano a 2.000.
+- **Reputazione:** la derapata conta quando finisce, se è durata almeno mezzo secondo; quella dopo,
+  se comincia entro 3 secondi, vale il doppio (20, 40, 80... fino a 320). Ogni guadagno compare per
+  un attimo sotto il pulsante MENU ("Derapata x4 +80 REP"); il totale della gara è nella schermata
+  finale ed è salvato anche se si esce o si riparte a metà.
+- **Asfalto e traiettoria** (`scripts/mountain.gd`, vale per tutti i circuiti): terreno 10 cm sotto
+  la strada, trattini della traiettoria con trasparenza al 50%.
+
+**Verifica ed esito:** screenshot della pagina d'attesa e del garage con 2.000 di partenza, gara
+automatica sulla costa con i guadagni di reputazione scritti nel registro. Da provare su PC e telefono.
+
 ---
 
 ## Prossimi passi
 
-- Prova sul telefono della v0.12: pausa (tasto Indietro, chiamata, Home), polizia, rivali, traffico.
+- Prova sul telefono e sul PC della v0.18.
+- Decidere a cosa servono denaro e reputazione e cosa mostra la mappa.
+- Togliere i loghi dipinti nelle texture delle auto di marchi reali; aggiungere i mezzi della seconda ricerca (fuoristrada, pick-up, buggy, traffico di città).
+- Costruire il nuovo aspetto realistico (luce, cielo, ombre, materiali) un passo approvato alla volta.
 - Passo 3 del piano: **vertical slice**, cioè un circuito e un'auto rifiniti al livello del gioco finale.
 - Prima di qualsiasi pubblicazione: sostituire i modelli non commerciali e di marchi reali
   (vedi [CREDITI.md](../CREDITI.md)) e aggiungere i titoli di coda con i crediti CC BY.

@@ -26,9 +26,18 @@ var end_text: Label
 var pause: Button
 ## "GARA IN PAUSA" panel with MENÙ and RIPRENDI GARA, over the frozen race.
 var pause_panel: Control
+var minimap: Minimap
+const MINIMAP_SIZE := 200.0
+## Loading page (v0.17): the inside of the garage seen from the bonnet, with the roller door that
+## opens as the loading goes on (pictures made by tools/art/garage_images.py).
 var loading_panel: Control
-var loading_bar: ProgressBar
 var loading_label: Label
+var loading_percent: Label
+var _loading_stage: Control
+var _door: TextureRect
+var _floor_shade: ColorRect
+var _door_target := 0.0
+var _door_shown := 0.0
 var speed_lines: ColorRect
 ## Countdown clock, big at the top centre, and the "+N s" that pops up under it at a checkpoint.
 var clock_label: Label
@@ -36,6 +45,11 @@ var clock_bonus_label: Label
 var _bonus_t := 0.0
 var _buttons: Dictionary = {}
 var _message_t := 0.0
+var wrong_way_label: Label
+## "Derapata x2  +40 REP": reputation just earned, under the MENU button (v0.18).
+var rep_label: Label
+var _rep_t := 0.0
+var _wrong_way_t := 0.0
 
 
 func _ready() -> void:
@@ -52,8 +66,13 @@ func _ready() -> void:
 	dashboard = Dashboard.new()
 	root.add_child(dashboard)
 
-	info_label = _label(26, Color.WHITE)
-	info_label.position = Vector2(24, 18)
+	# Map of the circuit in the top left corner, the race info under it (v0.17).
+	minimap = Minimap.new()
+	minimap.position = Vector2(16, 14)
+	minimap.size = Vector2(MINIMAP_SIZE, MINIMAP_SIZE)
+	root.add_child(minimap)
+	info_label = _label(24, Color.WHITE)
+	info_label.position = Vector2(22, MINIMAP_SIZE + 20)
 
 	message_label = _label(48, Color(1, 0.85, 0.2))
 	message_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
@@ -80,6 +99,19 @@ func _ready() -> void:
 	clock_bonus_label.offset_bottom = 130
 	clock_bonus_label.visible = false
 
+	# Red warning in the middle of the screen when the player drives against the race (v0.16).
+	wrong_way_label = _label(56, Color(1, 0.15, 0.1))
+	wrong_way_label.text = "SENSO DI MARCIA SBAGLIATO"
+	wrong_way_label.set_anchors_preset(Control.PRESET_CENTER)
+	wrong_way_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	wrong_way_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	wrong_way_label.offset_left = -600
+	wrong_way_label.offset_right = 600
+	wrong_way_label.offset_top = -60
+	wrong_way_label.offset_bottom = 20
+	wrong_way_label.add_theme_constant_override("outline_size", 14)
+	wrong_way_label.visible = false
+
 	heat_label = _label(22, Color(0.8, 0.85, 1))
 	heat_label.text = "POLIZIA"
 	heat_label.set_anchors_preset(Control.PRESET_TOP_RIGHT)
@@ -103,6 +135,15 @@ func _ready() -> void:
 	escape_bar.offset_top = 60
 	escape_bar.offset_bottom = 76
 	escape_bar.visible = false
+
+	rep_label = _label(28, Color(0.45, 0.8, 1))
+	rep_label.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	rep_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	rep_label.offset_left = -520
+	rep_label.offset_right = -24
+	rep_label.offset_top = 150
+	rep_label.offset_bottom = 190
+	rep_label.visible = false
 
 	pause = Button.new()
 	pause.text = "MENU"
@@ -236,6 +277,7 @@ func _layout() -> void:
 	(_buttons[2] as Node2D).position = Vector2(s.x - big - 28, bottom)
 	(_buttons[3] as Node2D).position = Vector2(s.x - 2 * big - gap - 28, bottom)
 	(_buttons[4] as Node2D).position = Vector2(s.x - big - 28 - gap * 0.5 - small * 0.5, raised)
+	_layout_loading(s)
 	dashboard.size = Vector2(260, 200)
 	dashboard.position = Vector2((s.x - dashboard.size.x) / 2.0, s.y - dashboard.size.y - 6.0)
 
@@ -257,7 +299,30 @@ func flash(text: String, seconds := 2.5) -> void:
 	_message_t = seconds
 
 
+## Shows or hides the blinking wrong-way warning.
+func set_wrong_way(on: bool) -> void:
+	if on and not wrong_way_label.visible:
+		_wrong_way_t = 0.0
+	wrong_way_label.visible = on
+
+
+## Shows the reputation just earned for a moment.
+func rep_popup(text: String) -> void:
+	rep_label.text = text
+	rep_label.visible = true
+	rep_label.modulate.a = 1.0
+	_rep_t = 2.0
+
+
 func _process(delta: float) -> void:
+	_animate_door(delta)
+	if _rep_t > 0.0:
+		_rep_t -= delta
+		rep_label.modulate.a = clampf(_rep_t / 0.5, 0.0, 1.0)
+		rep_label.visible = _rep_t > 0.0
+	if wrong_way_label.visible:
+		_wrong_way_t += delta
+		wrong_way_label.modulate.a = 1.0 if fmod(_wrong_way_t, 0.8) < 0.55 else 0.25
 	if _message_t > 0.0:
 		_message_t -= delta
 		if _message_t < 0.5:
@@ -328,62 +393,129 @@ func _big_button(parent: Control, text: String, color: Color) -> Button:
 	return b
 
 
-## Full-screen loading page with a progress bar, shown while the level and the cars are built.
+## Picture of the garage behind the loading page, in its own pixels.
+const LOADING_PIC := "res://assets/ui/loading_garage.jpg"
+const LOADING_DOOR := "res://assets/ui/loading_door.png"
+const LOADING_PIC_SIZE := Vector2(1672, 941)
+## The roller door in the picture: its columns, where its bottom edge is at 100% (as in the
+## picture) and at 0% (closed, on the floor).
+const DOOR_LEFT := 388.0
+const DOOR_RIGHT := 1332.0
+const DOOR_OPEN_Y := 258.0
+const DOOR_CLOSED_Y := 590.0
+
+
+## Full-screen loading page: the garage seen from the bonnet; the roller door is the loading bar,
+## it goes up as the percentage grows, and the light from outside comes in with it.
 func _build_loading() -> void:
 	var bg := ColorRect.new()
-	bg.color = Color(0.03, 0.02, 0.07)
+	bg.color = Color.BLACK
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.add_child(bg)
 	loading_panel = bg
+	# The picture and the door live in the picture's own pixels, scaled to cover the screen.
+	_loading_stage = Control.new()
+	_loading_stage.size = LOADING_PIC_SIZE
+	_loading_stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bg.add_child(_loading_stage)
+	var pic := TextureRect.new()
+	pic.texture = load(LOADING_PIC)
+	pic.size = LOADING_PIC_SIZE
+	pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_loading_stage.add_child(pic)
+	# The floor and the bonnet only catch the sun once the door is up.
+	_floor_shade = ColorRect.new()
+	_floor_shade.position = Vector2(0, DOOR_CLOSED_Y)
+	_floor_shade.size = Vector2(LOADING_PIC_SIZE.x, LOADING_PIC_SIZE.y - DOOR_CLOSED_Y)
+	_floor_shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_loading_stage.add_child(_floor_shade)
+	var clip := Control.new()
+	clip.clip_contents = true
+	clip.position = Vector2(DOOR_LEFT, 0)
+	clip.size = Vector2(DOOR_RIGHT - DOOR_LEFT, DOOR_CLOSED_Y)
+	clip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_loading_stage.add_child(clip)
+	_door = TextureRect.new()
+	_door.texture = load(LOADING_DOOR)
+	_door.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	clip.add_child(_door)
+
 	var title := Label.new()
 	title.text = "NITRO UNDERGROUND"
-	title.set_anchors_preset(Control.PRESET_CENTER)
+	title.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.offset_left = -500
 	title.offset_right = 500
-	title.offset_top = -150
-	title.offset_bottom = -60
-	title.add_theme_font_size_override("font_size", 64)
-	title.add_theme_color_override("font_color", ACCENT)
-	title.add_theme_color_override("font_outline_color", CYAN)
-	title.add_theme_constant_override("outline_size", 4)
+	title.offset_top = 14
+	title.offset_bottom = 84
+	title.add_theme_font_size_override("font_size", 54)
+	title.add_theme_color_override("font_color", Color(1, 0.86, 0.3))
+	title.add_theme_color_override("font_outline_color", Color(0.05, 0.03, 0.02))
+	title.add_theme_constant_override("outline_size", 14)
 	bg.add_child(title)
-	loading_bar = ProgressBar.new()
-	loading_bar.show_percentage = false
-	loading_bar.max_value = 1.0
-	var back := StyleBoxFlat.new()
-	back.bg_color = Color(1, 1, 1, 0.08)
-	back.border_color = Color(CYAN.r, CYAN.g, CYAN.b, 0.6)
-	back.set_border_width_all(2)
-	back.set_corner_radius_all(10)
-	var fill := StyleBoxFlat.new()
-	fill.bg_color = ACCENT
-	fill.set_corner_radius_all(10)
-	loading_bar.add_theme_stylebox_override("background", back)
-	loading_bar.add_theme_stylebox_override("fill", fill)
-	loading_bar.set_anchors_preset(Control.PRESET_CENTER)
-	loading_bar.offset_left = -360
-	loading_bar.offset_right = 360
-	loading_bar.offset_top = -10
-	loading_bar.offset_bottom = 26
-	bg.add_child(loading_bar)
+	loading_percent = Label.new()
+	loading_percent.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	loading_percent.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	loading_percent.offset_left = -300
+	loading_percent.offset_right = 300
+	loading_percent.offset_top = 82
+	loading_percent.offset_bottom = 132
+	loading_percent.add_theme_font_size_override("font_size", 40)
+	loading_percent.add_theme_color_override("font_color", Color.WHITE)
+	loading_percent.add_theme_color_override("font_outline_color", Color(0.05, 0.03, 0.02))
+	loading_percent.add_theme_constant_override("outline_size", 12)
+	bg.add_child(loading_percent)
 	loading_label = Label.new()
-	loading_label.set_anchors_preset(Control.PRESET_CENTER)
+	loading_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	loading_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	loading_label.offset_left = -500
 	loading_label.offset_right = 500
-	loading_label.offset_top = 40
-	loading_label.offset_bottom = 90
-	loading_label.add_theme_font_size_override("font_size", 26)
-	loading_label.add_theme_color_override("font_color", Color(0.8, 0.85, 0.95))
+	loading_label.offset_top = 132
+	loading_label.offset_bottom = 170
+	loading_label.add_theme_font_size_override("font_size", 24)
+	loading_label.add_theme_color_override("font_color", Color(0.92, 0.9, 0.85))
+	loading_label.add_theme_color_override("font_outline_color", Color(0.05, 0.03, 0.02))
+	loading_label.add_theme_constant_override("outline_size", 9)
 	bg.add_child(loading_label)
 	bg.visible = false
+	_place_door(0.0)
+
+
+## The picture covers the whole screen (cut at the edges if the screen is longer or taller).
+func _layout_loading(s: Vector2) -> void:
+	var k := maxf(s.x / LOADING_PIC_SIZE.x, s.y / LOADING_PIC_SIZE.y)
+	_loading_stage.scale = Vector2(k, k)
+	_loading_stage.position = (s - LOADING_PIC_SIZE * k) * 0.5
+
+
+## Door bottom edge for a loading fraction (0 closed, 1 as high as in the picture).
+func _place_door(open: float) -> void:
+	var y := lerpf(DOOR_CLOSED_Y, DOOR_OPEN_Y, clampf(open, 0.0, 1.0))
+	_door.position = Vector2(0, y - _door.texture.get_height())
+	_floor_shade.color = Color(0, 0, 0, 0.5 * (1.0 - open))
 
 
 func show_loading(text: String, progress: float) -> void:
+	if not loading_panel.visible:
+		_door_shown = progress  # a new loading page starts where it is, no slide from elsewhere
 	loading_panel.visible = true
-	loading_bar.value = progress
-	loading_label.text = "Caricamento: %s   %d%%" % [text, roundi(progress * 100.0)]
+	_door_target = progress
+	_place_door(_door_shown)
+	loading_percent.text = "%d%%" % roundi(progress * 100.0)
+	loading_label.text = text
+
+
+## True once the door has slid up to the last percentage given.
+func door_settled() -> bool:
+	return absf(_door_target - _door_shown) < 0.004
+
+
+## Moves the door towards the loading percentage with a short slide (called every frame).
+func _animate_door(delta: float) -> void:
+	if not loading_panel.visible or door_settled():
+		return
+	_door_shown = move_toward(_door_shown, _door_target, maxf(absf(_door_target - _door_shown) * 12.0, 0.25) * delta)
+	_place_door(_door_shown)
 
 
 func hide_loading() -> void:
@@ -438,6 +570,7 @@ func show_race_hud() -> void:
 func _show_race_info(on: bool) -> void:
 	pause.visible = on
 	info_label.visible = on
+	minimap.visible = on
 	clock_label.visible = on
 	heat_label.visible = on
 	for r in heat_boxes:
@@ -445,6 +578,7 @@ func _show_race_info(on: bool) -> void:
 
 
 func show_end(won: bool, title: String, text: String) -> void:
+	set_wrong_way(false)
 	end_title.text = title
 	end_title.add_theme_color_override("font_color", Color(0.3, 1, 0.5) if won else Color(1, 0.3, 0.3))
 	end_text.text = text

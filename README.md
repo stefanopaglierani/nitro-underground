@@ -1,14 +1,14 @@
 # Nitro Underground
 
-**Gioco di corse clandestine in 3D per Android, con grafica a fumetto 2.5D.**
+**Gioco di corse clandestine in 3D per Android, con grafica realistica.**
 Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come mappe di testo.
 
 ![Nitro Underground: gara sul passo di montagna](docs/immagini/gara-montagna.jpg)
 
 [![Godot 4.7](https://img.shields.io/badge/Godot-4.7-478CBF?logo=godotengine&logoColor=white)](https://godotengine.org)
-![GDScript](https://img.shields.io/badge/GDScript-~7.500_righe-355570)
+![GDScript](https://img.shields.io/badge/GDScript-~8.400_righe-355570)
 ![Android](https://img.shields.io/badge/Android-arm64-3DDC84?logo=android&logoColor=white)
-![Versione](https://img.shields.io/badge/versione-0.12-ff3d8b)
+![Versione](https://img.shields.io/badge/versione-0.18-ff3d8b)
 ![Stato](https://img.shields.io/badge/stato-prototipo_giocabile-f5a623)
 
 📖 [Storia dello sviluppo](docs/STORIA.md) · 🛠️ [Come è costruito](docs/TECNICO.md) · 🎨 [Crediti e licenze](CREDITI.md) · 🇬🇧 [English](#english)
@@ -23,13 +23,22 @@ Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come
 - **Chi l'ha fatto:** **Stefano Paglierani** ha ideato e diretto il gioco: concept, stile,
   circuiti, auto, comandi e ogni scelta di prodotto, provando ogni build sul suo telefono Android.
   Il codice è stato scritto da **Claude** (l'assistente AI di Anthropic) sulle sue indicazioni.
-- **In quanto tempo:** 7 giorni, dal 27 ottobre al 2 novembre 2026: **13 versioni** dal primo prototipo
-  alla v0.12, ognuna provata su telefono o PC e migliorata in base alle prove.
+- **In quanto tempo:** 12 giorni, dal 27 ottobre al 7 novembre 2026: **19 versioni** dal primo prototipo
+  alla v0.18, ognuna provata su telefono o PC e migliorata in base alle prove.
 - **Cosa dimostra:** direzione di prodotto e game design su un progetto reale, ciclo rapido
   prova → feedback → nuova versione, uso dell'intelligenza artificiale come squadra di sviluppo,
   attenzione alle licenze degli asset e alle prestazioni su telefono.
 
-## Screenshot (v0.11.1)
+## Screenshot (v0.17-v0.18, grafica realistica)
+
+| | |
+|---|---|
+| ![Pagina d'attesa con il pulsante START](docs/immagini/v0.18-start.jpg) | ![Garage iniziale con la scelta dell'auto](docs/immagini/v0.17-garage.jpg) |
+| *Pagina d'attesa: l'immagine scelta da Stefano e il pulsante START* | *Garage: 3 auto, scelta definitiva, denaro e reputazione* |
+| ![Caricamento con la serranda del garage](docs/immagini/v0.17-caricamento.jpg) | ![Gara sulla costa con la minimappa](docs/immagini/v0.17-minimappa.jpg) |
+| *Caricamento: la serranda del garage si alza con la percentuale* | *Gara sulla costa: minimappa con le frecce delle auto* |
+
+### Com'era nella v0.11.1 (stile a fumetto 2.5D, abbandonato nella v0.13)
 
 | | |
 |---|---|
@@ -46,15 +55,16 @@ Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come
 
 | | |
 |---|---|
-| 🏁 **4 circuiti** | Montagna (passo alpino con tornanti), Costa (riviera), Città di notte (downtown), Deserto (Route 66) |
-| 🚗 **7 auto** | Velocità massime da 210 a 255 km/h, trazione anteriore, posteriore o integrale |
+| 🏠 **Garage** | Dopo la pagina START: scelta definitiva fra 3 auto, denaro (5.000 a gara) e reputazione (vittorie, derapate in combo, polizia seminata), poi la prima gara sulla costa |
+| 🏁 **4 circuiti** | Montagna (passo alpino con tornanti), Costa (riviera), Città di notte (downtown), Deserto (Route 66). Dal garage si parte sulla Costa; gli altri tre sono pronti nel codice |
+| 🚗 **14 auto** | Tutte con licenza commerciale (CC BY), con nomi inventati: le guidano anche i rivali; 4 volanti e 13 mezzi nel traffico, autobus compreso |
 | ⏱️ **Gara sprint** | 3 avversari guidati dal computer, checkpoint con tempo a scalare |
 | 🚓 **Polizia** | Gli incidenti alzano il livello di allerta e arrivano le volanti |
-| 💥 **Fisica vera** | Corpo rigido su 4 ruote con sospensioni, salti, derapate, traffico che si urta, guardrail che si rompono |
+| 💥 **Fisica vera** | Corpo rigido su 4 ruote con sospensioni, salti, derapate, traffico che si urta |
 | 🔊 **Audio** | Motore V8 sintetizzato che segue i giri, cambiate, turbo, gomme, urti, sirena |
-| 🎨 **Fumetto 2.5D** | Luce a bande, contorni a inchiostro, retino, cielo pop-art sopra a modelli 3D realistici |
+| 🎨 **Grafica realistica** | Modelli 3D realistici con le impostazioni grafiche di base (lo stile a fumetto 2.5D è stato abbandonato nella v0.13) |
 | 🗺️ **Circuiti in testo** | Ogni pista è un file che si legge come un navigatore: chiunque può disegnarne una |
-| 📱 **Comandi touch** | Pulsanti a esagono con icone, cruscotto digitale, traiettoria ideale colorata a terra |
+| 📱 **Comandi touch** | Pulsanti a esagono con icone, cruscotto digitale, minimappa con le frecce delle auto, traiettoria ideale colorata a terra |
 
 ## Come è costruito, in breve
 
@@ -66,14 +76,18 @@ Il dettaglio completo, con diagrammi e numeri, è in **[docs/TECNICO.md](docs/TE
   144 km/h in 63 m, salti **entro il 2,5% della traiettoria balistica teorica**, stessi risultati a
   30, 60 e 120 tick al secondo.
 - **Un linguaggio per disegnare i circuiti** (`tracks/*.txt`): `DRITTO 520`, `TORNANTE DESTRA`,
-  `CHICANE SINISTRA`... Il gioco chiude l'anello da solo e ne ricava strada, terreno, guardrail,
+  `CHICANE SINISTRA`... Il gioco chiude l'anello da solo e ne ricava strada, terreno,
   traiettoria ideale, velocità in curva per l'IA e tempo dei checkpoint.
-- **Stile a fumetto** fatto con shader: materiali toon applicati a tutto ciò che entra in scena e
-  una passata a schermo intero (bande, inchiostro sui salti di profondità, retino, tratteggio).
+- **Grafica realistica** con le impostazioni di base di Godot. Lo stile a fumetto fatto con shader
+  (v0.9-v0.12) è spento dalla v0.13: sul telefono era troppo pesante e Stefano è tornato al realistico.
+- **Progressi salvati sul telefono** (`scripts/save_game.gd`): auto scelta, denaro e
+  reputazione in un piccolo file di configurazione; la reputazione cresce con vittorie, polizia
+  seminata e derapate in combinazione che raddoppiano il valore.
 - **Costruito dal codice**: le scene sono quasi vuote, strade, terreno, auto, interfaccia e
   materiali nascono dagli script. Tutto è testo leggibile e versionato.
 - **Pensato per il telefono**: caricamento a passi con modelli letti in thread paralleli, modelli
-  3D fusi per ridurre le chiamate di disegno (da oltre 1.000 a poche per modello), texture compresse.
+  3D fusi per ridurre le chiamate di disegno (la Porsche da 8.270 a 148), texture compresse con
+  mipmap (in gara da 418 a 104 MB).
 - **Licenze tracciate**: oltre 120 asset gratuiti registrati con autore, link e licenza.
 
 ![Mappe dei quattro circuiti](docs/immagini/mappe-circuiti.png)
@@ -82,7 +96,7 @@ Il dettaglio completo, con diagrammi e numeri, è in **[docs/TECNICO.md](docs/TE
 
 ![Evoluzione del gioco](docs/immagini/evoluzione.jpg)
 
-Dalla città low poly vista dall'alto del primo giorno al fumetto 2.5D di oggi: ogni svolta è nata
+Dalla città low poly vista dall'alto del primo giorno, passando per il fumetto 2.5D, al ritorno alla grafica realistica: ogni svolta è nata
 dalle prove sul telefono. La [storia completa](docs/STORIA.md) racconta, versione per versione,
 cosa è stato chiesto e come è stato costruito.
 
@@ -95,6 +109,12 @@ cosa è stato chiesto e come è stato costruito.
 | v0.10 | Menu Route 66, caricamento leggero, tempo a scalare |
 | v0.11-v0.11.1 | Circuiti come mappe di testo, ambientazioni rifatte, Deserto, garage da 7 |
 | v0.12 | Stabilizzazione: pausa, polizia più giusta, rivali più veloci, traffico che si libera da solo |
+| v0.13-v0.13.1 | Il telefono si bloccava: auto e texture alleggerite, ritorno alla grafica realistica, via i guardrail |
+| v0.14 | OpenGL sul telefono, nuovo garage e traffico dettagliato, auto pre-cotte per un menù veloce |
+| v0.15 | Solo auto vendibili (CC BY), nomi inventati e loghi tolti |
+| v0.16 | Auto lontane leggere contro gli scatti, asfalto a filo, avviso di contromano |
+| v0.17 | Si parte dal garage (3 auto, scelta definitiva), minimappa in gara, caricamento con la serranda |
+| v0.18 | Pagina d'attesa con START, denaro e reputazione guadagnati in gara, asfalto rialzato |
 
 ## Provarlo
 
@@ -119,12 +139,12 @@ e [`gioca-nitro.ps1`](tools/windows/gioca-nitro.ps1) nella stessa cartella e fai
 
 | Percorso | Contenuto |
 |---|---|
-| `scripts/` | Tutto il gioco: menu, gara, auto, circuiti, traffico, audio, stile, interfaccia |
-| `shaders/` | Stile a fumetto, cielo, terreno, mare, facciate illuminate, vernice delle auto |
+| `scripts/` | Tutto il gioco: pagina START, garage, salvataggio, gara, auto, circuiti, traffico, audio, minimappa, interfaccia |
+| `shaders/` | Stile a fumetto (spento), cielo, terreno, mare, facciate illuminate |
 | `tracks/` | Le mappe dei circuiti in testo e la guida [`COME_FARE.md`](tracks/COME_FARE.md) |
 | `assets/` | Modelli, texture e suoni, con il registro [`LICENSES.md`](assets/LICENSES.md) |
 | `tests/` | Banco prova della fisica |
-| `tools/` | Build Android, anteprima mappe, screenshot automatici, launcher Windows, sintesi audio |
+| `tools/` | Build Android, preparazione delle auto (`bake_cars.gd`), anteprima mappe, screenshot automatici, launcher Windows, sintesi audio |
 | `docs/` | Storia, documentazione tecnica, immagini |
 
 ## Licenze
@@ -138,7 +158,7 @@ diritti sono riservati all'autore.
 ## Roadmap
 
 1. ~~Documento di concept~~ ✔
-2. **Prototipo giocabile su telefono** ← siamo qui (v0.1 → v0.12, fase di stabilizzazione)
+2. **Prototipo giocabile su telefono** ← siamo qui (v0.1 → v0.18, fase di stabilizzazione)
 3. Vertical slice: un circuito e un'auto rifiniti al livello del gioco finale
 4. Produzione e pubblicazione, con sostituzione degli asset non commerciali
 
@@ -146,14 +166,14 @@ diritti sono riservati all'autore.
 
 ## English
 
-**Nitro Underground** is a 3D arcade street-racing game for Android with a 2.5D comic-book look,
-built with **Godot 4.7** (GDScript, Mobile/Vulkan renderer, Jolt physics). Current version:
-**v0.12**, a playable prototype (stabilisation phase).
+**Nitro Underground** is a 3D arcade street-racing game for Android with realistic graphics (the 2.5D comic look was dropped in v0.13),
+built with **Godot 4.7** (GDScript, Compatibility/OpenGL renderer on Android, Jolt physics). Current version:
+**v0.18**, a playable prototype (stabilisation phase).
 
 **Who made it.** **Stefano Paglierani** conceived and directed the game: concept, art direction,
 circuits, cars, controls and every product decision, testing each build on his Android phone.
-The code was written by **Claude** (Anthropic's AI assistant) from his direction. 13 versions were
-designed, built and play-tested in 7 days (27 October - 2 November 2026).
+The code was written by **Claude** (Anthropic's AI assistant) from his direction. 19 versions were
+designed, built and play-tested in 12 days (27 October - 7 November 2026).
 
 **Highlights**
 - **Custom vehicle physics** on a `RigidBody3D`: shape-cast wheels that climb kerbs,
@@ -161,10 +181,14 @@ designed, built and play-tested in 7 days (27 October - 2 November 2026).
   automated bench: 0-100 km/h in 3.5 s, ramp jumps within 2.5% of the ballistic prediction,
   frame-rate independent at 30/60/120 Hz.
 - **A tiny track-description language** (`tracks/*.txt`, Italian keywords such as `DRITTO`,
-  `TORNANTE`, `CHICANE`) that auto-closes the loop and generates road, terrain, guardrails, a
+  `TORNANTE`, `CHICANE`) that auto-closes the loop and generates road, terrain, a
   racing line with a speed profile for the AI, and checkpoint times.
-- **2.5D comic rendering**: toon materials applied to everything that enters the scene, plus a
-  full-screen pass with cel bands, depth-based ink lines, halftone, hatching and misregistered colour plates.
+- **Realistic rendering** with Godot's base settings since v0.13; the earlier 2.5D comic shaders
+  (toon materials, full-screen ink/halftone pass) are kept in the code but switched off, as they were too heavy for the phone.
+- **Career loop foundations** (v0.17-v0.18): a start page, a garage where the first car is picked
+  for good, money earned per race and reputation earned from wins, police escapes and chained
+  drifts, all saved on the device; an in-race minimap and a loading screen where a garage door
+  rises with the progress.
 - **Synthesized V8 engine audio**, crossfaded and pitched to RPM in real time.
 - **Mobile-minded**: staged, threaded loading; models merged into one mesh per material
   (a 123-part model went from 1,000+ draw calls to a handful); GPU-compressed textures.

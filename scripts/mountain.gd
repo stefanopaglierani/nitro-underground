@@ -1,7 +1,7 @@
 class_name Mountain
 extends Track
 ## Daytime mountain pass: a closed 2.7 km road that winds, climbs and drops across hills, with
-## guardrails on both sides, rock cuttings where it runs into the slope and pine woods around.
+## no guardrails (removed 2026-11-04), rock cuttings where it runs into the slope and pine woods around.
 ## Everything is generated from fixed seeds, so the track is the same on every run.
 ## The road is a list of samples every SAMPLE_STEP metres; the AI follows it in either direction.
 
@@ -76,7 +76,6 @@ func build_steps() -> Array:
 		["Tracciato", _make_road_line],
 		["Montagne", _build_terrain],
 		["Asfalto", _build_road],
-		["Guardrail", _build_rails],
 		["Alberi", _build_trees],
 		["Erba", _build_grass],
 		["Rocce e cartelli", _build_rocks],
@@ -263,7 +262,9 @@ func _build_terrain() -> void:
 			if d == INF:
 				_heights[i] = nat
 			else:
-				var bed := road_h[i] - 0.4
+				# 10 cm under the road (v0.18, Stefano): level with it (v0.16, 3 cm) the coarse
+				# terrain grid often came up through the asphalt.
+				var bed := road_h[i] - 0.1
 				_heights[i] = lerpf(bed, nat, smoothstep(flat_r, BLEND, d))
 
 	var mat := _terrain_material()
@@ -372,8 +373,8 @@ func _build_road() -> void:
 	var asphalt_mat := _pbr("asphalt_02")
 	asphalt_mat.albedo_color = road_tint
 	asphalt.surface_set_material(0, asphalt_mat)
-	var verge_l := _ribbon([-RAIL_OFFSET, -ROAD_HALF], -0.03, 4.0)
-	var verge_r := _ribbon([ROAD_HALF, RAIL_OFFSET], -0.03, 4.0)
+	var verge_l := _ribbon([-RAIL_OFFSET, -ROAD_HALF], 0.0, 4.0)
+	var verge_r := _ribbon([ROAD_HALF, RAIL_OFFSET], 0.0, 4.0)
 	var gravel := _pbr("clean_asphalt")
 	gravel.albedo_color = verge_tint
 	verge_l.surface_set_material(0, gravel)
@@ -478,6 +479,8 @@ func _markings() -> void:
 
 # ---------- Guardrails ----------
 
+## Not used since 2026-11-04: Stefano asked to take the guardrails off every circuit (they got in
+## the way). Put ["Guardrail", _build_rails] back in a level's build_steps() to bring them back.
 func _build_rails() -> void:
 	# Straight 4 m sections on both sides; each one can be torn off by a hard hit (GuardRails).
 	var steel := CarModel.mat(Color(0.72, 0.74, 0.76), Color.BLACK, 0.0, 0.85, 0.35)
@@ -923,7 +926,7 @@ func _build_racing_line() -> void:
 			col = Color(1.0, 0.15, 0.1)
 		elif drop > 0.05 or line_speed[k] < 30.0:
 			col = Color(1.0, 0.8, 0.1)
-		col.a = 0.9
+		col.a = 0.5  # half see-through (v0.18, Stefano)
 		var a0 := _line_point(k) - _right(k) * 0.3 + lift
 		var a1 := _line_point(k) + _right(k) * 0.3 + lift
 		var b0 := _line_point(k2) - _right(k2) * 0.3 + lift

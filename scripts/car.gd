@@ -39,11 +39,18 @@ const REDLINE_RPM := 7800.0
 const SHIFT_TIME := 0.12
 ## The wheel cast starts this far above the mount.
 const CAST_LIFT := 0.25
-## Car models (assets/cars_rgsdev) for the AI racers and the police.
-const RACER_BODIES := ["muscle", "roadster", "muscle_2", "hatchback"]
-const POLICE_BODIES := ["police_sedan", "police_sports", "police_muscle", "police_suv"]
+## Police: sellable CC BY models (2026-11-06).
+const POLICE_BODIES := ["police_illinois", "police_negotiator", "police_interceptor", "police_car"]
 ## Car the player picked in the garage (CarCatalog id); it keeps its own colours.
-static var player_body := "mclaren_600lt"
+static var player_body := "phoenix_455"
+## Model of an AI racer, set before setup(): one of rival_bodies().
+var racer_body := ""
+
+## The rivals drive the garage cars (Stefano, 2026-11-05), all but the one the player picked.
+static func rival_bodies() -> Array:
+	var out := CarCatalog.GARAGE.filter(func(id: String) -> bool: return id != player_body)
+	return out if not out.is_empty() else CarCatalog.GARAGE.duplicate()
+
 
 var driver: Driver = Driver.PLAYER
 var frozen := true:
@@ -224,7 +231,8 @@ func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 	var body := player_body
 	var model_paint := Color(0, 0, 0, 0) if kind == Driver.PLAYER else paint
 	if kind == Driver.RACER:
-		body = RACER_BODIES[absi(hash(paint)) % RACER_BODIES.size()]
+		var pool := rival_bodies()
+		body = racer_body if racer_body != "" else pool[absi(hash(paint)) % pool.size()]
 	elif kind == Driver.POLICE:
 		body = POLICE_BODIES[get_instance_id() % POLICE_BODIES.size()]
 	set_drivetrain(CarCatalog.drivetrain(body))
@@ -232,6 +240,8 @@ func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 		# Air drag holds the car about 5% under max_speed, so aim a little higher.
 		max_speed = CarCatalog.top_speed(body) / 3.6 * 1.05
 	_model = CarModel.build(model_paint, kind == Driver.POLICE, body)
+	if kind == Driver.PLAYER:
+		CarModel.keep_detailed(_model)  # always close to the camera
 	add_child(_model)
 	for n in ["WheelFL", "WheelFR", "WheelRL", "WheelRR"]:
 		_wheel_nodes.append(_model.get_node(n))

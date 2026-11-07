@@ -7,7 +7,6 @@ extends RigidBody3D
 ## stops. Out of sight of every racer it goes back on its lane and drives on.
 ## On an open lane it wraps around to the start when it reaches the end.
 
-const BODIES := ["sedan", "hatchback", "suv", "van", "taxi", "pickup"]
 ## Strongest push the driver can give to stay on the lane, in m/s². A hit bigger than this wins.
 const DRIVE_ACCEL := 12.0
 ## Shoved this far (in m/s) from the speed it wants and the driver loses control.
@@ -76,13 +75,22 @@ func setup(track: Track, rng: RandomNumberGenerator, start_t := -1.0) -> void:
 	phys.friction = 0.7
 	phys.bounce = 0.1
 	physics_material_override = phys
+	var body: String = CarCatalog.TRAFFIC[rng.randi() % CarCatalog.TRAFFIC.size()]
+	var model := CarModel.build(Color(0, 0, 0, 0), false, body)
+	add_child(model)
+	# The body that hits is a box as big as the vehicle (a bus is much longer and taller than a car),
+	# kept a little inside the bodywork and off the ground.
+	var bounds := AABB()
+	for mi in model.find_children("*", "MeshInstance3D", true, false):
+		var bb: AABB = CarModel._xf_in(mi, model) * (mi as MeshInstance3D).get_aabb()
+		bounds = bb if bounds.size == Vector3.ZERO else bounds.merge(bb)
 	var shape := BoxShape3D.new()
-	shape.size = Vector3(1.9, 1.5, 4.2)
+	var size := bounds.size if bounds.size != Vector3.ZERO else Vector3(1.9, 1.6, 4.5)
+	shape.size = Vector3(clampf(size.x - 0.1, 1.6, 2.6), clampf(size.y - 0.3, 1.2, 3.2), maxf(size.z - 0.3, 3.0))
 	var col := CollisionShape3D.new()
 	col.shape = shape
-	col.position.y = 0.85
+	col.position.y = 0.2 + shape.size.y * 0.5
 	add_child(col)
-	add_child(CarModel.build(Color(0, 0, 0, 0), false, BODIES[rng.randi() % BODIES.size()]))
 	contact_monitor = true
 	max_contacts_reported = 4
 	_set_driving_layers(true)

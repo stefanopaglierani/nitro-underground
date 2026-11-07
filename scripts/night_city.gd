@@ -64,7 +64,6 @@ func build_steps() -> Array:
 		["Tracciato", _make_road_line],
 		["Strade e piazze", _build_terrain],
 		["Asfalto", _build_road],
-		["Barriere", _build_rails],
 		["Palazzi", _build_buildings],
 		["Grattacieli", _build_skyline],
 		["Lampioni e semafori", _build_lamps],
