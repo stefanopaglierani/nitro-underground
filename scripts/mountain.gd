@@ -262,9 +262,9 @@ func _build_terrain() -> void:
 			if d == INF:
 				_heights[i] = nat
 			else:
-				# Level with the road (v0.16, Stefano: no step at the edge). 3 cm under it only so the
-				# two surfaces do not flicker into each other on screen.
-				var bed := road_h[i] - 0.03
+				# 10 cm under the road (v0.18, Stefano): level with it (v0.16, 3 cm) the coarse
+				# terrain grid often came up through the asphalt.
+				var bed := road_h[i] - 0.1
 				_heights[i] = lerpf(bed, nat, smoothstep(flat_r, BLEND, d))
 
 	var mat := _terrain_material()
@@ -926,7 +926,7 @@ func _build_racing_line() -> void:
 			col = Color(1.0, 0.15, 0.1)
 		elif drop > 0.05 or line_speed[k] < 30.0:
 			col = Color(1.0, 0.8, 0.1)
-		col.a = 0.9
+		col.a = 0.5  # half see-through (v0.18, Stefano)
 		var a0 := _line_point(k) - _right(k) * 0.3 + lift
 		var a1 := _line_point(k) + _right(k) * 0.3 + lift
 		var b0 := _line_point(k2) - _right(k2) * 0.3 + lift

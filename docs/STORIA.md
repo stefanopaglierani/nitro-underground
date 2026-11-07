@@ -39,6 +39,7 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.15 | 06/11/2026 | Solo auto "vendibili" (CC BY): 14 nel garage e per i rivali, 4 volanti, 13 mezzi nel traffico; nomi inventati e loghi tolti alle auto di marchi reali | ramo `claude/project-thread-8bmj8s` |
 | v0.16 | 06/11/2026 | Auto lontane in versione leggera contro gli scatti, asfalto a filo del terreno, avviso rosso di contromano, Petalo Roadster non più sospesa | ramo `claude/project-thread-8bmj8s` |
 | v0.17 | 07/11/2026 | Si entra direttamente nel garage (3 auto, scelta definitiva, denaro e reputazione), minimappa in gara, caricamento con la serranda del garage che si apre | ramo `claude/project-thread-v3cjse` |
+| v0.18 | 07/11/2026 | Pagina d'attesa con START, denaro e reputazione che si guadagnano in gara, asfalto 10 cm sopra il terreno, traiettoria semitrasparente | ramo `claude/project-thread-v3cjse` |
 
 ## Le svolte principali
 
@@ -530,14 +531,44 @@ caricamento avanza.
 
 **Verifica ed esito:** screenshot del garage prima e dopo la scelta e una gara automatica sulla
 costa con le immagini del caricamento e della minimappa (render senza GPU nel cloud). Da provare
-sul telefono.
+sul telefono. Stefano l'ha provata sul PC: "lavora molto bene, soprattutto il caricamento della
+partita. Ottima la mappa. E anche la selezione del veicolo." Le tre auto segnaposto restano.
+
+---
+
+## v0.18 — START, denaro e reputazione (7 novembre)
+
+![La pagina d'attesa](immagini/v0.18-start.jpg)
+
+**Richiesta:** dopo la prova della v0.17 sul PC, Stefano ha fissato le regole: si parte con 2.000
+di denaro e se ne guadagnano 5.000 a ogni gara; la reputazione parte da zero, +1.000 a ogni
+vittoria, +20 a ogni derapata, "in combo raddoppia la vincita se la successiva derapata arriva
+entro 3 s", +100 per ogni inseguimento della polizia vinto. Poi: asfalto 10 cm sopra il terreno
+("avevi ragione tu", a filo spesso il terreno lo copriva), tratteggio della traiettoria trasparente
+al 50%, e una pagina d'attesa con una sua immagine e solo un pulsante START in basso al centro.
+
+**Come è stato costruito:**
+- **Pagina d'attesa** (`scripts/title.gd`, `scenes/title.tscn`): è la prima scena del gioco;
+  l'immagine copre lo schermo e START, che pulsa piano, apre il garage.
+- **Denaro** (`scripts/main.gd`, `scripts/save_game.gd`): 5.000 a ogni gara portata al traguardo,
+  qualunque sia il piazzamento; niente se scade il tempo o se arriva l'arresto. Le partite salvate
+  dalla v0.17 con 0 passano a 2.000.
+- **Reputazione:** la derapata conta quando finisce, se è durata almeno mezzo secondo; quella dopo,
+  se comincia entro 3 secondi, vale il doppio (20, 40, 80... fino a 320). Ogni guadagno compare per
+  un attimo sotto il pulsante MENU ("Derapata x4 +80 REP"); il totale della gara è nella schermata
+  finale ed è salvato anche se si esce o si riparte a metà.
+- **Asfalto e traiettoria** (`scripts/mountain.gd`, vale per tutti i circuiti): terreno 10 cm sotto
+  la strada, trattini della traiettoria con trasparenza al 50%.
+
+**Verifica ed esito:** screenshot della pagina d'attesa e del garage con 2.000 di partenza, gara
+automatica sulla costa con i guadagni di reputazione scritti nel registro. Da provare su PC e telefono.
 
 ---
 
 ## Prossimi passi
 
-- Prova sul telefono della v0.17: garage, minimappa e serranda del caricamento.
-- Scegliere le 3 auto del garage iniziale; decidere come si guadagnano denaro e reputazione e cosa mostra la mappa.
+- Prova sul telefono e sul PC della v0.18.
+- Decidere a cosa servono denaro e reputazione e cosa mostra la mappa.
 - Togliere i loghi dipinti nelle texture delle auto di marchi reali; aggiungere i mezzi della seconda ricerca (fuoristrada, pick-up, buggy, traffico di città).
 - Costruire il nuovo aspetto realistico (luce, cielo, ombre, materiali) un passo approvato alla volta.
 - Passo 3 del piano: **vertical slice**, cioè un circuito e un'auto rifiniti al livello del gioco finale.

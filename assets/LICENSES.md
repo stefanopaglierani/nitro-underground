@@ -244,3 +244,4 @@ La libreria completa scaricata (58 modelli, anche quelli non ancora usati) è ne
 | `loading_garage.jpg` | Sfondo della pagina di caricamento (garage visto dal cofano, serranda) | Immagine fornita da Stefano Paglierani il 07/11/2026 | Fornita da Stefano per il gioco (origine e diritti da confermare prima della pubblicazione) | Convertita in JPG (`tools/art/garage_images.py`) |
 | `loading_door.png` | La serranda allungata fino a terra, che sale durante il caricamento | Ricavata da `loading_garage.jpg` | Come sopra | Ritagliata, lamelle ripetute |
 | `garage_bg.jpg` | Sfondo del garage iniziale | Ricavata da `loading_garage.jpg` | Come sopra | Ritagliata senza il cofano |
+| `title.jpg` | Pagina d'attesa (titolo, auto sulla costa) | Immagine fornita da Stefano Paglierani il 07/11/2026 | Fornita da Stefano per il gioco (origine e diritti da confermare prima della pubblicazione) | Convertita in JPG |

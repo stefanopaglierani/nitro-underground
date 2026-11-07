@@ -46,6 +46,9 @@ var _bonus_t := 0.0
 var _buttons: Dictionary = {}
 var _message_t := 0.0
 var wrong_way_label: Label
+## "Derapata x2  +40 REP": reputation just earned, under the MENU button (v0.18).
+var rep_label: Label
+var _rep_t := 0.0
 var _wrong_way_t := 0.0
 
 
@@ -132,6 +135,15 @@ func _ready() -> void:
 	escape_bar.offset_top = 60
 	escape_bar.offset_bottom = 76
 	escape_bar.visible = false
+
+	rep_label = _label(28, Color(0.45, 0.8, 1))
+	rep_label.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	rep_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	rep_label.offset_left = -520
+	rep_label.offset_right = -24
+	rep_label.offset_top = 150
+	rep_label.offset_bottom = 190
+	rep_label.visible = false
 
 	pause = Button.new()
 	pause.text = "MENU"
@@ -294,8 +306,20 @@ func set_wrong_way(on: bool) -> void:
 	wrong_way_label.visible = on
 
 
+## Shows the reputation just earned for a moment.
+func rep_popup(text: String) -> void:
+	rep_label.text = text
+	rep_label.visible = true
+	rep_label.modulate.a = 1.0
+	_rep_t = 2.0
+
+
 func _process(delta: float) -> void:
 	_animate_door(delta)
+	if _rep_t > 0.0:
+		_rep_t -= delta
+		rep_label.modulate.a = clampf(_rep_t / 0.5, 0.0, 1.0)
+		rep_label.visible = _rep_t > 0.0
 	if wrong_way_label.visible:
 		_wrong_way_t += delta
 		wrong_way_label.modulate.a = 1.0 if fmod(_wrong_way_t, 0.8) < 0.55 else 0.25

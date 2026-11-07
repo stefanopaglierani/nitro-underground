@@ -53,7 +53,17 @@ const RACER_STALL_TIME := 8.0
 ## Wrong way: the player drives against the race above this speed (m/s) for this many seconds.
 const WRONG_WAY_SPEED := 8.0
 const WRONG_WAY_TIME := 1.5
+## Money for every race finished (Stefano, v0.18); a race lost on time or by arrest pays nothing.
 const PRIZE := 5000
+## Reputation (Stefano, v0.18): a win, a police chase shaken off, and drifts: each drift is worth
+## REP_DRIFT, doubled for every next drift started within REP_COMBO_TIME seconds of the last one
+## (up to REP_COMBO_MAX times the base). Drifts shorter than REP_DRIFT_MIN seconds do not count.
+const REP_WIN := 1000
+const REP_POLICE := 100
+const REP_DRIFT := 20
+const REP_COMBO_TIME := 3.0
+const REP_COMBO_MAX := 16
+const REP_DRIFT_MIN := 0.5
 ## Seconds into the race when someone calls the police.
 const POLICE_CALL_TIME := 20.0
 ## A police car busy with a rival switches to the player when the player passes this close.
@@ -100,6 +110,12 @@ var police_called := false
 var _off_track_t := {}
 var _racer_stall := {}  # racer -> [wp_index, seconds without reaching the next point]
 var _warn_t := 0.0
+## Reputation earned in this race, and the drift combo: seconds of the drift going on, seconds
+## since the last one ended, value of the next one.
+var rep_gained := 0
+var _drift_t := 0.0
+var _since_drift := INF
+var _drift_value := REP_DRIFT
 var cam_yaw := 0.0
 var _cam_dist := CAM_DIST
 var _cam_y := 0.0
@@ -141,6 +157,7 @@ func _ready() -> void:
 		if a.begins_with("--car="):
 			Car.player_body = a.substr(6)
 
+	SaveGame.load_game()
 	_setup_input()
 	hud = Hud.new()
 	add_child(hud)
@@ -309,6 +326,7 @@ func _notification(what: int) -> void:
 
 ## Same race again: the scene is built anew (with the loading page).
 func _restart() -> void:
+	SaveGame.save_game()  # the reputation earned so far is kept
 	get_tree().paused = false
 	hud.show_loading("Riavvio", 0.0)
 	await get_tree().process_frame
@@ -316,8 +334,9 @@ func _restart() -> void:
 	get_tree().reload_current_scene()
 
 
-## Back to the title screen. The race scene and its models are freed.
+## Back to the garage. The race scene and its models are freed.
 func _to_menu() -> void:
+	SaveGame.save_game()
 	get_tree().paused = false
 	hud.show_pause(false)
 	hud.show_controls(false)
@@ -500,6 +519,7 @@ func _race_logic(delta: float) -> void:
 	_checkpoints_logic()
 	if state != "race":
 		return
+	_drift_logic(delta)
 	time_left -= delta
 	if time_left <= 0.0:
 		time_left = 0.0
@@ -590,8 +610,10 @@ func _checkpoints_logic() -> void:
 			finish_order.append(player)
 			var pos := finish_order.find(player) + 1
 			var won := pos == 1
-			var prize := PRIZE if won else (PRIZE / (pos * 2))
-			_end(won, "%d° POSTO" % pos, "Tempo %s\nVincita: %d $" % [_fmt_time(race_time), prize])
+			SaveGame.money += PRIZE
+			if won:
+				_add_rep(REP_WIN, "Vittoria")
+			_end(won, "%d° POSTO" % pos, "Tempo %s\nVincita: %d $   Reputazione: +%d" % [_fmt_time(race_time), PRIZE, rep_gained])
 			return
 		cp_marker.position = checkpoints[player_cp]
 		var bonus := _clock_times[player_cp]
@@ -641,6 +663,7 @@ func _police_logic(delta: float) -> void:
 			police.clear()
 			hud.set_heat(heat)
 			hud.flash("Polizia seminata!", 2.5)
+			_add_rep(REP_POLICE, "Inseguimento vinto")
 	else:
 		bust_t = maxf(0.0, bust_t - delta * 0.5)
 		escape_t = maxf(0.0, escape_t - delta * 2.0)
@@ -692,7 +715,34 @@ func _on_crash(impact: float, other: Object, car: Car) -> void:
 	hud.set_heat(heat)
 
 
+## Reputation for drifts: counted when a drift ends; the next one within REP_COMBO_TIME doubles.
+func _drift_logic(delta: float) -> void:
+	if player.drifting:
+		_drift_t += delta
+		return
+	_since_drift += delta
+	if _drift_t >= REP_DRIFT_MIN:
+		# _since_drift stopped when this drift started: the gap before it decides the combo,
+		# and _drift_value was put back to the base below if that gap was over REP_COMBO_TIME.
+		var times := _drift_value / REP_DRIFT
+		_add_rep(_drift_value, "Derapata" if times == 1 else "Derapata x%d" % times)
+		_drift_value = mini(_drift_value * 2, REP_DRIFT * REP_COMBO_MAX)
+		_since_drift = 0.0
+	_drift_t = 0.0
+	if _since_drift > REP_COMBO_TIME:
+		_drift_value = REP_DRIFT
+
+
+func _add_rep(amount: int, why: String) -> void:
+	rep_gained += amount
+	SaveGame.reputation += amount
+	hud.rep_popup("%s  +%d REP" % [why, amount])
+	if autotest:
+		print("[autotest] REP +%d %s at %.1f s (race total %d)" % [amount, why, race_time, rep_gained])
+
+
 func _end(won: bool, title: String, text: String) -> void:
+	SaveGame.save_game()
 	state = "end"
 	player.frozen = true
 	for p in police:
