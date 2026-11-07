@@ -32,6 +32,8 @@ static func make_level(id: String) -> Track:
 
 
 const MENU_SCENE := "res://scenes/menu.tscn"
+## Longest wait per loading step for the garage door of the loading page to slide up (seconds).
+const DOOR_WAIT := 0.12
 ## Countdown clock: seconds given for each checkpoint stretch = its length / CLOCK_SPEED (m/s)
 ## + CLOCK_EXTRA. Tuned on the autopilot, which needs about 2/3 of the time given; what is left over carries on.
 const CLOCK_SPEED := 26.0
@@ -172,7 +174,7 @@ func _ready() -> void:
 	ComicStyle.setup_environment(self, city.night)
 	ComicStyle.add_stylize_pass(camera)
 	camera.far = city.view_distance
-	await _loading("Stile fumetto", (steps.size() + 1) / total)
+	await _loading("Ritocchi finali", (steps.size() + 1) / total)
 	ComicStyle.install(get_tree())
 	await _loading("Traffico", (steps.size() + 2) / total)
 	var traffic: Array[TrafficCar] = []
@@ -186,6 +188,7 @@ func _ready() -> void:
 	TrafficCar.link_lanes(traffic)
 	checkpoints = city.race_checkpoints()
 	race_path = city.race_path()
+	hud.minimap.set_track(race_path)
 	_build_markers()
 	_plan_clock()
 	# The car models were loading in the background: wait for the last ones.
@@ -222,6 +225,13 @@ func _loading(text: String, progress: float) -> void:
 	hud.show_loading(text, progress)
 	await get_tree().process_frame
 	await get_tree().process_frame
+	# Let the garage door slide up to the new percentage (at most DOOR_WAIT seconds per step).
+	var t0 := Time.get_ticks_msec()
+	while not hud.door_settled() and Time.get_ticks_msec() - t0 < DOOR_WAIT * 1000.0:
+		await get_tree().process_frame
+	if screenshot_dir != "":
+		# Test aid: a picture of the loading page at every step.
+		get_viewport().get_texture().get_image().save_png("%s/loading_%03d.png" % [screenshot_dir, roundi(progress * 100.0)])
 
 
 ## Starts reading (in background threads) the models of the player's car, the rivals and the
@@ -741,6 +751,7 @@ func _update_hud() -> void:
 	lines.append("CHECKPOINT %d/%d" % [mini(player_cp - 1, checkpoints.size() - 1), checkpoints.size() - 1])
 	lines.append("GARA %s" % _fmt_time(race_time))
 	hud.info_label.text = "\n".join(lines)
+	hud.minimap.set_cars(player, racers)
 	hud.set_clock(time_left)
 	if arrow.visible and player_cp < checkpoints.size():
 		var t := checkpoints[player_cp]

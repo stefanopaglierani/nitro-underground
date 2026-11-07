@@ -96,10 +96,14 @@ const GARAGE := [
 ]
 
 
-## Garage cars whose model files are in this build.
-static func available() -> Array:
+## The three cars offered in the starting garage (v0.17). Placeholders until Stefano picks the three.
+const STARTER := ["phoenix_455", "kaze_r34", "falco_turbo"]
+
+
+## Cars of the list (garage cars by default) whose model files are in this build.
+static func available(ids: Array = GARAGE) -> Array:
 	var out := []
-	for id in GARAGE:
+	for id in ids:
 		var c := find(id)
 		if not c.is_empty() and (ResourceLoader.exists(CarModel.baked_path(id)) or ResourceLoader.exists(model_path(c))):
 			out.append(c)

@@ -234,3 +234,13 @@ Scaricati il 2026-10-31 in formato GLB dall'API di Sketchfab, non modificati. Li
 | `desert_desert_cliff.glb` | Desert Cliff 6 | WireframeArt | https://sketchfab.com/3d-models/desert-cliff-6-ed2e9c7e976e4768868481e4a5c63f6f |
 
 La libreria completa scaricata (58 modelli, anche quelli non ancora usati) è nella cartella del progetto `nitro-underground/libreria-3d/`, con i crediti in `CREDITI.md`.
+
+## Interfaccia — `assets/ui/`
+
+| File | Cosa è | Fonte | Licenza | Modifiche |
+|---|---|---|---|---|
+| `route66_menu.jpg` | Sfondo del vecchio menù (non più usato dalla v0.17) | Disegnato da noi (`tools/art/route66.svg`) | Nostro | — |
+| `circuit_*.jpg` | Immagini dei circuiti del vecchio menù | Render del gioco | Nostro | — |
+| `loading_garage.jpg` | Sfondo della pagina di caricamento (garage visto dal cofano, serranda) | Immagine fornita da Stefano Paglierani il 07/11/2026 | Fornita da Stefano per il gioco (origine e diritti da confermare prima della pubblicazione) | Convertita in JPG (`tools/art/garage_images.py`) |
+| `loading_door.png` | La serranda allungata fino a terra, che sale durante il caricamento | Ricavata da `loading_garage.jpg` | Come sopra | Ritagliata, lamelle ripetute |
+| `garage_bg.jpg` | Sfondo del garage iniziale | Ricavata da `loading_garage.jpg` | Come sopra | Ritagliata senza il cofano |

@@ -38,6 +38,7 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.14 | 05/11/2026 | OpenGL sul telefono, nuovo garage di 5 auto guidato anche dai rivali, traffico con 9 auto dettagliate, auto "pre-cotte" per un menù più veloce, via tutte le auto low poly | ramo `claude/project-thread-8bmj8s` |
 | v0.15 | 06/11/2026 | Solo auto "vendibili" (CC BY): 14 nel garage e per i rivali, 4 volanti, 13 mezzi nel traffico; nomi inventati e loghi tolti alle auto di marchi reali | ramo `claude/project-thread-8bmj8s` |
 | v0.16 | 06/11/2026 | Auto lontane in versione leggera contro gli scatti, asfalto a filo del terreno, avviso rosso di contromano, Petalo Roadster non più sospesa | ramo `claude/project-thread-8bmj8s` |
+| v0.17 | 07/11/2026 | Si entra direttamente nel garage (3 auto, scelta definitiva, denaro e reputazione), minimappa in gara, caricamento con la serranda del garage che si apre | ramo `claude/project-thread-v3cjse` |
 
 ## Le svolte principali
 
@@ -492,11 +493,53 @@ solo dopo due testacoda, per poco: la soglia è stata alzata a 1,5 secondi e 30 
 
 ---
 
+## v0.17 — Il garage, la minimappa e la serranda (7 novembre)
+
+![Il nuovo garage iniziale](immagini/v0.17-garage.jpg)
+
+**Richiesta:** Stefano ha chiesto "diverse modifiche strutturali". Niente più menù iniziale: "il
+giocatore si troverà ad entrare direttamente nel garage", con un'auto "bella in grande" al centro,
+nome e caratteristiche sotto, due frecce ai lati per scegliere fra 3 modelli, un pulsante
+"Seleziona" sopra ("una volta selezionata l'auto il giocatore non potrà più cambiare"), denaro e
+reputazione in alto a destra, il pulsante della mappa in alto a sinistra e "Inizio gara" in basso a
+destra, che porta alla prima gara sulla costa. In gara, "una piccola mappa interattiva" con una
+freccia nera per il giocatore e tre rosse per gli avversari. E al posto della barra di caricamento,
+un'immagine sua: il garage visto dal cofano, con la serranda che si apre man mano che il
+caricamento avanza.
+
+**Come è stato costruito:**
+- **Garage** (`scripts/menu.gd`): lo sfondo è la sua immagine senza il cofano in primo piano;
+  l'auto è un modello 3D che gira lentamente su un'ombra morbida, in una finestra larga quasi metà
+  schermo. Le frecce (disegnate in codice) scorrono le 3 auto di partenza, per ora segnaposto
+  (`CarCatalog.STARTER`). "Seleziona" chiede una conferma con un secondo tocco, poi l'auto è
+  salvata sul telefono (`scripts/save_game.gd`, file `user://partita.cfg`), le frecce spariscono
+  e si sblocca "Inizio gara". Denaro e reputazione si leggono dallo stesso file e per ora restano a
+  0: nessuna gara li cambia ancora. La mappa mostra solo "arriverà presto".
+- **Minimappa** (`scripts/minimap.gd`): in alto a sinistra, il percorso della gara visto dall'alto,
+  con partenza verde e arrivo bianco; le frecce seguono posizione e direzione delle auto. Il
+  percorso è disegnato una volta sola, ogni fotogramma si ridisegnano solo le 4 frecce.
+- **Caricamento** (`scripts/hud.gd`): `tools/art/garage_images.py` ritaglia dall'immagine la
+  serranda e la allunga ripetendo le sue lamelle, così da chiusa arriva fino a terra. Il
+  caricamento la fa salire dal pavimento fino a dove è nell'immagine, con un breve scorrimento;
+  il pavimento e il cofano si illuminano man mano che entra la luce. In alto il titolo, la
+  percentuale e la fase.
+
+![La serranda del caricamento a 0, 35, 65 e 94%](immagini/v0.17-caricamento.jpg)
+
+![La minimappa in gara](immagini/v0.17-minimappa.jpg)
+
+**Verifica ed esito:** screenshot del garage prima e dopo la scelta e una gara automatica sulla
+costa con le immagini del caricamento e della minimappa (render senza GPU nel cloud). Da provare
+sul telefono.
+
+---
+
 ## Prossimi passi
 
-- Prova sul telefono della v0.15: tempo dell'anteprima nel menù, fluidità in gara con le auto nuove.
+- Prova sul telefono della v0.17: garage, minimappa e serranda del caricamento.
+- Scegliere le 3 auto del garage iniziale; decidere come si guadagnano denaro e reputazione e cosa mostra la mappa.
 - Togliere i loghi dipinti nelle texture delle auto di marchi reali; aggiungere i mezzi della seconda ricerca (fuoristrada, pick-up, buggy, traffico di città).
-- Costruire il nuovo aspetto realistico (luce, cielo, ombre, materiali) un passo approvato alla volta, e sostituire lo sfondo disegnato del menù.
+- Costruire il nuovo aspetto realistico (luce, cielo, ombre, materiali) un passo approvato alla volta.
 - Passo 3 del piano: **vertical slice**, cioè un circuito e un'auto rifiniti al livello del gioco finale.
 - Prima di qualsiasi pubblicazione: sostituire i modelli non commerciali e di marchi reali
   (vedi [CREDITI.md](../CREDITI.md)) e aggiungere i titoli di coda con i crediti CC BY.
