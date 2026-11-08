@@ -40,6 +40,7 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.16 | 06/11/2026 | Auto lontane in versione leggera contro gli scatti, asfalto a filo del terreno, avviso rosso di contromano, Petalo Roadster non più sospesa | ramo `claude/project-thread-8bmj8s` |
 | v0.17 | 07/11/2026 | Si entra direttamente nel garage (3 auto, scelta definitiva, denaro e reputazione), minimappa in gara, caricamento con la serranda del garage che si apre | ramo `claude/project-thread-v3cjse` |
 | v0.18 | 07/11/2026 | Pagina d'attesa con START, denaro e reputazione che si guadagnano in gara, asfalto 10 cm sopra il terreno, traiettoria semitrasparente | ramo `claude/project-thread-v3cjse` |
+| v0.19 | 08/11/2026 | Dealer con 14 auto, colore RGB ed elaborazioni a 5 livelli; nuova combo delle derapate; dopo la Costa la Città | ramo `claude/project-thread-v3cjse` |
 
 ## Le svolte principali
 
@@ -561,14 +562,51 @@ al 50%, e una pagina d'attesa con una sua immagine e solo un pulsante START in b
   la strada, trattini della traiettoria con trasparenza al 50%.
 
 **Verifica ed esito:** screenshot della pagina d'attesa e del garage con 2.000 di partenza, gara
-automatica sulla costa con i guadagni di reputazione scritti nel registro. Da provare su PC e telefono.
+automatica sulla costa con i guadagni di reputazione scritti nel registro. Stefano l'ha provata e ha
+deciso che raddoppiare ogni derapata era troppo: la combo è stata rifatta nella v0.19.
+
+---
+
+## v0.19 — Il dealer (8 novembre)
+
+![Il dealer](immagini/v0.19-dealer.jpg)
+
+**Richiesta:** "la parte fondamentale è costruire il dealer, ovvero l'autoconcessionaria", con una
+sua immagine come sfondo: le altre auto in vendita, la possibilità di cambiare colore "con un RGB
+classico", e un menù di modifiche su sei punti (motore, centralina, scarico, nitro, freni,
+sospensioni), cinque livelli ciascuno a pallini, con prezzi tali che portare tutto al massimo costi
+circa il doppio dell'auto; le tre auto di partenza valgono 9.000. Nel garage il pulsante per il
+dealer; finita la prima gara si torna al garage e la gara dopo è la città. E una nuova combo: ogni
+derapata vale 20, alla quinta di fila il totale raddoppia, dalla sesta ognuna vale 30, alla decima
+il totale triplica.
+
+**Come è stato costruito:**
+- **Dealer** (`scripts/dealer.gd`, `scenes/dealer.tscn`): le 14 auto del garage girano una alla volta
+  sul piatto dello showroom, con le frecce, il prezzo e "COMPRA"; quelle già possedute mostrano
+  "GUIDA QUESTA". Si caricano dal disco solo l'auto in vista e le due vicine.
+- **Colore:** tre cursori R, G, B; l'auto cambia colore mentre si muovono. Il gioco tinge solo il
+  materiale della carrozzeria (indicato per ogni auto in `scripts/car_catalog.gd`), così le
+  carrozzerie con texture tengono i dettagli. "ORIGINALE" torna al colore del modello.
+- **Elaborazioni** (`scripts/tuning.gd`): sei righe con cinque pallini e il prezzo del livello dopo.
+  Ogni parte ha una quota un po' diversa del totale (fissa per ogni auto) e i livelli alti costano
+  di più. In gara, ad esempio, il motore dà +4% di spinta per livello, i freni +6% di frenata.
+- **Salvataggio** (`scripts/save_game.gd`): auto possedute, auto in uso, colori, livelli, prossima
+  gara. Nel garage le frecce ora scorrono le auto possedute; quella in vista è quella che si guida.
+- **Campagna:** Costa, Città, Deserto, Montagna, poi di nuovo dall'inizio; il pulsante del garage
+  dice quale gara aspetta. Si passa alla successiva arrivando al traguardo.
+- **Combo** (`scripts/main.gd`): dieci derapate di fila valgono 1.050 punti reputazione.
+
+**Verifica ed esito:** la combo è stata provata a parte (20, 20, 20, 20, +120, 30, 30, 30, 30, +730);
+ogni auto è stata dipinta di fucsia per controllare che il colore prenda la carrozzeria giusta (la
+Goblin ha due gusci sovrapposti: la vernice viene spinta fuori di un soffio); gara automatica sulla
+costa con l'auto verde e tre elaborazioni. Da provare su PC e telefono.
 
 ---
 
 ## Prossimi passi
 
-- Prova sul telefono e sul PC della v0.18.
-- Decidere a cosa servono denaro e reputazione e cosa mostra la mappa.
+- Prova sul telefono e sul PC della v0.19.
+- Il resto del dealer (Stefano ha altre idee), gare che pagano in modo diverso, cosa mostra la mappa.
 - Togliere i loghi dipinti nelle texture delle auto di marchi reali; aggiungere i mezzi della seconda ricerca (fuoristrada, pick-up, buggy, traffico di città).
 - Costruire il nuovo aspetto realistico (luce, cielo, ombre, materiali) un passo approvato alla volta.
 - Passo 3 del piano: **vertical slice**, cioè un circuito e un'auto rifiniti al livello del gioco finale.

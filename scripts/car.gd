@@ -229,7 +229,8 @@ func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 		_susp_len[i] = spring_rest
 
 	var body := player_body
-	var model_paint := Color(0, 0, 0, 0) if kind == Driver.PLAYER else paint
+	# Every car keeps its own colours; the player's gets the colour chosen at the dealer below.
+	var model_paint := Color(0, 0, 0, 0)
 	if kind == Driver.RACER:
 		var pool := rival_bodies()
 		body = racer_body if racer_body != "" else pool[absi(hash(paint)) % pool.size()]
@@ -242,6 +243,7 @@ func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 	_model = CarModel.build(model_paint, kind == Driver.POLICE, body)
 	if kind == Driver.PLAYER:
 		CarModel.keep_detailed(_model)  # always close to the camera
+		CarModel.paint_model(_model, body, SaveGame.color_of(body))
 	add_child(_model)
 	for n in ["WheelFL", "WheelFR", "WheelRL", "WheelRR"]:
 		_wheel_nodes.append(_model.get_node(n))
@@ -289,6 +291,8 @@ func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 			_siren_light.omni_range = 12
 			_siren_light.light_energy = 3.0
 			add_child(_siren_light)
+	if kind == Driver.PLAYER:
+		Tuning.apply(self, body)  # parts bought at the dealer
 	var audio := CarAudio.new()
 	add_child(audio)
 	audio.setup(self)

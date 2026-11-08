@@ -15,6 +15,9 @@ const TRACKS := [
 	["night", "CITTÀ DI NOTTE", "Downtown: gomiti tra i palazzi"],
 	["desert", "DESERTO", "Route 66: canyon e motel"],
 ]
+## The races of the campaign, in order (v0.19, Stefano: the coast first, then the city): [circuit id,
+## name on the garage button]. Finishing a race moves on to the next; after the last it starts again.
+const CAMPAIGN := [["coast", "COSTA"], ["night", "CITTÀ"], ["desert", "DESERTO"], ["mountain", "MONTAGNA"]]
 ## Map file of each circuit (tracks/<name>.txt), drawn on its button in the menu.
 const TRACK_MAPS := {"mountain": "montagna", "coast": "costa", "night": "citta_notte", "desert": "deserto"}
 ## The level object for a circuit id (not built yet).
@@ -55,14 +58,16 @@ const WRONG_WAY_SPEED := 8.0
 const WRONG_WAY_TIME := 1.5
 ## Money for every race finished (Stefano, v0.18); a race lost on time or by arrest pays nothing.
 const PRIZE := 5000
-## Reputation (Stefano, v0.18): a win, a police chase shaken off, and drifts: each drift is worth
-## REP_DRIFT, doubled for every next drift started within REP_COMBO_TIME seconds of the last one
-## (up to REP_COMBO_MAX times the base). Drifts shorter than REP_DRIFT_MIN seconds do not count.
+## Reputation (Stefano): a win, a police chase shaken off, and drifts (v0.19 combo): every drift
+## is worth REP_DRIFT; drifts in a row (each started within REP_COMBO_TIME seconds of the end of the
+## one before) make a combo: at the 5th the combo total doubles, from the 6th each drift is worth
+## REP_DRIFT_LATE, at the 10th the total triples; after that drifts stay at REP_DRIFT_LATE.
+## Drifts shorter than REP_DRIFT_MIN seconds do not count.
 const REP_WIN := 1000
 const REP_POLICE := 100
 const REP_DRIFT := 20
+const REP_DRIFT_LATE := 30
 const REP_COMBO_TIME := 3.0
-const REP_COMBO_MAX := 16
 const REP_DRIFT_MIN := 0.5
 ## Seconds into the race when someone calls the police.
 const POLICE_CALL_TIME := 20.0
@@ -111,11 +116,12 @@ var _off_track_t := {}
 var _racer_stall := {}  # racer -> [wp_index, seconds without reaching the next point]
 var _warn_t := 0.0
 ## Reputation earned in this race, and the drift combo: seconds of the drift going on, seconds
-## since the last one ended, value of the next one.
+## since the last one ended, drifts in the combo and its total.
 var rep_gained := 0
 var _drift_t := 0.0
 var _since_drift := INF
-var _drift_value := REP_DRIFT
+var _combo := 0
+var _combo_total := 0
 var cam_yaw := 0.0
 var _cam_dist := CAM_DIST
 var _cam_y := 0.0
@@ -611,6 +617,7 @@ func _checkpoints_logic() -> void:
 			var pos := finish_order.find(player) + 1
 			var won := pos == 1
 			SaveGame.money += PRIZE
+			SaveGame.race_index += 1  # back in the garage, the next race of the campaign waits
 			if won:
 				_add_rep(REP_WIN, "Vittoria")
 			_end(won, "%d° POSTO" % pos, "Tempo %s\nVincita: %d $   Reputazione: +%d" % [_fmt_time(race_time), PRIZE, rep_gained])
@@ -715,22 +722,32 @@ func _on_crash(impact: float, other: Object, car: Car) -> void:
 	hud.set_heat(heat)
 
 
-## Reputation for drifts: counted when a drift ends; the next one within REP_COMBO_TIME doubles.
+## Reputation for drifts: counted when a drift ends, see REP_DRIFT.
 func _drift_logic(delta: float) -> void:
 	if player.drifting:
 		_drift_t += delta
 		return
 	_since_drift += delta
+	if _since_drift > REP_COMBO_TIME:
+		_combo = 0  # too long since the last drift: the combo is over
+		_combo_total = 0
 	if _drift_t >= REP_DRIFT_MIN:
-		# _since_drift stopped when this drift started: the gap before it decides the combo,
-		# and _drift_value was put back to the base below if that gap was over REP_COMBO_TIME.
-		var times := _drift_value / REP_DRIFT
-		_add_rep(_drift_value, "Derapata" if times == 1 else "Derapata x%d" % times)
-		_drift_value = mini(_drift_value * 2, REP_DRIFT * REP_COMBO_MAX)
+		# _since_drift stopped while this drift went on: the gap before it decided the combo above.
+		_combo += 1
+		var value := REP_DRIFT if _combo <= 5 else REP_DRIFT_LATE
+		_combo_total += value
+		var bonus := 0
+		if _combo == 5:
+			bonus = _combo_total  # doubles
+		elif _combo == 10:
+			bonus = _combo_total * 2  # triples
+		_combo_total += bonus
+		if bonus > 0:
+			_add_rep(value + bonus, "Combo x%d! (%d derapate)" % [2 if _combo == 5 else 3, _combo])
+		else:
+			_add_rep(value, "Derapata" if _combo == 1 else "Derapata %d" % _combo)
 		_since_drift = 0.0
 	_drift_t = 0.0
-	if _since_drift > REP_COMBO_TIME:
-		_drift_value = REP_DRIFT
 
 
 func _add_rep(amount: int, why: String) -> void:
