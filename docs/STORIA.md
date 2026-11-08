@@ -665,18 +665,42 @@ sfogliare i pezzi "come se stessimo sfogliando un catalogo". E ha notato che l'a
   sinistra.
 - **Auto appoggiata:** il modello viene abbassato finché le gomme toccano il piatto (prima ogni
   auto stava all'altezza del suo punto d'origine). Sotto l'auto c'è un'ombra morbida che gira con
-  lei. La finestra 3D ha lo sfondo trasparente e lì Godot non riesce a sfumare un'ombra
-  semitrasparente (provato: non si vedeva), quindi l'ombra è disegnata in 2D sotto la finestra,
-  proiettando la sagoma dell'auto con la stessa camera 3D.
+  lei (prima disegnata in 2D, dalla v0.20.2 sostituita dal pavimento 3D).
 
 **Verifica ed esito:** screenshot di tutte le sezioni. È un rimedio: per un'integrazione vera con
 riflessi e luci coerenti serve uno showroom costruito in 3D. Da provare su PC.
 
 ---
 
+## v0.20.2 — Il pavimento 3D dello showroom (8 novembre)
+
+![Lo showroom con il pavimento 3D](immagini/v0.20.2-dealer.jpg)
+
+**Richiesta:** l'auto della v0.20.1 sembrava ancora appoggiata sopra una foto. Tra tre strade
+(pavimento 3D con la foto sullo sfondo, showroom tutto in 3D, lasciare così) Stefano ha scelto la
+prima.
+
+**Come è stato costruito** (`scripts/dealer.gd`):
+- **Pavimento invisibile ma vero:** un piano 3D all'altezza del piatto, con uno shader che mostra
+  in ogni punto esattamente il pixel della foto che c'è dietro (stesso conto di scala e ritaglio
+  della camera). Non si vede come oggetto separato, ma essendo 3D riceve luci e ombre.
+- **Ombra vera:** una luce che arriva dalla porta aperta, alle spalle del piatto, proietta l'ombra
+  dell'auto verso chi guarda; le altre luci illuminano solo l'auto, così il pavimento resta del
+  colore della foto. Sotto l'auto, una zona più scura che gira con lei la "appoggia" a terra.
+- **Riflesso:** una copia capovolta dell'auto sotto il pavimento; il pavimento la lascia
+  intravedere solo vicino all'auto, come sul cemento lucido della foto.
+- Il tonemapping della scena del dealer è lineare, perché il pavimento deve restituire i colori
+  della foto senza cambiarli.
+
+**Verifica ed esito:** screenshot in 16:9 e 20:9 (il pavimento combacia con la foto, nessuna
+cucitura visibile). Costo sul telefono: una copia in più dell'auto e una mappa d'ombra, solo in
+questa schermata. Da provare su PC e telefono.
+
+---
+
 ## Prossimi passi
 
-- Prova sul telefono e sul PC della v0.20.1; decidere se costruire lo showroom del dealer in 3D.
+- Prova sul telefono e sul PC della v0.20.2 (showroom con pavimento 3D).
 - Gli altri pulsanti (garage, menù) nello stesso stile neon; gare che pagano in modo diverso, cosa mostra la mappa.
 - Togliere i loghi dipinti nelle texture delle auto di marchi reali; aggiungere i mezzi della seconda ricerca (fuoristrada, pick-up, buggy, traffico di città).
 - Costruire il nuovo aspetto realistico (luce, cielo, ombre, materiali) un passo approvato alla volta.

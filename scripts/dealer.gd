@@ -67,7 +67,8 @@ var _cam: Camera3D
 var _preview: Node3D
 var _car_length := 4.5
 var _car_width := 1.8
-var _shadow: FloorShadow
+var _floor_mat: ShaderMaterial
+var _mirror: Node3D
 var _pending: Array[String] = []
 var _loaded := {}
 var _turn := 0.6
@@ -89,9 +90,6 @@ func _ready() -> void:
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
 
-	_shadow = FloorShadow.new()
-	UiKit.anchor(_shadow, 0, 0, 1, 1)
-	add_child(_shadow)
 	# The car's 3D window covers the whole screen, so a big car is never cut.
 	var win := UiKit.car_window(self)
 	_view = win[0]
@@ -101,6 +99,7 @@ func _ready() -> void:
 	_cam = win[2]
 	_cam.fov = CAM_FOV
 	resized.connect(_place_camera)
+	_build_floor()
 	_status = UiKit.label(28)
 	_status.text = "Carico l'auto..."
 	_status.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -534,60 +533,93 @@ func _build_preview() -> void:
 	var width := maxf(1.7, maxf(absf(box.position.x), absf(box.end.x)) * 2.0)
 	_preview.position.y = -box.position.y if not first else 0.0
 	_car_width = width
+	_floor_mat.set_shader_parameter("car_half", Vector2(width * 0.5, _car_length * 0.5))
+	# The car upside down under the floor: the glossy floor shows it as a reflection.
+	if _mirror:
+		_mirror.queue_free()
+	_mirror = Node3D.new()
+	_mirror.scale = Vector3(1, -1, 1)
+	var copy := _preview.duplicate() as Node3D
+	copy.rotation = Vector3.ZERO
+	_mirror.add_child(copy)
+	_stage.add_child(_mirror)
 	_place_camera()
 
 
-## The car's shadow on the floor of the picture (v0.21, Stefano: the car looked "stuck on" the
-## picture). The 3D window has a see-through background, where Godot can't blend a transparent
-## shadow, so the shadow is drawn in 2D right under it: the car's footprint, turned with the
-## car, is projected on screen through the 3D camera and painted as soft dark layers.
-class FloorShadow:
-	extends Control
-	## Footprint corners on screen, and a smaller, darker core under the tyres.
-	var outer := PackedVector2Array()
-	var inner := PackedVector2Array()
+## The showroom floor in 3D (v0.20.2, Stefano chose it): a flat floor at the height of the
+## platform that shows, pixel for pixel, the same picture that is behind it, so it can't be seen
+## as a separate thing. Being real 3D, it takes the car's shadow from a light coming from the open
+## door, a soft darker patch under the car, and the reflection of the car on the shiny floor.
+const FLOOR_SHADER := """
+shader_type spatial;
+render_mode ambient_light_disabled, specular_disabled, depth_draw_opaque;
+uniform sampler2D photo : source_color, filter_linear;
+uniform sampler2D screen : hint_screen_texture, filter_linear;
+uniform vec2 uv_scale = vec2(1.0);
+uniform vec2 uv_offset = vec2(0.0);
+uniform float shadow_strength = 0.65;
+uniform float contact_strength = 0.6;
+uniform float reflection = 0.16;
+uniform float car_turn = 0.0;
+uniform vec2 car_half = vec2(0.9, 2.3);
+varying vec3 world;
 
-	func _init() -> void:
-		mouse_filter = Control.MOUSE_FILTER_IGNORE
+void vertex() {
+	world = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+}
 
-	func _draw() -> void:
-		for pts_alpha in [[outer, 0.11, 9], [inner, 0.16, 6]]:
-			var pts: PackedVector2Array = pts_alpha[0]
-			if pts.size() < 3:
-				continue
-			var c := Vector2.ZERO
-			for p in pts:
-				c += p
-			c /= pts.size()
-			for i in pts_alpha[2]:
-				var k: float = 1.0 - i * 0.09
-				var layer := PackedVector2Array()
-				for p in pts:
-					layer.append(c + (p - c) * k)
-				draw_colored_polygon(layer, Color(0, 0, 0, pts_alpha[1]))
+void fragment() {
+	vec3 col = texture(photo, SCREEN_UV * uv_scale + uv_offset).rgb;
+	// Soft dark patch under the car, turned with it.
+	float c = cos(car_turn), s = sin(car_turn);
+	vec2 p = vec2(c * world.x - s * world.z, s * world.x + c * world.z) / car_half;
+	float d = length(p * vec2(0.92, 1.0));
+	// The reflection only close to the car, fading away.
+	vec4 refl = texture(screen, SCREEN_UV);
+	col = mix(col, refl.rgb, reflection * refl.a * (1.0 - smoothstep(0.9, 1.7, d)));
+	col *= mix(1.0 - contact_strength, 1.0, smoothstep(0.55, 1.35, d));
+	ALBEDO = col;
+	ALPHA = 1.0;
+}
+
+void light() {
+	DIFFUSE_LIGHT += vec3(mix(1.0 - shadow_strength, 1.0, ATTENUATION));
+}
+"""
 
 
-func _update_shadow() -> void:
-	if not _preview or not _preview.visible:
-		_shadow.outer = PackedVector2Array()
-		_shadow.inner = PackedVector2Array()
-		_shadow.queue_redraw()
-		return
-	var basis := Basis(Vector3.UP, _turn)
-	for which in 2:
-		var hw := _car_width * (0.9 if which == 0 else 0.55)
-		var hl := _car_length * (0.68 if which == 0 else 0.48)
-		var pts := PackedVector2Array()
-		# A rounded box: eight points around the car.
-		for corner in [Vector2(-1, -0.7), Vector2(-0.7, -1), Vector2(0.7, -1), Vector2(1, -0.7),
-				Vector2(1, 0.7), Vector2(0.7, 1), Vector2(-0.7, 1), Vector2(-1, 0.7)]:
-			var local := Vector3(corner.x * hw, 0.0, corner.y * hl)
-			pts.append(_cam.unproject_position(basis * local))
-		if which == 0:
-			_shadow.outer = pts
-		else:
-			_shadow.inner = pts
-	_shadow.queue_redraw()
+func _build_floor() -> void:
+	# The lights of the car window light only the car (layer 1); the floor (layer 2) gets only the
+	# light that makes the shadow.
+	for n in _stage.get_children():
+		if n is DirectionalLight3D:
+			(n as DirectionalLight3D).light_cull_mask = 1
+		if n is WorldEnvironment:
+			# Colours of the floor must stay exactly those of the picture.
+			(n as WorldEnvironment).environment.tonemap_mode = Environment.TONE_MAPPER_LINEAR
+	var sun := DirectionalLight3D.new()
+	# From the open door behind the platform, high: the shadow falls towards the viewer.
+	sun.rotation_degrees = Vector3(-42, 155, 0)
+	sun.light_energy = 0.35
+	sun.light_color = Color(1, 0.95, 0.88)
+	sun.shadow_enabled = true
+	sun.shadow_blur = 2.5
+	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
+	sun.directional_shadow_max_distance = 30.0
+	_stage.add_child(sun)
+	var shader := Shader.new()
+	shader.code = FLOOR_SHADER
+	_floor_mat = ShaderMaterial.new()
+	_floor_mat.shader = shader
+	_floor_mat.set_shader_parameter("photo", load(BACKGROUND))
+	var floor := MeshInstance3D.new()
+	var plane := PlaneMesh.new()
+	plane.size = Vector2(18, 18)
+	floor.mesh = plane
+	floor.material_override = _floor_mat
+	floor.layers = 2
+	floor.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_stage.add_child(floor)
 
 
 ## Puts the camera so the car stands on the centre of the platform of the picture, as long as
@@ -616,6 +648,9 @@ func _place_camera() -> void:
 	_cam.h_offset = -(at.x - screen.x * 0.5) * dist / f
 	_cam.v_offset = (at.y - screen.y * 0.5) * dist / f
 	_cam.far = dist * 4.0 + 50.0
+	# The floor shows the picture where the picture is: screen point -> picture point.
+	_floor_mat.set_shader_parameter("uv_scale", screen / (IMAGE_SIZE * s))
+	_floor_mat.set_shader_parameter("uv_offset", -crop / (IMAGE_SIZE * s))
 
 
 func _process(delta: float) -> void:
@@ -646,7 +681,9 @@ func _process(delta: float) -> void:
 	_turn += delta * 0.3
 	if _preview:
 		_preview.rotation.y = _turn
-	_update_shadow()
+	if _mirror:
+		_mirror.rotation.y = _turn
+	_floor_mat.set_shader_parameter("car_turn", _turn)
 	if _toast_t > 0.0:
 		_toast_t -= delta
 		_toast.modulate.a = clampf(_toast_t / 0.5, 0.0, 1.0)
