@@ -323,7 +323,7 @@ func _build_lamps() -> void:
 		for what in small:
 			Scenery.scatter_piece(self, what[0], what[1], small[what], 160.0)
 	# Real lights, moved to the lamps nearest the camera (see _process).
-	for j in LIVE_LIGHTS:
+	for j in (3 if Perf.mobile else LIVE_LIGHTS):
 		var l := OmniLight3D.new()
 		l.omni_range = 18.0
 		l.omni_attenuation = 1.2

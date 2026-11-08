@@ -598,7 +598,7 @@ func _build_trees() -> void:
 	var per_chunk := {}  # Vector3i(chunk x, chunk z, model) -> transforms
 	var trunks: Array[Vector3] = []
 	var size := (_gw - 1) * CELL
-	for i in tree_tries:
+	for i in int(tree_tries * Perf.density()):
 		var x := _min.x + _rng.randf() * size
 		var z := _min.y + _rng.randf() * size
 		var d := _road_dist_at(x, z)
@@ -695,7 +695,7 @@ func _build_grass() -> void:
 		return
 	var chunk_size := CHUNK * CELL
 	var per_chunk := {}
-	for i in pts.size() * 6:
+	for i in int(pts.size() * 6 * Perf.density()):
 		var p := pts[_rng.randi() % pts.size()]
 		var x := p.x + _rng.randf_range(-70.0, 70.0)
 		var z := p.z + _rng.randf_range(-70.0, 70.0)

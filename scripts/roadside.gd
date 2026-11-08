@@ -235,7 +235,7 @@ func _entry(e: Array) -> void:
 		return
 	var pieces: Array = e[1]
 	var flags: Array = e[7]
-	var want: int = e[4]
+	var want: int = maxi(1, roundi(int(e[4]) * Perf.density()))
 	var n := _t.pts.size()
 	var placed := 0
 	var tries := 0

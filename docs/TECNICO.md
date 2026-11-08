@@ -89,24 +89,37 @@ già pronto, per avere il controllo completo del comportamento:
   (`forza ~ rapporto^0,55`), giri motore da 900 a 7.800 per cruscotto e audio.
 - **Sterzo che si stringe con la velocità** (da 38° a passo d'uomo a 9° oltre 160 km/h), e il
   giocatore sterza il 30% più dolcemente degli avversari (richiesta di Stefano dopo le prove).
-- **Freno a mano** che toglie aderenza al posteriore per la derapata, e un piccolo aiuto
-  d'imbardata che rende la guida arcade senza togliere la fisica.
+- **Freno a mano** che toglie parte dell'aderenza al posteriore (dal 100% al 65%) per la
+  derapata, e un aiuto d'imbardata che resta attivo all'80% anche in derapata: l'auto scivola di
+  traverso ma non va in testacoda (v0.22).
+- **Freno con aiuto arcade** (v0.22): oltre ai freni sulle gomme, una decelerazione di 9 m/s²
+  a pedale pieno che non dipende dall'aderenza. Le gomme dividono la loro presa tra frenare e
+  girare, quindi in curva il solo pedale non frenava quasi niente.
+- **Nitro** (v0.22): velocità massima +30%, motore 2,6 volte più forte e una spinta di 5,5 m/s²
+  che non dipende dalla marcia.
+- **Peso** (v0.22): le auto pesano 1.800 kg (1,5 volte prima). Motore, freni, molle,
+  ammortizzatori, resistenza dell'aria e deportanza sono cresciuti dello stesso fattore, quindi la
+  guida è la stessa, ma negli scontri l'auto viene spostata molto meno. Negli urti tra auto la
+  spinta verso l'alto è limitata a 1 m/s e il rollio a 1,5 rad/s, e mentre l'auto sale in aria
+  c'è 0,8 g di gravità in più: niente più voli di diversi metri.
 - **Salti**: in aria lo sterzo non fa nulla (un'auto non ha contro cosa girare); l'auto si
   raddrizza da sola. Vengono contati decollo, rotazioni e qualità dell'atterraggio.
 
 **Verifica con numeri, non a sensazione.** Il banco prova guida un'auto di riferimento su un
 terreno di test, misura e stampa tutto in JSON. Va lanciato a 30, 60 e 120 tick al secondo per
-controllare che la fisica non cambi col frame rate. Risultati a 60 tick (v0.11.1):
+controllare che la fisica non cambi col frame rate. Risultati a 60 tick (v0.22):
 
 | Prova | Risultato |
 |---|---|
-| 0-100 km/h | 3,48 s |
-| Frenata da 144 km/h | 62,9 m in 3,2 s |
-| Velocità massima (auto di riferimento) | 225,9 km/h |
-| Curva stretta a 59 km/h / curva veloce a 101 km/h | 1,85 g / 2,08 g laterali |
-| Salto da rampa a 15° a 90 km/h | 19,7 m, **−2,5%** dalla traiettoria balistica teorica |
-| Salto da rampa a 25° a 107 km/h | 45,9 m, **−2,0%** dalla traiettoria balistica teorica |
-| Inclinazione all'atterraggio | 2,4-2,6° (atterraggio pulito, auto dritta dopo 4 s) |
+| 0-100 km/h | 3,55 s |
+| Frenata da 144 km/h | 33,4 m in 1,7 s (v0.21: 62,9 m in 3,2 s) |
+| Velocità massima (auto di riferimento) | 212,6 km/h |
+| Nitro: velocità dopo 3 s da fermo | 146 km/h (v0.21: 91 km/h) |
+| Derapata col freno a mano | angolo massimo 38°, esce a 95 km/h (v0.21: 84°, 38 km/h) |
+| Curva stretta a 59 km/h / curva veloce a 101 km/h | 1,85 g / 2,09 g laterali |
+| Salto da rampa a 15° a 90 km/h | 15,3 m (v0.21: 19,7 m; più corto apposta, gravità in salita) |
+| Salto da rampa a 25° a 107 km/h | 33,5 m (v0.21: 45,1 m) |
+| Inclinazione all'atterraggio | 1,1-3,0° (atterraggio pulito, auto dritta dopo 4 s) |
 | Cordolo da 15 cm a 40 e 90 km/h | superato in entrambi i casi |
 | Caduta da 8 m | rimbalzo 0,1 m, ferma in 0,2 s, resta dritta |
 | Urto frontale contro un muro a 156 km/h | ferma in mezzo secondo |
@@ -116,9 +129,9 @@ un telefono lento e uno veloce:
 
 | Tick al secondo | 0-100 km/h | Frenata da 144 km/h | Velocità massima | Salto a 25° |
 |---|---|---|---|---|
-| 30 | 3,53 s | 62,9 m | 226,0 km/h | 45,4 m |
-| 60 | 3,48 s | 62,9 m | 225,9 km/h | 45,9 m |
-| 120 | 3,47 s | 62,9 m | 226,2 km/h | 45,5 m |
+| 30 | 3,60 s | 33,4 m | 212,7 km/h | 33,9 m |
+| 60 | 3,55 s | 33,4 m | 212,6 km/h | 33,5 m |
+| 120 | 3,52 s | 33,3 m | 212,8 km/h | 33,8 m |
 
 ## 4. Avversari, traffico e polizia
 
@@ -128,7 +141,7 @@ un telefono lento e uno veloce:
   Dopo un urto perdono aderenza per un attimo (`_knocked`), così uno scontro li scompone davvero.
   Prendono le curve al 92% della velocità consigliata e, se non raggiungono il punto successivo
   del percorso per 8 secondi, vengono rimessi su quel punto.
-- **Traffico** (`traffic.gd`): 24 auto civili che sono **corpi rigidi con il peso di un'auto**.
+- **Traffico** (`traffic.gd`): 24 auto civili (12 sul telefono) che sono **corpi rigidi con il peso di un'auto**.
   Mentre guidano, una spinta limitata le tiene in corsia alla loro velocità: un colpo più forte di
   quella spinta le sposta, uno molto forte le fa girare e sbandare sotto gravità. Qualsiasi urto da
   un'auto in gara le ferma per 3 secondi; poi ripartono da sole, aggirando di lato l'auto che le
@@ -290,6 +303,13 @@ segnalati da Stefano:
   sempre dettagliata. Tetti da vicino: 45 mila triangoli in garage, 30 mila polizia, 18 mila traffico.
 - **Terreno a blocchi** (32×32 celle) e alberi disegnati con MultiMesh; guardrail raggruppati in
   pochi corpi fisici, così la rottura di un tratto ricostruisce solo un pezzo piccolo.
+- **Profilo telefono (v0.22, `scripts/perf.gd`)**: la v0.21 sul Galaxy A51 scattava molto. Sul
+  telefono, o sul PC con `-- --mobile`, il 3D è calcolato al 62% della risoluzione, senza MSAA e
+  senza glow. L'ombra del sole è una sola mappa fino a 45 m. La vista arriva a metà distanza con
+  nebbia lineare. Decorazioni, alberi ed erba sono la metà e spariscono al 60% della distanza. Il
+  traffico è di 12 auto, il faro del giocatore è acceso solo di notte e i lampioni accesi in
+  città sono 3 invece di 8 (nel renderer Compatibility ogni luce ridisegna ciò che illumina).
+  Nelle stesse inquadrature i triangoli calano del 25-39% e le chiamate di disegno del 21-32%.
 - **Misure**: lo strumento di screenshot stampa triangoli e chiamate di disegno per inquadratura,
   per controllare il costo di ogni ambientazione prima della prova sul telefono.
 

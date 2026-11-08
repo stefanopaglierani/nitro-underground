@@ -73,7 +73,7 @@ static func apply(car: Car, id: String) -> void:
 	var top: float = 1.0 + 0.045 * lv[1] + 0.03 * lv[2]
 	car.engine_force *= power
 	car.max_speed *= top
-	car.nitro_force_mult += 0.18 * lv[3]
+	car.nitro_force_mult *= 1.0 + 0.18 * lv[3]
 	car.nitro_drain /= 1.0 + 0.24 * lv[3]
 	car.brake_force *= 1.0 + 0.18 * lv[4]
 	car.grip *= 1.0 + 0.075 * lv[5]

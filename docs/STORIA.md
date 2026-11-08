@@ -42,6 +42,7 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.18 | 07/11/2026 | Pagina d'attesa con START, denaro e reputazione che si guadagnano in gara, asfalto 10 cm sopra il terreno, traiettoria semitrasparente | ramo `claude/project-thread-v3cjse` |
 | v0.19 | 08/11/2026 | Dealer con 14 auto, colore RGB ed elaborazioni a 5 livelli; nuova combo delle derapate; dopo la Costa la Città | ramo `claude/project-thread-v3cjse` |
 | v0.21 | 08/11/2026 | Ambienti più ricchi: 51 modelli nuovi (boschi, rocce, case americane, arredo urbano, pali della luce, cartelli americani), neon della città ridotti a un terzo | ramo `claude/project-thread-u6ha4a` |
+| v0.22 | 08/11/2026 | Profilo grafico leggero per il telefono; freno, freno a mano e nitro sistemati, auto più pesanti, rientro in pista nel verso giusto | ramo `claude/project-thread-u6ha4a` |
 
 ## Le svolte principali
 
@@ -791,7 +792,8 @@ prova della v0.20.3: i neon della città "sono veramente troppi... anche più ch
 **Verifica ed esito:** screenshot dei quattro circuiti e autotest di gara in tutti e quattro.
 Misurato sul PC di sviluppo (rendering software, quindi solo i conteggi valgono, non gli FPS),
 nello stesso istante dopo la partenza: triangoli disegnati +13-22% e draw call +3-11% rispetto
-alla v0.20.3. Va provato sul Galaxy A51.
+alla v0.20.3. Stefano l'ha provata: sul PC "lavora tutto molto bene", sul telefono invece
+scattava molto (vedi v0.22).
 
 **I pezzi di strada (studio, non ancora nel gioco):** incrocio, incrocio in collina e strada con
 parcheggio sono "piastrelle" fisse di 35-84 m con strade larghe circa 7 m (le nostre sono 12 m).
@@ -799,11 +801,75 @@ Per guidarci sopra servono: una collisione ricavata dall'asfalto del modello, un
 mappa del circuito (es. `INCROCIO`) che faccia passare la nostra strada esattamente dentro la
 piastrella e in piano, e la scala adattata alla nostra carreggiata. Proposta da approvare.
 
+## v0.22 — Telefono leggero e guida sistemata (8 novembre)
+
+**Richiesta:** dopo la prova della v0.21 Stefano scrive che sul PC "lavora tutto molto bene", ma
+sul telefono ci sono "grossissimi problemi di lag... bisogna trovare il modo di alleggerire il
+tutto, ma veramente, veramente tanto". E sulla guida: il freno "non lavora minimamente" (provato
+con tre auto), il freno a mano "manda l'auto completamente fuori controllo", il nitro "sembra non
+dare praticamente niente", negli scontri l'auto "vola per diversi metri" ("darei più peso, nel
+senso di chili, più gravità"), e il rientro in pista "9 volte su 10 ci rimette nel senso sbagliato
+di marcia".
+
+**Come è stato costruito:**
+- **Un profilo grafico solo per il telefono** (`scripts/perf.gd`); il PC resta com'era.
+  - Il 3D viene calcolato al 62% della risoluzione e poi allargato: meno del 40% dei pixel.
+    Pulsanti e scritte restano nitidi.
+  - Niente antialiasing e niente bagliore (glow): il bagliore sfoca tutto lo schermo più volte
+    a ogni fotogramma.
+  - L'ombra del sole è una sola mappa invece di due, fino a 45 m dalla telecamera.
+  - Si vede fino a metà distanza, e una nebbia nasconde il taglio.
+  - Alberi, erba, rocce, case e oggetti a bordo strada sono la metà e spariscono prima.
+  - Le auto del traffico sono 12 invece di 24 (ognuna è un corpo fisico con quattro ruote
+    simulate).
+  - Di giorno il faro dell'auto è spento. Ogni luce costringe il telefono a ridisegnare una
+    seconda volta ciò che illumina, quindi in città le luci dei lampioni sono 3 invece di 8.
+  - Per provarlo sul PC basta avviare il gioco con `--mobile`.
+- **Freno** (`scripts/car.gd`): le gomme dividono la loro aderenza tra frenare e curvare, così in
+  curva o con un po' di sbandata il pedale non frenava quasi niente. Ora i freni sono più forti
+  del 20% e c'è un aiuto arcade di 9 m/s² che frena sempre.
+- **Freno a mano**: il posteriore tiene il 65% dell'aderenza invece del 43%, frena di meno e
+  l'aiuto allo sterzo resta attivo, quindi l'auto scivola di traverso senza girarsi.
+- **Nitro**: velocità massima +30% invece di +20%, motore 2,6 volte più forte invece di 1,8, e
+  una spinta in più che non dipende dalla marcia. Il tuning del nitro ora dà davvero +18% per
+  stage, come scritto nel dealer.
+- **Peso**: le auto pesano 1.800 kg invece di 1.200. Motore, freni e sospensioni sono cresciuti
+  in proporzione, quindi la guida non cambia, ma il traffico la sposta molto meno. In più:
+  - negli urti tra auto la spinta verso l'alto e il ribaltamento sono limitati;
+  - mentre l'auto sale in aria c'è quasi una gravità in più.
+- **Rientro in pista**: il gioco girava l'auto nel verso in cui puntava quando era uscita
+  (spesso girata dopo un testacoda). Ora la mette nel verso della gara, verso il prossimo
+  checkpoint (`scripts/main.gd`).
+
+**Verifica ed esito:**
+- **Prestazioni**, misurate sul PC di sviluppo con il profilo telefono, nelle stesse
+  inquadrature della stessa gara automatica:
+
+  | Circuito | Triangoli | Chiamate di disegno |
+  |---|---|---|
+  | Montagna | −37% | −29% |
+  | Costa | −39% | −32% |
+  | Deserto | −30% | −27% |
+  | Città di notte | −25% | −21% |
+
+  Il rendering lì è software, quindi gli FPS del PC non dicono niente sul telefono.
+- **Banco prova** a 30, 60 e 120 tick, con risultati uguali a ogni frequenza:
+  - frenata da 144 km/h in 33 m invece di 63 m;
+  - derapata col freno a mano a 38° invece di 84° (testacoda), con uscita a 95 km/h invece
+    di 38;
+  - col nitro, 146 km/h dopo 3 s invece di 91;
+  - salti dalle rampe più corti del 25%;
+  - curve, accelerazione e velocità massima invariate.
+- **Autotest:** 12 gare del pilota automatico, 3 per circuito. 9 arrivano al traguardo; le
+  altre 3 finiscono con un arresto o con il tempo scaduto dopo un incidente nel traffico. Due di
+  questi stessi casi finiscono male anche con la guida della v0.21. Il gioco va provato sul
+  Galaxy A51.
+
 ---
 
 ## Prossimi passi
 
-- Prova sul telefono e sul PC della v0.20.4 e della v0.21 (ambienti più pieni: controllare la fluidità).
+- Prova sul telefono della v0.22: se scatta ancora, il passo dopo è ridurre ancora la risoluzione 3D o togliere le ombre del tutto.
 - Pezzi di strada (incrocio, strada con parcheggio) dentro i circuiti, se approvato; ponte ad arco con la mappa 3D completa.
 - Gli altri pulsanti (garage, menù) nello stesso stile neon; gare che pagano in modo diverso, cosa mostra la mappa.
 - Togliere i loghi dipinti nelle texture delle auto di marchi reali; aggiungere i mezzi della seconda ricerca (fuoristrada, pick-up, buggy, traffico di città).

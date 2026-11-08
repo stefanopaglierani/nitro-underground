@@ -197,12 +197,13 @@ func _ready() -> void:
 	ComicStyle.setup_environment(self, city.night)
 	ComicStyle.add_stylize_pass(camera)
 	camera.far = city.view_distance
+	Perf.apply(self, camera, city)
 	await _loading("Ritocchi finali", (steps.size() + 1) / total)
 	ComicStyle.install(get_tree())
 	await _loading("Traffico", (steps.size() + 2) / total)
 	var traffic: Array[TrafficCar] = []
 	var grid_front: Vector3 = city.start_grid(1)[0][0]
-	for i in (0 if OS.get_cmdline_user_args().has("--notraffic") else TRAFFIC_CARS):
+	for i in (0 if OS.get_cmdline_user_args().has("--notraffic") else (Perf.TRAFFIC if Perf.mobile else TRAFFIC_CARS)):
 		var t := TrafficCar.new()
 		add_child(t)
 		t.setup(city, rng)
@@ -541,6 +542,36 @@ func _race_logic(delta: float) -> void:
 ## Keeps every car inside the level: past OFF_TRACK_WARN metres beyond the guardrail the player
 ## gets a warning, and a car that stays past OFF_TRACK_LIMIT for OFF_TRACK_TIME seconds (or goes
 ## much further, or falls down the mountain) is put back on the road.
+## Direction of the race at `pos`: along race_path, near the player's progress (the path may pass
+## close to itself, e.g. both carriageways of a street).
+func _race_direction(pos: Vector3) -> Vector3:
+	var best := -1
+	var best_d := INF
+	var lo := clampi(player_wp - 4, 0, race_path.size() - 2)
+	var hi := clampi(player_wp + 8, lo + 1, race_path.size() - 1)
+	for k in range(lo, hi):
+		var d := _segment_distance(pos, race_path[k], race_path[k + 1])
+		if d < best_d:
+			best_d = d
+			best = k
+	if best_d > 60.0:
+		# Progress index lost (far shortcut): look at the whole path.
+		for k in race_path.size() - 1:
+			var d := _segment_distance(pos, race_path[k], race_path[k + 1])
+			if d < best_d:
+				best_d = d
+				best = k
+	var dir := race_path[best + 1] - race_path[best]
+	dir.y = 0.0
+	return dir.normalized()
+
+
+static func _segment_distance(p: Vector3, a: Vector3, b: Vector3) -> float:
+	var ab := b - a
+	var t := clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.001), 0.0, 1.0)
+	return p.distance_to(a + ab * t)
+
+
 func _off_track_logic(delta: float) -> void:
 	for c: Car in [player] + racers:
 		var d := city.off_track_distance(c.global_position)
@@ -555,7 +586,13 @@ func _off_track_logic(delta: float) -> void:
 			_off_track_t[c] = 0.0
 			var spot := city.recovery_point(c.global_position)
 			var facing: Vector3 = spot[1]
-			if c.driver != Car.Driver.RACER and facing.dot(-c.global_transform.basis.z) < 0.0:
+			if c == player and race_path.size() > 1:
+				# Towards the next checkpoint, not the way the car happened to point when it left
+				# the road (Stefano: "9 volte su 10 ci rimette nel senso sbagliato di marcia").
+				var ahead := _race_direction(spot[0])
+				if facing.dot(ahead) < 0.0:
+					facing = -facing
+			elif c.driver != Car.Driver.RACER and facing.dot(-c.global_transform.basis.z) < 0.0:
 				facing = -facing
 			c.place(spot[0], facing)
 			if c == player:
