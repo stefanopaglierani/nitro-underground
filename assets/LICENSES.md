@@ -4,14 +4,9 @@ Ogni file in `assets/` deve comparire qui, con fonte, autore, licenza alla data 
 
 Tutti gli asset attuali vengono da [Poly Haven](https://polyhaven.com) e sono **CC0 1.0** (pubblico dominio): uso commerciale libero, modifiche libere, attribuzione non obbligatoria (la diamo comunque per correttezza). Licenza verificata su https://polyhaven.com/license il 2026-10-28.
 
-## HDRI (cielo notturno e riflessi) — `assets/hdri/`
+## HDRI (tolti dal repository l'08/11/2026)
 
-| File | Asset | Autore | Link | Licenza | Download | Modifiche |
-|---|---|---|---|---|---|---|
-| `modern_evening_street_1k.hdr` | Modern Evening Street | Grzegorz Wronkowski | https://polyhaven.com/a/modern_evening_street | CC0 1.0 | 2026-10-28 | Nessuna (risoluzione 1K) |
-| `cobblestone_street_night_1k.hdr` | Cobblestone Street Night | Greg Zaal, Jenelle van Heerden | https://polyhaven.com/a/cobblestone_street_night | CC0 1.0 | 2026-10-28 | Nessuna (risoluzione 1K) |
-| `modern_buildings_night_1k.hdr` | Modern Buildings Night | Greg Zaal | https://polyhaven.com/a/modern_buildings_night | CC0 1.0 | 2026-10-28 | Nessuna (risoluzione 1K) |
-| `dresden_station_night_1k.hdr` | Dresden Station Night | Greg Zaal | https://polyhaven.com/a/dresden_station_night | CC0 1.0 | 2026-10-28 | Nessuna (risoluzione 1K) |
+I cieli HDRI di Poly Haven (CC0: Modern Evening Street, Cobblestone Street Night, Modern Buildings Night, Dresden Station Night, Kloofendal 48d Partly Cloudy Pure Sky) non erano più usati dal gioco, che disegna il cielo con gli shader `comic_sky` e `night_sky`, ed erano già esclusi dall'APK. Sono stati tolti per alleggerire il repository; restano scaricabili da Poly Haven se serviranno.
 
 ## Texture PBR — `assets/materials/`
 
@@ -55,7 +50,6 @@ Il pack KayKit (CC0, Kay Lousberg) dava solo le auto low poly di riserva: è sta
 
 | File e uso | Tipo | Asset | Autore | Link | Licenza | Download | Modifiche |
 |---|---|---|---|---|---|---|---|
-| `assets/hdri/kloofendal_48d_partly_cloudy_puresky_2k.hdr`, cielo della montagna | HDRI 2K | Kloofendal 48d Partly Cloudy (Pure Sky) | Greg Zaal, Jarod Guest | https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky | CC0 1.0 | 2026-10-29 | Nessuna |
 | `assets/materials/aerial_grass_rock/`, erba del terreno (colorata più verde nello shader) | Texture 1K | Aerial Grass Rock | Rob Tuytel | https://polyhaven.com/a/aerial_grass_rock | CC0 1.0 | 2026-10-29 | Nessuna |
 | `assets/materials/aerial_beach_01/`, sabbia della spiaggia (circuito Costa) | Texture 1K | Aerial Beach 01 | Rob Tuytel | https://polyhaven.com/a/aerial_beach_01 | CC0 1.0 | 2026-10-30 | Nessuna |
 | `assets/materials/rocky_terrain_02/`, terreno vicino alla strada | Texture 1K | Rocky Terrain 02 | Amal Kumar | https://polyhaven.com/a/rocky_terrain_02 | CC0 1.0 | 2026-10-29 | Nessuna |
@@ -66,9 +60,9 @@ Il pack KayKit (CC0, Kay Lousberg) dava solo le auto low poly di riserva: è sta
 
 I pini, i guardrail e la strada della montagna sono generati dal codice (`scripts/mountain.gd`), non sono asset esterni. `clean_asphalt` (già registrato sopra) è usato anche per le banchine.
 
-## Libreria di modelli da OpenGameArt — `assets/library/`
+## Libreria di modelli da OpenGameArt (tolta dal repository l'08/11/2026)
 
-Scaricati il 2026-10-29 da https://opengameart.org (dominio aperto da Stefano). Tutti i pacchetti sono marcati **CC0** sulla loro pagina OpenGameArt (verificato pagina per pagina al download). La cartella ha un file `.gdignore`: Godot non la importa e non finisce nell'APK. Per usare un modello, si copia fuori dalla libreria (per esempio in `assets/props/`) e si annota l'uso qui.
+Scaricati il 2026-10-29 da https://opengameart.org (dominio aperto da Stefano). Tutti i pacchetti sono marcati **CC0** sulla loro pagina OpenGameArt (verificato pagina per pagina al download). Fino all'08/11/2026 stavano in `assets/library/` (104 MB, con `.gdignore`, mai nell'APK). Su decisione di Stefano la cartella è stata tolta dal repository, come già si fa con la libreria dei modelli nuovi, che vive fuori dal repository: i due modelli già presi (tabella qui sotto) restano nel gioco. Gli elenchi qui sotto restano come registro della provenienza; i pacchetti si possono riscaricare dalle pagine indicate.
 
 Modifiche comuni a tutti i pacchetti: tenuti solo i formati che Godot legge (glTF/GLB, FBX, OBJ). Tolti i file `.blend`, i collegamenti `.url`/`.html` e i doppioni in altri formati. Le immagini di anteprima sono state ridotte a 960 px in JPG. Le texture `.tga` sono state convertite in PNG (le diffuse e le speculari delle barriere Yughues in JPG), e i `.mtl` sono stati aggiornati di conseguenza.
 
