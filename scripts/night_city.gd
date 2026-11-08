@@ -25,6 +25,10 @@ const STREET_BUILDINGS := [
 	["city_nyc_homes", 0, 0.19, 3], ["city_chicago_buildings", 0, 0.23, 3],
 	["city_midcity_set", 2, 1.2, 1], ["city_midcity_set", 5, 1.2, 1], ["city_midcity_set", 7, 1.2, 1],
 	["city_midcity_set", 11, 1.2, 1], ["city_midcity_set", 13, 1.2, 1],
+	# v0.20 (assets/scenery/env): brick row houses, old shops, a downtown block.
+	["env/nyc_dwellings", 0, 0.22, 2], ["env/brooklyn_twin", 0, 1.0, 2], ["env/downtown_02", 0, 0.045, 2],
+	["env/old_buildings", 0, 1.6, 1], ["env/old_buildings", 1, 1.6, 1], ["env/old_buildings", 2, 1.6, 1],
+	["env/brick_shop", 0, 11.0, 1],
 ]
 ## Taller ones for the second row and the gaps: they show above the street fronts.
 const TOWERS := [
@@ -68,6 +72,7 @@ func build_steps() -> Array:
 		["Grattacieli", _build_skyline],
 		["Lampioni e semafori", _build_lamps],
 		["Insegne", _build_neon],
+		["Ambiente", func(): Roadside.dress(self, "night")],
 		["Rampe", _build_ramps],
 		["Traiettoria", _build_racing_line],
 	]
@@ -381,11 +386,12 @@ func _build_neon() -> void:
 		var h: float = f[3]
 		var across := Vector3.UP.cross(out).normalized()
 		var col: Color = NEON[_rng.randi() % NEON.size()]
-		if _rng.randf() < 0.75:
+		# v0.21: about a third of the old neon (Stefano: too many lights, distracting).
+		if _rng.randf() < 0.25:
 			# Strip above the ground floor.
 			xfs.append(Transform3D(Basis(across, Vector3.UP, out).scaled(Vector3(w * 0.8, 0.22, 0.15)), at + out * 0.25 + Vector3(0, 4.2, 0)))
 			cols.append(col)
-		if h > 12.0 and _rng.randf() < 0.55:
+		if h > 12.0 and _rng.randf() < 0.18:
 			var y := _rng.randf_range(7.0, minf(h - 3.0, 18.0))
 			var off := _rng.randf_range(-w * 0.35, w * 0.35)
 			xfs.append(Transform3D(Basis(out, Vector3.UP, across).scaled(Vector3(1.4, 5.5, 0.22)), at + across * off + out * 0.9 + Vector3(0, y, 0)))

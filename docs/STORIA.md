@@ -41,6 +41,7 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.17 | 07/11/2026 | Si entra direttamente nel garage (3 auto, scelta definitiva, denaro e reputazione), minimappa in gara, caricamento con la serranda del garage che si apre | ramo `claude/project-thread-v3cjse` |
 | v0.18 | 07/11/2026 | Pagina d'attesa con START, denaro e reputazione che si guadagnano in gara, asfalto 10 cm sopra il terreno, traiettoria semitrasparente | ramo `claude/project-thread-v3cjse` |
 | v0.19 | 08/11/2026 | Dealer con 14 auto, colore RGB ed elaborazioni a 5 livelli; nuova combo delle derapate; dopo la Costa la Città | ramo `claude/project-thread-v3cjse` |
+| v0.21 | 08/11/2026 | Ambienti più ricchi: 51 modelli nuovi (boschi, rocce, case americane, arredo urbano, pali della luce, cartelli americani), neon della città ridotti a un terzo | ramo `claude/project-thread-u6ha4a` |
 
 ## Le svolte principali
 
@@ -750,9 +751,60 @@ tenerla (un salto con l'auto di traverso alla terza curva). Da provare su PC.
 
 ---
 
+## v0.21 — Ambienti più pieni (8 novembre)
+
+![La costa con le nuove case, palme e pali della luce](immagini/v0.21-costa.jpg)
+
+**Richiesta:** usare i modelli d'ambiente appena scaricati (114, tutti vendibili: CC BY 4.0 o
+CC0) per "migliorare la grafica dell'ambiente": la vegetazione tutta, "per riempire parecchio";
+del resto una buona parte, ma senza doppioni ("abbiamo tre tipi di cassonetto... ne utilizziamo
+uno solo"). Pali della luce sì; il ponte ad arco più avanti, quando ci sarà una mappa 3D completa.
+Studiare i pezzi di strada (incrocio, strada in collina, strada con parcheggio). Poi, dopo la
+prova della v0.20.3: i neon della città "sono veramente troppi... anche più che dimezzare".
+
+**Come è stato costruito:**
+- **51 modelli scelti** (`assets/scenery/env/`): tutta la vegetazione e le rocce (17 file), un
+  solo modello per ogni tipo doppio (un cassonetto, un sacco, una cassetta postale, un parchimetro,
+  una recinzione, un lampione, un container...), case americane, palazzi di mattoni, una fila di
+  edifici da paese con la tavola calda, distributori, magazzini, pali della luce. Esclusi i
+  doppioni, gli oggetti con marchi veri (una Coca-Cola dipinta, la benzina "Flying A") e le
+  insegne in cinese. Elenco completo con autori e licenze in `assets/LICENSES.md`.
+- **Alleggeriti per il telefono** prima di entrare nel progetto: texture ridotte (256-1024 px,
+  JPEG quando non serve la trasparenza) e compresse a 512 px; i modelli più pesanti semplificati
+  (un cespuglino da 27.000 triangoli ne ha ora 1.400, le rocce scansionate da 84.000 a 16.000).
+  La libreria da 920 MB è diventata 65 MB.
+- **Un "kit" per ogni circuito** in `scripts/roadside.gd`: una lista di modelli con quante copie,
+  quanto grandi e a che distanza dalla strada. Lo script li sparge lungo il tracciato solo dove
+  c'è posto (non sull'asfalto, non in mare, non addosso a case e alberi già presenti), gira le
+  case verso la strada e le appoggia sul terreno in piano. Montagna: boschi, cespugli, rocce, una
+  baita, una fattoria, tavoli da picnic. Costa: palme, case di legno con le cassette postali,
+  lampioni, cabine telefoniche. Deserto: rocce e erba secca, edifici di paese, pompe di benzina,
+  copertoni e bidoni. Città: cassonetti, parchimetri, cabine e centraline sui marciapiedi, cortili
+  con container e magazzini, 7 palazzi nuovi tra quelli delle vie.
+- **Pali della luce veri**: il modello ha palo e cavi insieme; il gioco li separa e tende i cavi
+  da un palo al successivo, seguendo le curve e le salite.
+- **Cartelli americani** (limite 55, Route 66, SLOW, strada tortuosa) al posto di quelli europei.
+- **Prestazioni:** le copie sono disegnate a gruppi (MultiMesh) per zone di 128 m, così le zone
+  lontane spariscono; cespugli e oggetti piccoli si vedono fino a 80-100 m e non fanno ombra.
+- **Città:** neon delle facciate ridotti a circa un terzo (`scripts/night_city.gd`).
+
+**Verifica ed esito:** screenshot dei quattro circuiti e autotest di gara in tutti e quattro.
+Misurato sul PC di sviluppo (rendering software, quindi solo i conteggi valgono, non gli FPS),
+nello stesso istante dopo la partenza: triangoli disegnati +13-22% e draw call +3-11% rispetto
+alla v0.20.3. Va provato sul Galaxy A51.
+
+**I pezzi di strada (studio, non ancora nel gioco):** incrocio, incrocio in collina e strada con
+parcheggio sono "piastrelle" fisse di 35-84 m con strade larghe circa 7 m (le nostre sono 12 m).
+Per guidarci sopra servono: una collisione ricavata dall'asfalto del modello, un comando nella
+mappa del circuito (es. `INCROCIO`) che faccia passare la nostra strada esattamente dentro la
+piastrella e in piano, e la scala adattata alla nostra carreggiata. Proposta da approvare.
+
+---
+
 ## Prossimi passi
 
-- Prova sul telefono e sul PC della v0.20.4.
+- Prova sul telefono e sul PC della v0.20.4 e della v0.21 (ambienti più pieni: controllare la fluidità).
+- Pezzi di strada (incrocio, strada con parcheggio) dentro i circuiti, se approvato; ponte ad arco con la mappa 3D completa.
 - Gli altri pulsanti (garage, menù) nello stesso stile neon; gare che pagano in modo diverso, cosa mostra la mappa.
 - Togliere i loghi dipinti nelle texture delle auto di marchi reali; aggiungere i mezzi della seconda ricerca (fuoristrada, pick-up, buggy, traffico di città).
 - Costruire il nuovo aspetto realistico (luce, cielo, ombre, materiali) un passo approvato alla volta.

@@ -254,6 +254,14 @@ Dopo aver provato uno stile realistico, uno anime e uno a fumetto, Stefano ha sc
   sola mesh con una superficie per materiale**. Un modello fatto di 123 pezzi passava da oltre
   1.000 chiamate di disegno a una manciata.
 - **Texture** dei nuovi paesaggi compresse per la GPU (VRAM) e limitate a 512-1024 px.
+- **`Roadside`** (v0.21, `scripts/roadside.gd`): ogni circuito ha un "kit" di modelli d'ambiente
+  (`assets/scenery/env/`) con numero di copie, altezza e distanza dalla strada. Le copie sono
+  sparse lungo il tracciato dove c'è posto (griglia di occupazione che conosce anche le collisioni
+  già presenti), disegnate come MultiMesh raggruppate in quadrati di 128 m, con distanza di
+  visibilità proporzionale all'altezza e senza ombre per piante e oggetti piccoli. Prima di entrare
+  nel progetto i modelli passano da `gltf-transform` (semplificazione con meshoptimizer, texture
+  ridotte e in JPEG). Il palo della luce viene diviso in palo e cavi, e i cavi sono tesi da un palo
+  al successivo. `tools/piece_grid.gd` mostra i pezzi di un pacchetto numerati, per sceglierli.
 - **Libreria separata**: i modelli scaricati ma non usati restano fuori dall'APK grazie ai filtri
   di esportazione (`export_presets.cfg`), e la libreria completa vive fuori dal repository.
 
