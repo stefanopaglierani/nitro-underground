@@ -46,9 +46,12 @@ Dalla cartella del progetto, dopo `godot --headless --import` (serve `xvfb-run`)
 
 ```bash
 G="xvfb-run -a -s '-screen 0 1280x720x24' godot --rendering-driver opengl3 --resolution 1280x720"
-# Menu: pagina circuiti e pagina auto
-$G -- --menushot=out/menu_track.png
-$G -- --menushot=out/menu_car.png --page=car
+# Garage iniziale (--reset-garage = come al primo avvio, prima di scegliere l'auto)
+$G -- --reset-garage --menushot=out/garage.png
+# Pagina START e dealer (--panel=color o --panel=tune apre un pannello, --dealercar=<id> sceglie l'auto)
+$G -- --titleshot=out/start.png
+$G res://scenes/dealer.tscn -- --dealershot=out/dealer.png --tab=tune   # --tab=mine|shop|tune, --panel=color
+# Gara: con --shots salva anche una foto della pagina di caricamento a ogni fase
 # Gara: 6 immagini durante una gara guidata dal pilota automatico
 $G res://scenes/main.tscn -- --autotest --level=desert --car=charger_1970 --shots=out/
 # Panorami di un circuito (frazioni del giro; "s" = vista panoramica, "h" = dall'alto)

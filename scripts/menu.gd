@@ -1,48 +1,53 @@
 extends Control
-## Title screen, the first scene the game opens. It is light on purpose: a drawn picture of
-## Route 66 as the background and one panel that first offers the circuits, then (the same panel)
-## the cars, with the chosen car turning in a small 3D window. Only that one car model is read
-## from disk. VIA! opens the race scene (main.gd), which builds just the chosen circuit and the
-## cars of that race.
+## The garage (v0.17, after the START page): one car big in the middle, its name and a few figures
+## under it, arrows on its sides. Before the first choice the arrows browse the three starting cars
+## and SELEZIONA (two taps) makes one the player's for good (kept in SaveGame); after that they
+## browse the cars the player owns, and the one on show is the one driven. Top right: money and
+## reputation; top left: the map button; bottom left: DEALER (v0.19, scenes/dealer.tscn); bottom
+## right: INIZIO GARA, the next race of the campaign (Main.CAMPAIGN). Only the cars on offer are
+## read from disk.
 
 const RACE_SCENE := "res://scenes/main.tscn"
-const BACKGROUND := "res://assets/ui/route66_menu.jpg"
-const ACCENT := Color(1, 0.18, 0.55)
-const CYAN := Color(0.1, 0.9, 1)
-const INK := Color(0.07, 0.03, 0.1)
-const PANEL_W := 500.0
+const DEALER_SCENE := "res://scenes/dealer.tscn"
+const BACKGROUND := "res://assets/ui/garage_bg.jpg"
+const GREEN := Color(0.25, 0.8, 0.35)
 
-## Position of the chosen car in the garage list (kept when coming back from a race).
+## Position of the car on show in the list (kept when coming back from a race).
 static var car_index := -1
 
 var _garage: Array = []
-var _page := "track"
-var _panel_title: Label
-var _track_page: VBoxContainer
-var _car_page: VBoxContainer
-var _track_buttons := {}
-var _back_button: Button
-var _go_button: Button
+var _locked := false
+var _confirming := false
+var _select_button: Neon.NeonButton
+var _go_button: Neon.NeonButton
+var _dealer_button: Neon.NeonButton
+var _arrows: Array[Button] = []
 var _car_name: Label
 var _car_info: Label
 var _car_status: Label
-var _viewport: SubViewport
+var _toast: Label
+var _toast_t := 0.0
 var _stage: Node3D
 var _preview: Node3D
 var _cam: Camera3D
 var _pending: Array[String] = []  # car models being read in the background
-var _swipe := 0.0
-var _turn := 0.0
+var _loaded := {}  # car models already read, kept so switching back to a car is instant
+## The car stands still, almost side on (Stefano, v0.20.4); dragging turns it.
+const VIEW_ANGLE := 1.9
+var _turn := VIEW_ANGLE
 var _leaving := false
 
 
 func _ready() -> void:
 	DisplayServer.screen_set_keep_on(true)
 	set_anchors_preset(Control.PRESET_FULL_RECT)
-	# The title screen has no 3D world of its own (the car window has its own): skip it entirely.
+	# The garage has no 3D world of its own (the car window has its own): skip it entirely.
 	# The race scene turns it back on when its level is ready.
 	get_viewport().disable_3d = true
-	ComicStyle.install(get_tree())  # the car on show gets the drawn look and its ink outline
+	var args := OS.get_cmdline_user_args()
+	if args.has("--reset-garage"):
+		SaveGame.reset()
+	SaveGame.load_game()
 
 	var bg := TextureRect.new()
 	bg.texture = load(BACKGROUND)
@@ -52,332 +57,203 @@ func _ready() -> void:
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
 
-	_build_title()
-	_build_panel()
-	_garage = CarCatalog.available()
-	if car_index < 0 or car_index >= _garage.size():
-		car_index = 0
-		for i in _garage.size():
-			if _garage[i]["id"] == Car.player_body:
-				car_index = i
-	_show_page("track")
+	_build_car_window()
+	_build_top_bar()
+	_build_buttons()
+	_set_locked(SaveGame.car != "" and not CarCatalog.available([SaveGame.car]).is_empty())
 
-	var args := OS.get_cmdline_user_args()
 	for a in args:
 		if a.begins_with("--menushot="):
-			# Test aid: picture of the title screen (--page=car for the car page).
-			if args.has("--page=car"):
-				_show_page("car")
-			await get_tree().create_timer(4.0).timeout
+			# Test aid: picture of the garage screen.
+			await get_tree().create_timer(5.0).timeout
 			get_viewport().get_texture().get_image().save_png(a.substr(11))
 			get_tree().quit()
 		if a == "--menutest":
-			# Test aid: pick the coast, step through two cars and start.
-			await get_tree().create_timer(1.0).timeout
-			_pick_track("coast")
-			await get_tree().create_timer(2.0).timeout
+			# Test aid: next car, choose it (two taps), start the race.
+			await get_tree().create_timer(1.5).timeout
 			_step_car(1)
-			await get_tree().create_timer(2.0).timeout
+			await get_tree().create_timer(1.5).timeout
+			_on_select()
+			_on_select()
+			await get_tree().create_timer(1.5).timeout
 			_start_race()
+		if a == "--to-dealer":
+			_open_dealer.call_deferred()
 
 
 # ---------- Layout ----------
 
-func _build_title() -> void:
-	var title := Label.new()
-	title.text = "NITRO\nUNDERGROUND"
-	title.position = Vector2(36, 18)
-	title.add_theme_font_size_override("font_size", 76)
-	title.add_theme_constant_override("line_spacing", -18)
-	title.add_theme_color_override("font_color", Color(1, 0.86, 0.2))
-	title.add_theme_color_override("font_outline_color", INK)
-	title.add_theme_constant_override("outline_size", 18)
-	title.add_theme_color_override("font_shadow_color", ACCENT)
-	title.add_theme_constant_override("shadow_offset_x", 7)
-	title.add_theme_constant_override("shadow_offset_y", 7)
-	title.add_theme_constant_override("shadow_outline_size", 18)
-	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(title)
+## The car in the middle: a 3D window about 60% of the screen wide (the car fills about 40% of
+## it), a soft shadow under it, the name and figures below.
+func _build_car_window() -> void:
+	var shadow := UiKit.Icon.new()
+	shadow.kind = "shadow"
+	UiKit.anchor(shadow, 0.26, 0.8, 0.74, 0.9)
+	add_child(shadow)
 
-
-func _comic_box(fill: Color, border: Color, width := 5) -> StyleBoxFlat:
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = fill
-	sb.border_color = border
-	sb.set_border_width_all(width)
-	sb.set_corner_radius_all(4)
-	sb.shadow_color = Color(INK.r, INK.g, INK.b, 0.9)
-	sb.shadow_offset = Vector2(7, 7)
-	sb.shadow_size = 1
-	sb.content_margin_left = 22
-	sb.content_margin_right = 22
-	sb.content_margin_top = 16
-	sb.content_margin_bottom = 16
-	return sb
-
-
-func _button(text: String, color: Color, font := 30, height := 84.0) -> Button:
-	var b := Button.new()
-	b.text = text
-	b.custom_minimum_size = Vector2(0, height)
-	b.add_theme_font_size_override("font_size", font)
-	b.add_theme_color_override("font_color", Color.WHITE)
-	b.add_theme_color_override("font_outline_color", INK)
-	b.add_theme_constant_override("outline_size", 8)
-	var sb := _comic_box(Color(color.r * 0.55, color.g * 0.55, color.b * 0.55, 0.95), INK, 4)
-	sb.content_margin_top = 6
-	sb.content_margin_bottom = 6
-	var on := _comic_box(color, INK, 4)
-	on.content_margin_top = 6
-	on.content_margin_bottom = 6
-	b.add_theme_stylebox_override("normal", sb)
-	b.add_theme_stylebox_override("hover", on)
-	b.add_theme_stylebox_override("pressed", on)
-	b.add_theme_stylebox_override("focus", sb)
-	return b
-
-
-## A circuit button: a picture of the circuit as background (assets/ui/circuit_<id>.jpg), its
-## name and line, and the shape of the track (from its map) drawn on the right.
-func _track_button(id: String, title: String, line: String) -> Button:
-	var b := _button("", ACCENT, 26, 0)
-	b.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	b.clip_contents = true
-	var pic_path := "res://assets/ui/circuit_%s.jpg" % id
-	if ResourceLoader.exists(pic_path):
-		var pic := TextureRect.new()
-		pic.texture = load(pic_path)
-		pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-		pic.set_anchors_preset(Control.PRESET_FULL_RECT)
-		pic.offset_left = 5
-		pic.offset_top = 5
-		pic.offset_right = -5
-		pic.offset_bottom = -5
-		pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		b.add_child(pic)
-		# Dark band on the left so the name always reads.
-		var shade := TextureRect.new()
-		var grad := Gradient.new()
-		grad.colors = PackedColorArray([Color(INK.r, INK.g, INK.b, 0.82), Color(INK.r, INK.g, INK.b, 0.0)])
-		var gt := GradientTexture2D.new()
-		gt.gradient = grad
-		gt.width = 64
-		gt.height = 4
-		shade.texture = gt
-		shade.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		shade.stretch_mode = TextureRect.STRETCH_SCALE
-		shade.set_anchors_preset(Control.PRESET_FULL_RECT)
-		shade.anchor_right = 0.75
-		shade.offset_left = 5
-		shade.offset_top = 5
-		shade.offset_bottom = -5
-		shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		b.add_child(shade)
-	var map_id: String = Main.TRACK_MAPS.get(id, "")
-	if map_id != "" and TrackLayout.exists(map_id):
-		var outline := TrackOutline.new()
-		outline.layout = TrackLayout.load_id(map_id)
-		outline.set_anchors_preset(Control.PRESET_RIGHT_WIDE)
-		outline.offset_left = -118
-		outline.offset_right = -10
-		outline.offset_top = 10
-		outline.offset_bottom = -10
-		outline.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		b.add_child(outline)
-	var text := VBoxContainer.new()
-	text.set_anchors_preset(Control.PRESET_FULL_RECT)
-	text.offset_left = 20
-	text.offset_right = -120
-	text.alignment = BoxContainer.ALIGNMENT_CENTER
-	text.add_theme_constant_override("separation", 0)
-	text.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	b.add_child(text)
-	for i in 2:
-		var l := Label.new()
-		l.text = title if i == 0 else line
-		l.add_theme_font_size_override("font_size", 30 if i == 0 else 19)
-		l.add_theme_color_override("font_color", Color.WHITE if i == 0 else Color(1, 0.92, 0.6))
-		l.add_theme_color_override("font_outline_color", INK)
-		l.add_theme_constant_override("outline_size", 9 if i == 0 else 7)
-		l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		text.add_child(l)
-	return b
-
-
-## One panel on the right that shows the circuits, then the cars; the VIA! button under it.
-func _build_panel() -> void:
-	var panel := PanelContainer.new()
-	panel.set_anchors_preset(Control.PRESET_RIGHT_WIDE)
-	panel.offset_left = -PANEL_W - 28
-	panel.offset_right = -28
-	panel.offset_top = 24
-	panel.offset_bottom = -140
-	panel.add_theme_stylebox_override("panel", _comic_box(Color(0.06, 0.03, 0.14, 0.8), INK, 6))
-	add_child(panel)
-	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 12)
-	panel.add_child(box)
-
-	var head := HBoxContainer.new()
-	head.add_theme_constant_override("separation", 12)
-	box.add_child(head)
-	_back_button = _button("<", CYAN, 30, 56)
-	_back_button.custom_minimum_size = Vector2(64, 56)
-	_back_button.pressed.connect(func(): _show_page("track"))
-	head.add_child(_back_button)
-	_panel_title = Label.new()
-	_panel_title.add_theme_font_size_override("font_size", 34)
-	_panel_title.add_theme_color_override("font_color", Color(1, 0.86, 0.2))
-	_panel_title.add_theme_color_override("font_outline_color", INK)
-	_panel_title.add_theme_constant_override("outline_size", 10)
-	_panel_title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_panel_title.custom_minimum_size = Vector2(0, 56)
-	_panel_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	head.add_child(_panel_title)
-
-	# Page 1: the circuits.
-	_track_page = VBoxContainer.new()
-	_track_page.add_theme_constant_override("separation", 14)
-	_track_page.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	box.add_child(_track_page)
-	for t in Main.TRACKS:
-		var id: String = t[0]
-		var b := _track_button(id, t[1], t[2])
-		b.pressed.connect(_pick_track.bind(id))
-		_track_page.add_child(b)
-		_track_buttons[id] = b
-
-	# Page 2: the cars, in the same panel.
-	_car_page = VBoxContainer.new()
-	_car_page.add_theme_constant_override("separation", 8)
-	_car_page.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	box.add_child(_car_page)
-	var view := SubViewportContainer.new()
-	view.stretch = true
-	view.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	view.mouse_filter = Control.MOUSE_FILTER_PASS
-	_car_page.add_child(view)
-	_viewport = SubViewport.new()
-	_viewport.own_world_3d = true
-	_viewport.transparent_bg = true
-	_viewport.msaa_3d = Viewport.MSAA_2X
-	view.add_child(_viewport)
-	_build_stage()
-	_car_status = Label.new()
+	var win := UiKit.car_window(self)
+	UiKit.anchor(win[0], 0.2, 0.34, 0.8, 0.98)
+	_stage = win[1]
+	_cam = win[2]
+	_car_status = UiKit.label(26)
 	_car_status.text = "Carico l'auto..."
-	_car_status.add_theme_font_size_override("font_size", 24)
-	_car_status.add_theme_color_override("font_color", Color(0.8, 0.85, 1))
-	_car_status.set_anchors_preset(Control.PRESET_CENTER)
+	_car_status.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_car_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_car_status.offset_left = -200
-	_car_status.offset_right = 200
-	_car_status.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	view.add_child(_car_status)
+	_car_status.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	(win[0] as Control).add_child(_car_status)
 
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 10)
-	_car_page.add_child(row)
-	var prev := _button("<", CYAN, 36, 76)
-	prev.custom_minimum_size = Vector2(76, 76)
-	prev.pressed.connect(_step_car.bind(-1))
-	row.add_child(prev)
 	var names := VBoxContainer.new()
-	names.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	names.alignment = BoxContainer.ALIGNMENT_CENTER
-	names.add_theme_constant_override("separation", 0)
-	row.add_child(names)
-	_car_name = Label.new()
+	UiKit.anchor(names, 0.25, 0.865, 0.75, 1.0)
+	names.add_theme_constant_override("separation", -2)
+	names.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(names)
+	_car_name = UiKit.label(38, UiKit.GOLD, 12)
 	_car_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_car_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_car_name.add_theme_font_size_override("font_size", 28)
-	_car_name.add_theme_color_override("font_outline_color", INK)
-	_car_name.add_theme_constant_override("outline_size", 8)
 	names.add_child(_car_name)
-	_car_info = Label.new()
+	_car_info = UiKit.label(22, Color(0.95, 0.93, 0.88))
 	_car_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_car_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_car_info.add_theme_font_size_override("font_size", 19)
-	_car_info.add_theme_color_override("font_color", Color(0.75, 0.8, 0.95))
 	names.add_child(_car_info)
-	var next := _button(">", CYAN, 36, 76)
-	next.custom_minimum_size = Vector2(76, 76)
-	next.pressed.connect(_step_car.bind(1))
-	row.add_child(next)
 
-	_go_button = _button("VIA!", ACCENT, 52, 0)
+	# Arrows on the two sides of the car.
+	for dir in [-1, 1]:
+		var b := UiKit.ArrowButton.new()
+		b.dir = dir
+		var x := 0.18 if dir < 0 else 0.82
+		UiKit.anchor(b, x, 0.62, x, 0.62)
+		b.offset_left = -50
+		b.offset_right = 50
+		b.offset_top = -55
+		b.offset_bottom = 55
+		b.pressed.connect(_step_car.bind(dir))
+		add_child(b)
+		_arrows.append(b)
+
+
+## Money and reputation (top right), the map button (top left), the message in the middle.
+func _build_top_bar() -> void:
+	UiKit.money_and_rep(self)
+
+	var map := UiKit.button("", Color(0.25, 0.45, 0.75))
+	map.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	map.offset_left = 20
+	map.offset_top = 18
+	map.offset_right = 100
+	map.offset_bottom = 98
+	var icon := UiKit.Icon.new()
+	icon.kind = "map"
+	icon.set_anchors_preset(Control.PRESET_FULL_RECT)
+	icon.offset_left = 12
+	icon.offset_top = 12
+	icon.offset_right = -12
+	icon.offset_bottom = -12
+	map.add_child(icon)
+	map.pressed.connect(func(): _say("La mappa arriverà presto"))
+	add_child(map)
+
+	_toast = UiKit.label(34, Color.WHITE, 12)
+	_toast.set_anchors_preset(Control.PRESET_CENTER)
+	_toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_toast.offset_left = -500
+	_toast.offset_right = 500
+	_toast.offset_top = -30
+	_toast.offset_bottom = 30
+	_toast.visible = false
+	add_child(_toast)
+
+
+## SELEZIONA above the car, DEALER bottom left, INIZIO GARA bottom right: since v0.20.4 a
+## coloured picture and a caption, no box (Neon, like the dealer).
+func _build_buttons() -> void:
+	_select_button = Neon.NeonButton.new().setup("SELEZIONA", "check", Neon.GREEN, false, 32)
+	_select_button.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_select_button.offset_left = -190
+	_select_button.offset_right = 190
+	_select_button.offset_top = 18
+	_select_button.offset_bottom = 92
+	_select_button.pressed.connect(_on_select)
+	add_child(_select_button)
+
+	_dealer_button = Neon.NeonButton.new().setup("DEALER", "shop", Neon.YELLOW, true, 26)
+	_dealer_button.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	_dealer_button.offset_left = 18
+	_dealer_button.offset_right = 178
+	_dealer_button.offset_top = -168
+	_dealer_button.offset_bottom = -12
+	_dealer_button.pressed.connect(_open_dealer)
+	add_child(_dealer_button)
+
+	var race: Array = Main.CAMPAIGN[SaveGame.race_index % Main.CAMPAIGN.size()]
+	_go_button = Neon.NeonButton.new().setup("INIZIO GARA", "flag", Neon.RED, true, 26)
+	_go_button.sub = race[1]
 	_go_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	_go_button.offset_left = -PANEL_W - 28
-	_go_button.offset_right = -28
-	_go_button.offset_top = -118
-	_go_button.offset_bottom = -24
-	_go_button.add_theme_stylebox_override("normal", _go_button.get_theme_stylebox("hover"))
-	_go_button.add_theme_stylebox_override("focus", _go_button.get_theme_stylebox("hover"))
+	_go_button.offset_left = -218
+	_go_button.offset_right = -18
+	_go_button.offset_top = -190
+	_go_button.offset_bottom = -12
 	_go_button.pressed.connect(_start_race)
 	add_child(_go_button)
 
 
-## The little 3D set of the car window: its own world, a sun, soft light and a camera.
-func _build_stage() -> void:
-	_stage = Node3D.new()
-	_viewport.add_child(_stage)
-	var env := Environment.new()
-	env.background_mode = Environment.BG_CLEAR_COLOR
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.75, 0.72, 0.95)
-	env.ambient_light_energy = 0.7
-	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	var we := WorldEnvironment.new()
-	we.environment = env
-	_stage.add_child(we)
-	var sun := DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-40, -30, 0)
-	sun.light_color = Color(1, 0.9, 0.8)
-	sun.light_energy = 1.3
-	_stage.add_child(sun)
-	var back := DirectionalLight3D.new()
-	back.rotation_degrees = Vector3(-20, 150, 0)
-	back.light_color = Color(1, 0.4, 0.7)
-	back.light_energy = 0.6
-	_stage.add_child(back)
-	_cam = Camera3D.new()
-	_cam.fov = 32
-	_stage.add_child(_cam)
+# ---------- Choosing the car ----------
+
+## Locked: the starting car is chosen; the arrows browse the cars the player owns.
+func _set_locked(on: bool) -> void:
+	_locked = on
+	_confirming = false
+	_garage = CarCatalog.available(SaveGame.owned if on else CarCatalog.STARTER)
+	if _garage.is_empty():
+		_garage = CarCatalog.available()
+	car_index = 0
+	for i in _garage.size():
+		if on and _garage[i]["id"] == SaveGame.car:
+			car_index = i
+	for b in _arrows:
+		b.visible = _garage.size() > 1
+	_select_button.set_caption("LA TUA AUTO" if on else "SELEZIONA")
+	_select_button.icon_kind = "key" if on else "check"
+	_select_button.disabled = on
+	_go_button.disabled = not on
+	_dealer_button.disabled = not on
+	_show_car()
 
 
-# ---------- Pages ----------
-
-func _show_page(page: String) -> void:
-	_page = page
-	_track_page.visible = page == "track"
-	_car_page.visible = page == "car"
-	_back_button.visible = page == "car"
-	_go_button.visible = page == "car"
-	if page == "track":
-		_panel_title.text = "1 · SCEGLI IL CIRCUITO"
-		for id in _track_buttons:
-			var b: Button = _track_buttons[id]
-			var chosen: bool = id == Main.level
-			b.add_theme_stylebox_override("normal", (b.get_theme_stylebox("hover") if chosen else b.get_theme_stylebox("focus")))
-	else:
-		var track_name := ""
-		for t in Main.TRACKS:
-			if t[0] == Main.level:
-				track_name = t[1]
-		_panel_title.text = "2 · AUTO  (%s)" % track_name
-		_show_car()
-
-
-func _pick_track(id: String) -> void:
-	Main.level = id
-	_show_page("car")
+func _on_select() -> void:
+	if _locked or _leaving:
+		return
+	if not _confirming:
+		# First tap: one more tap to confirm, the choice is for good.
+		_confirming = true
+		_select_button.set_caption("CONFERMI?")
+		_say("Tocca ancora: poi non potrai più cambiarla")
+		return
+	SaveGame.car = _garage[car_index]["id"]
+	SaveGame.owned = [SaveGame.car]
+	SaveGame.save_game()
+	var chosen: String = _garage[car_index]["name"]
+	_set_locked(true)
+	_say("%s è tua!" % chosen)
 
 
 func _step_car(dir: int) -> void:
-	if _page != "car" or _garage.is_empty():
+	if _garage.size() < 2 or _leaving:
 		return
 	car_index = posmod(car_index + dir, _garage.size())
+	_turn = VIEW_ANGLE
+	if _confirming:
+		_confirming = false
+		_select_button.set_caption("SELEZIONA")
+	if _locked:
+		# The car on show is the one the player drives.
+		SaveGame.car = _garage[car_index]["id"]
+		SaveGame.save_game()
 	_show_car()
+
+
+func _say(text: String, seconds := 2.5) -> void:
+	_toast.text = text
+	_toast.visible = true
+	_toast.modulate.a = 1.0
+	_toast_t = seconds
 
 
 ## Shows the chosen car: its name at once, its model as soon as it is read from disk.
@@ -385,10 +261,13 @@ func _show_car() -> void:
 	var entry: Dictionary = _garage[car_index]
 	Car.player_body = entry["id"]
 	_car_name.text = entry["name"]
-	var drive := {"RWD": "trazione posteriore", "FWD": "trazione anteriore", "AWD": "4 ruote motrici"}
-	_car_info.text = "%d / %d  ·  %d km/h  ·  %s" % [car_index + 1, _garage.size(), CarCatalog.top_speed(entry["id"]), drive[CarCatalog.drivetrain(entry["id"])]]
-	var path := CarCatalog.model_path(entry)
-	if ResourceLoader.has_cached(path):
+	var drive := {"RWD": "Trazione posteriore", "FWD": "Trazione anteriore", "AWD": "4 ruote motrici"}
+	var info := "Velocità max %d km/h   ·   %s" % [CarCatalog.top_speed(entry["id"]), drive[CarCatalog.drivetrain(entry["id"])]]
+	if _garage.size() > 1:
+		info = "%d / %d   ·   " % [car_index + 1, _garage.size()] + info
+	_car_info.text = info
+	var path := _model_file(entry)
+	if _loaded.has(path) or ResourceLoader.has_cached(path):
 		_build_preview()
 		return
 	if _preview:
@@ -399,24 +278,22 @@ func _show_car() -> void:
 		ResourceLoader.load_threaded_request(path)
 
 
+## The file read for a car: its ready-made light version (assets/cars_baked) when there is one.
+func _model_file(entry: Dictionary) -> String:
+	var baked := CarModel.baked_path(entry["id"])
+	return baked if ResourceLoader.exists(baked) else CarCatalog.model_path(entry)
+
+
 func _build_preview() -> void:
 	_car_status.visible = false
 	if _preview:
 		_preview.queue_free()
-	var entry: Dictionary = _garage[car_index]
-	_preview = CarModel.build(Color(0, 0, 0, 0), false, entry["id"])
-	_preview.set_meta("comic_ink", true)
+	var id: String = _garage[car_index]["id"]
+	_preview = CarModel.build(Color(0, 0, 0, 0), false, id)
+	CarModel.paint_model(_preview, id, SaveGame.color_of(id))
 	_stage.add_child(_preview)
 	_preview.rotation.y = _turn
-	# Keep only this model in memory: the others the player looked at are let go.
-	CarModel.clear_cache()
-	var length := 4.5
-	for mi in _preview.find_children("*", "MeshInstance3D", true, false):
-		var bb: AABB = CarModel._xf_in(mi, _preview) * (mi as MeshInstance3D).get_aabb()
-		length = maxf(length, maxf(absf(bb.position.z), absf(bb.end.z)) * 2.0)
-	var dist := length * 1.45
-	_cam.position = Vector3(0, dist * 0.32, dist)
-	_cam.look_at(Vector3(0, 0.6, 0), Vector3.UP)
+	UiKit.frame_car(_preview, _cam)
 
 
 func _process(delta: float) -> void:
@@ -426,59 +303,80 @@ func _process(delta: float) -> void:
 			continue
 		_pending.erase(path)
 		var res := ResourceLoader.load_threaded_get(path)
-		if res and not _garage.is_empty() and CarCatalog.model_path(_garage[car_index]) == path and not _leaving:
+		_loaded[path] = res  # null if it could not be read: not asked for again
+		if res and not _garage.is_empty() and _model_file(_garage[car_index]) == path and not _leaving:
 			_build_preview()
-	_turn += delta * 0.5
+	# Then read the next and the previous car in the background, so the arrows show them straight
+	# away. Only these stay in memory: the phone has little RAM.
+	if _pending.is_empty() and not _leaving and _garage.size() > 1:
+		for step in [1, -1]:
+			var next := _model_file(_garage[posmod(car_index + step, _garage.size())])
+			if not _loaded.has(next):
+				_pending.append(next)
+				ResourceLoader.load_threaded_request(next)
+				break
 	if _preview:
 		_preview.rotation.y = _turn
+	if _toast_t > 0.0:
+		_toast_t -= delta
+		_toast.modulate.a = clampf(_toast_t / 0.5, 0.0, 1.0)
+		_toast.visible = _toast_t > 0.0
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _page != "car":
-		return
-	var dx := 0.0
 	if event is InputEventScreenDrag:
-		dx = (event as InputEventScreenDrag).relative.x
-	elif event is InputEventScreenTouch and not (event as InputEventScreenTouch).pressed:
-		_swipe = 0.0
+		# Dragging turns the car (the arrows change it).
+		_turn += (event as InputEventScreenDrag).relative.x * 0.012
 	elif event.is_action_pressed("ui_left"):
 		_step_car(-1)
 	elif event.is_action_pressed("ui_right"):
 		_step_car(1)
 	elif event.is_action_pressed("ui_accept"):
-		_start_race()
-	_swipe += dx
-	if absf(_swipe) > 90.0:
-		_step_car(-1 if _swipe > 0.0 else 1)
-		_swipe = 0.0
+		if _locked:
+			_start_race()
+		else:
+			_on_select()
 
 
-## Android back button (the game no longer quits on it by itself): from the cars back to the
-## circuits, from the circuits out of the game.
+## Android back button (the game no longer quits on it by itself): from the garage out of the game.
 func _notification(what: int) -> void:
-	if what != NOTIFICATION_WM_GO_BACK_REQUEST or _leaving:
-		return
-	if _page == "car":
-		_show_page("track")
-	else:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST and not _leaving:
 		get_tree().quit()
 
 
-## VIA!: frees the title screen and opens the race scene, which builds the chosen circuit.
-func _start_race() -> void:
-	if _leaving or _page != "car":
-		return
+## Lets go of the models before changing scene, so nothing stays half-loaded in memory.
+func _leave(scene: String) -> void:
 	_leaving = true
-	_go_button.text = "CARICAMENTO..."
-	_go_button.disabled = true
 	await get_tree().process_frame
 	await get_tree().process_frame
 	if _preview:
 		_preview.queue_free()
 		_preview = null
-	# Let the models still being read finish, so nothing stays half-loaded in memory.
 	for path in _pending:
 		ResourceLoader.load_threaded_get(path)
 	_pending.clear()
+	_loaded.clear()
 	CarModel.clear_cache()
-	get_tree().change_scene_to_file(RACE_SCENE)
+	get_tree().change_scene_to_file(scene)
+
+
+func _open_dealer() -> void:
+	if _leaving:
+		return
+	if not _locked:
+		_say("Prima scegli la tua auto")
+		return
+	_leave(DEALER_SCENE)
+
+
+## INIZIO GARA: frees the garage and opens the race scene on the next circuit of the campaign.
+func _start_race() -> void:
+	if _leaving:
+		return
+	if not _locked:
+		_say("Prima scegli la tua auto")
+		return
+	Main.level = Main.CAMPAIGN[SaveGame.race_index % Main.CAMPAIGN.size()][0]
+	_go_button.set_caption("CARICAMENTO...")
+	_go_button.disabled = true
+	_leave(RACE_SCENE)

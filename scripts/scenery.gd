@@ -333,7 +333,18 @@ static func _loose(t: Node3D, only: Array, height: float, pos: Vector3, fwd: Vec
 	return body
 
 
+## American road signs (assets/scenery/env/road_signs, v0.20), pole included: speed limit 55,
+## Route 66 shield, SLOW, winding road. Used instead of the European plates when present.
+const US_SIGNS := [23, 93, 77, 1]
+
+
 static func _sign(t: Node3D, base: Vector3, face: Vector3, plate: int) -> void:
+	if exists("env/road_signs"):
+		var piece: int = US_SIGNS[absi(plate * 7 + int(base.x)) % US_SIGNS.size()]
+		var box: AABB = pieces("env/road_signs")[piece]["box"]
+		var s := 2.7 / box.size.y
+		_loose_piece(t, "env/road_signs", piece, s, base, -face, 25.0, Vector3(0.7, 2.7, 0.15))
+		return
 	var body := _loose(t, [SIGN_POLE], 2.6, base, face, 25.0, Vector3(0.7, 2.6, 0.15), "street_signs")
 	var p := instance("street_signs", 0.7, [plate])
 	p.position.y = 2.15
@@ -384,3 +395,22 @@ static func _houses(t: Mountain, rng: RandomNumberGenerator) -> void:
 		var to_road := t.pts[k] - p
 		# Sink the base into the slope so no corner floats.
 		body.global_transform = Transform3D(Basis.looking_at(Vector3(to_road.x, 0, to_road.z).normalized(), Vector3.UP), Vector3(p.x, lo - 0.3, p.z))
+
+
+## Like _loose, for one piece of a pack scaled by `s`.
+static func _loose_piece(t: Node3D, pack: String, piece: int, s: float, pos: Vector3, fwd: Vector3, mass: float, box: Vector3) -> RigidBody3D:
+	var body := RigidBody3D.new()
+	body.mass = mass
+	body.can_sleep = true
+	var col := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = box
+	col.shape = shape
+	col.position.y = box.y / 2.0
+	body.add_child(col)
+	body.add_child(piece_instance(pack, piece, s))
+	t.add_child(body)
+	var f := Vector3(fwd.x, 0, fwd.z).normalized()
+	body.global_transform = Transform3D(Basis.looking_at(f, Vector3.UP), pos + Vector3(0, 0.03, 0))
+	body.sleeping = true
+	return body

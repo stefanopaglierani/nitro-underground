@@ -15,6 +15,9 @@ const TRACKS := [
 	["night", "CITTÀ DI NOTTE", "Downtown: gomiti tra i palazzi"],
 	["desert", "DESERTO", "Route 66: canyon e motel"],
 ]
+## The races of the campaign, in order (v0.19, Stefano: the coast first, then the city): [circuit id,
+## name on the garage button]. Finishing a race moves on to the next; after the last it starts again.
+const CAMPAIGN := [["coast", "COSTA"], ["night", "CITTÀ"], ["desert", "DESERTO"], ["mountain", "MONTAGNA"]]
 ## Map file of each circuit (tracks/<name>.txt), drawn on its button in the menu.
 const TRACK_MAPS := {"mountain": "montagna", "coast": "costa", "night": "citta_notte", "desert": "deserto"}
 ## The level object for a circuit id (not built yet).
@@ -32,6 +35,8 @@ static func make_level(id: String) -> Track:
 
 
 const MENU_SCENE := "res://scenes/menu.tscn"
+## Longest wait per loading step for the garage door of the loading page to slide up (seconds).
+const DOOR_WAIT := 0.12
 ## Countdown clock: seconds given for each checkpoint stretch = its length / CLOCK_SPEED (m/s)
 ## + CLOCK_EXTRA. Tuned on the autopilot, which needs about 2/3 of the time given; what is left over carries on.
 const CLOCK_SPEED := 26.0
@@ -48,7 +53,22 @@ const AI_ADVANCE_RADIUS := 12.0
 const PLAYER_WP_LOOKAHEAD := 8
 ## Seconds a rival may go without reaching its next race-path point before it is put back on it.
 const RACER_STALL_TIME := 8.0
+## Wrong way: the player drives against the race above this speed (m/s) for this many seconds.
+const WRONG_WAY_SPEED := 8.0
+const WRONG_WAY_TIME := 1.5
+## Money for every race finished (Stefano, v0.18); a race lost on time or by arrest pays nothing.
 const PRIZE := 5000
+## Reputation (Stefano): a win, a police chase shaken off, and drifts (v0.19 combo): every drift
+## is worth REP_DRIFT; drifts in a row (each started within REP_COMBO_TIME seconds of the end of the
+## one before) make a combo: at the 5th the combo total doubles, from the 6th each drift is worth
+## REP_DRIFT_LATE, at the 10th the total triples; after that drifts stay at REP_DRIFT_LATE.
+## Drifts shorter than REP_DRIFT_MIN seconds do not count.
+const REP_WIN := 1000
+const REP_POLICE := 100
+const REP_DRIFT := 20
+const REP_DRIFT_LATE := 30
+const REP_COMBO_TIME := 3.0
+const REP_DRIFT_MIN := 0.5
 ## Seconds into the race when someone calls the police.
 const POLICE_CALL_TIME := 20.0
 ## A police car busy with a rival switches to the player when the player passes this close.
@@ -75,6 +95,8 @@ var cp_marker: Node3D
 var cp_beam: Node3D
 var arrow: Node3D
 var rng := RandomNumberGenerator.new()
+## Garage cars the three rivals drive in this race.
+var _rivals: Array = []
 
 var state := "loading"  # loading, countdown, race, end
 var countdown := 0.0
@@ -84,6 +106,7 @@ var time_left := 0.0
 var _clock_times: Array[float] = []  # seconds given for the stretch that ends at checkpoint i
 var player_cp := 1
 var player_wp := 1  # index in race_path, for the race position
+var _wrong_way_t := 0.0
 var finish_order: Array[Car] = []
 var heat := 0.0
 var bust_t := 0.0
@@ -92,6 +115,13 @@ var police_called := false
 var _off_track_t := {}
 var _racer_stall := {}  # racer -> [wp_index, seconds without reaching the next point]
 var _warn_t := 0.0
+## Reputation earned in this race, and the drift combo: seconds of the drift going on, seconds
+## since the last one ended, drifts in the combo and its total.
+var rep_gained := 0
+var _drift_t := 0.0
+var _since_drift := INF
+var _combo := 0
+var _combo_total := 0
 var cam_yaw := 0.0
 var _cam_dist := CAM_DIST
 var _cam_y := 0.0
@@ -133,6 +163,7 @@ func _ready() -> void:
 		if a.begins_with("--car="):
 			Car.player_body = a.substr(6)
 
+	SaveGame.load_game()
 	_setup_input()
 	hud = Hud.new()
 	add_child(hud)
@@ -166,12 +197,13 @@ func _ready() -> void:
 	ComicStyle.setup_environment(self, city.night)
 	ComicStyle.add_stylize_pass(camera)
 	camera.far = city.view_distance
-	await _loading("Stile fumetto", (steps.size() + 1) / total)
+	Perf.apply(self, camera, city)
+	await _loading("Ritocchi finali", (steps.size() + 1) / total)
 	ComicStyle.install(get_tree())
 	await _loading("Traffico", (steps.size() + 2) / total)
 	var traffic: Array[TrafficCar] = []
 	var grid_front: Vector3 = city.start_grid(1)[0][0]
-	for i in (0 if OS.get_cmdline_user_args().has("--notraffic") else TRAFFIC_CARS):
+	for i in (0 if OS.get_cmdline_user_args().has("--notraffic") else (Perf.TRAFFIC if Perf.mobile else TRAFFIC_CARS)):
 		var t := TrafficCar.new()
 		add_child(t)
 		t.setup(city, rng)
@@ -180,6 +212,7 @@ func _ready() -> void:
 	TrafficCar.link_lanes(traffic)
 	checkpoints = city.race_checkpoints()
 	race_path = city.race_path()
+	hud.minimap.set_track(race_path)
 	_build_markers()
 	_plan_clock()
 	# The car models were loading in the background: wait for the last ones.
@@ -216,15 +249,29 @@ func _loading(text: String, progress: float) -> void:
 	hud.show_loading(text, progress)
 	await get_tree().process_frame
 	await get_tree().process_frame
+	# Let the garage door slide up to the new percentage (at most DOOR_WAIT seconds per step).
+	var t0 := Time.get_ticks_msec()
+	while not hud.door_settled() and Time.get_ticks_msec() - t0 < DOOR_WAIT * 1000.0:
+		await get_tree().process_frame
+	if screenshot_dir != "":
+		# Test aid: a picture of the loading page at every step.
+		get_viewport().get_texture().get_image().save_png("%s/loading_%03d.png" % [screenshot_dir, roundi(progress * 100.0)])
 
 
 ## Starts reading (in background threads) the models of the player's car, the rivals and the
 ## police. Returns the paths being read.
 func _request_car_models() -> Array[String]:
 	var paths: Array[String] = []
-	for id in [Car.player_body] + Car.RACER_BODIES + Car.POLICE_BODIES:
+	# Three rivals picked at random among the garage cars the player did not take.
+	var pool := Car.rival_bodies()
+	_rivals.clear()
+	while _rivals.size() < 3 and not pool.is_empty():
+		_rivals.append(pool.pop_at(rng.randi() % pool.size()))
+	for id in [Car.player_body] + _rivals + Car.POLICE_BODIES:
 		var entry := CarCatalog.find(id)
-		var path: String = CarModel.RGSDEV_DIR + id + ".fbx" if entry.is_empty() else CarCatalog.model_path(entry)
+		var path: String = CarModel.baked_path(id)
+		if not ResourceLoader.exists(path) and not entry.is_empty():
+			path = CarCatalog.model_path(entry)
 		if ResourceLoader.exists(path) and not ResourceLoader.has_cached(path) and not paths.has(path):
 			paths.append(path)
 			ResourceLoader.load_threaded_request(path)
@@ -286,6 +333,7 @@ func _notification(what: int) -> void:
 
 ## Same race again: the scene is built anew (with the loading page).
 func _restart() -> void:
+	SaveGame.save_game()  # the reputation earned so far is kept
 	get_tree().paused = false
 	hud.show_loading("Riavvio", 0.0)
 	await get_tree().process_frame
@@ -293,8 +341,9 @@ func _restart() -> void:
 	get_tree().reload_current_scene()
 
 
-## Back to the title screen. The race scene and its models are freed.
+## Back to the garage. The race scene and its models are freed.
 func _to_menu() -> void:
+	SaveGame.save_game()
 	get_tree().paused = false
 	hud.show_pause(false)
 	hud.show_controls(false)
@@ -361,8 +410,9 @@ func _build_markers() -> void:
 	arrow.visible = false
 
 
-func _make_car(kind: Car.Driver, paint: Color) -> Car:
+func _make_car(kind: Car.Driver, paint: Color, body := "") -> Car:
 	var c := Car.new()
+	c.racer_body = body
 	add_child(c)
 	c.setup(kind, paint, city)
 	c.crashed.connect(_on_crash.bind(c))
@@ -372,8 +422,9 @@ func _make_car(kind: Car.Driver, paint: Color) -> Car:
 func _start() -> void:
 	countdown = 3.5
 	var grid := city.start_grid(4)
+	var rivals := _rivals if not _rivals.is_empty() else Car.rival_bodies()
 	for i in 3:
-		var r := _make_car(Car.Driver.RACER, RIVAL_COLORS[i])
+		var r := _make_car(Car.Driver.RACER, RIVAL_COLORS[i], rivals[i % rivals.size()])
 		r.place(grid[i][0], grid[i][1])
 		r.waypoints = race_path
 		r.wp_index = 1
@@ -412,11 +463,40 @@ func _process(delta: float) -> void:
 		"race":
 			race_time += delta
 			_race_logic(delta)
+			_check_wrong_way(delta)
 	if player:
 		_update_camera(delta)
 		_update_hud()
 	if autotest:
 		_autotest_tick(delta)
+
+
+## Red warning when the player drives against the race: the car moves opposite to the race path
+## around the last point it passed.
+func _check_wrong_way(delta: float) -> void:
+	var wrong := false
+	if player_wp > 0 and player_wp < race_path.size() and not finish_order.has(player):
+		# The race-path segment nearest to the car, around the last point it passed.
+		var dir := Vector3.ZERO
+		var best := INF
+		for k in range(maxi(player_wp - 2, 1), mini(player_wp + 2, race_path.size())):
+			var p := Geometry3D.get_closest_point_to_segment(player.global_position, race_path[k - 1], race_path[k])
+			var d := p.distance_to(player.global_position)
+			if d < best:
+				best = d
+				dir = race_path[k] - race_path[k - 1]
+		dir.y = 0.0
+		var v := player.linear_velocity
+		v.y = 0.0
+		if dir.length() > 0.1 and v.length() > WRONG_WAY_SPEED:
+			wrong = v.normalized().dot(dir.normalized()) < -0.5
+	_wrong_way_t = clampf(_wrong_way_t + (delta if wrong else -2.0 * delta), 0.0, WRONG_WAY_TIME)
+	if wrong and _wrong_way_t >= WRONG_WAY_TIME:
+		if autotest and not hud.wrong_way_label.visible:
+			print("[autotest] WRONG WAY at wp %d" % player_wp)
+		hud.set_wrong_way(true)
+	elif _wrong_way_t <= 0.0:
+		hud.set_wrong_way(false)
 
 
 func _go() -> void:
@@ -446,6 +526,7 @@ func _race_logic(delta: float) -> void:
 	_checkpoints_logic()
 	if state != "race":
 		return
+	_drift_logic(delta)
 	time_left -= delta
 	if time_left <= 0.0:
 		time_left = 0.0
@@ -461,6 +542,36 @@ func _race_logic(delta: float) -> void:
 ## Keeps every car inside the level: past OFF_TRACK_WARN metres beyond the guardrail the player
 ## gets a warning, and a car that stays past OFF_TRACK_LIMIT for OFF_TRACK_TIME seconds (or goes
 ## much further, or falls down the mountain) is put back on the road.
+## Direction of the race at `pos`: along race_path, near the player's progress (the path may pass
+## close to itself, e.g. both carriageways of a street).
+func _race_direction(pos: Vector3) -> Vector3:
+	var best := -1
+	var best_d := INF
+	var lo := clampi(player_wp - 4, 0, race_path.size() - 2)
+	var hi := clampi(player_wp + 8, lo + 1, race_path.size() - 1)
+	for k in range(lo, hi):
+		var d := _segment_distance(pos, race_path[k], race_path[k + 1])
+		if d < best_d:
+			best_d = d
+			best = k
+	if best_d > 60.0:
+		# Progress index lost (far shortcut): look at the whole path.
+		for k in race_path.size() - 1:
+			var d := _segment_distance(pos, race_path[k], race_path[k + 1])
+			if d < best_d:
+				best_d = d
+				best = k
+	var dir := race_path[best + 1] - race_path[best]
+	dir.y = 0.0
+	return dir.normalized()
+
+
+static func _segment_distance(p: Vector3, a: Vector3, b: Vector3) -> float:
+	var ab := b - a
+	var t := clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.001), 0.0, 1.0)
+	return p.distance_to(a + ab * t)
+
+
 func _off_track_logic(delta: float) -> void:
 	for c: Car in [player] + racers:
 		var d := city.off_track_distance(c.global_position)
@@ -475,7 +586,13 @@ func _off_track_logic(delta: float) -> void:
 			_off_track_t[c] = 0.0
 			var spot := city.recovery_point(c.global_position)
 			var facing: Vector3 = spot[1]
-			if c.driver != Car.Driver.RACER and facing.dot(-c.global_transform.basis.z) < 0.0:
+			if c == player and race_path.size() > 1:
+				# Towards the next checkpoint, not the way the car happened to point when it left
+				# the road (Stefano: "9 volte su 10 ci rimette nel senso sbagliato di marcia").
+				var ahead := _race_direction(spot[0])
+				if facing.dot(ahead) < 0.0:
+					facing = -facing
+			elif c.driver != Car.Driver.RACER and facing.dot(-c.global_transform.basis.z) < 0.0:
 				facing = -facing
 			c.place(spot[0], facing)
 			if c == player:
@@ -536,8 +653,11 @@ func _checkpoints_logic() -> void:
 			finish_order.append(player)
 			var pos := finish_order.find(player) + 1
 			var won := pos == 1
-			var prize := PRIZE if won else (PRIZE / (pos * 2))
-			_end(won, "%d° POSTO" % pos, "Tempo %s\nVincita: %d $" % [_fmt_time(race_time), prize])
+			SaveGame.money += PRIZE
+			SaveGame.race_index += 1  # back in the garage, the next race of the campaign waits
+			if won:
+				_add_rep(REP_WIN, "Vittoria")
+			_end(won, "%d° POSTO" % pos, "Tempo %s\nVincita: %d $   Reputazione: +%d" % [_fmt_time(race_time), PRIZE, rep_gained])
 			return
 		cp_marker.position = checkpoints[player_cp]
 		var bonus := _clock_times[player_cp]
@@ -587,6 +707,7 @@ func _police_logic(delta: float) -> void:
 			police.clear()
 			hud.set_heat(heat)
 			hud.flash("Polizia seminata!", 2.5)
+			_add_rep(REP_POLICE, "Inseguimento vinto")
 	else:
 		bust_t = maxf(0.0, bust_t - delta * 0.5)
 		escape_t = maxf(0.0, escape_t - delta * 2.0)
@@ -638,7 +759,44 @@ func _on_crash(impact: float, other: Object, car: Car) -> void:
 	hud.set_heat(heat)
 
 
+## Reputation for drifts: counted when a drift ends, see REP_DRIFT.
+func _drift_logic(delta: float) -> void:
+	if player.drifting:
+		_drift_t += delta
+		return
+	_since_drift += delta
+	if _since_drift > REP_COMBO_TIME:
+		_combo = 0  # too long since the last drift: the combo is over
+		_combo_total = 0
+	if _drift_t >= REP_DRIFT_MIN:
+		# _since_drift stopped while this drift went on: the gap before it decided the combo above.
+		_combo += 1
+		var value := REP_DRIFT if _combo <= 5 else REP_DRIFT_LATE
+		_combo_total += value
+		var bonus := 0
+		if _combo == 5:
+			bonus = _combo_total  # doubles
+		elif _combo == 10:
+			bonus = _combo_total * 2  # triples
+		_combo_total += bonus
+		if bonus > 0:
+			_add_rep(value + bonus, "Combo x%d! (%d derapate)" % [2 if _combo == 5 else 3, _combo])
+		else:
+			_add_rep(value, "Derapata" if _combo == 1 else "Derapata %d" % _combo)
+		_since_drift = 0.0
+	_drift_t = 0.0
+
+
+func _add_rep(amount: int, why: String) -> void:
+	rep_gained += amount
+	SaveGame.reputation += amount
+	hud.rep_popup("%s  +%d REP" % [why, amount])
+	if autotest:
+		print("[autotest] REP +%d %s at %.1f s (race total %d)" % [amount, why, race_time, rep_gained])
+
+
 func _end(won: bool, title: String, text: String) -> void:
+	SaveGame.save_game()
 	state = "end"
 	player.frozen = true
 	for p in police:
@@ -697,6 +855,7 @@ func _update_hud() -> void:
 	lines.append("CHECKPOINT %d/%d" % [mini(player_cp - 1, checkpoints.size() - 1), checkpoints.size() - 1])
 	lines.append("GARA %s" % _fmt_time(race_time))
 	hud.info_label.text = "\n".join(lines)
+	hud.minimap.set_cars(player, racers)
 	hud.set_clock(time_left)
 	if arrow.visible and player_cp < checkpoints.size():
 		var t := checkpoints[player_cp]

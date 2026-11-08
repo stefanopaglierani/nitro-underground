@@ -1,0 +1,11 @@
+Model Information:
+* title:	jeep
+* source:	https://sketchfab.com/3d-models/jeep-81bfdc1da40647048b2f1da045f8d090
+* author:	mortalityrexotable (https://sketchfab.com/mortalityrexotable)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "jeep" (https://sketchfab.com/3d-models/jeep-81bfdc1da40647048b2f1da045f8d090) by mortalityrexotable (https://sketchfab.com/mortalityrexotable) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

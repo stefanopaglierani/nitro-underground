@@ -30,12 +30,12 @@ func build_steps() -> Array:
 		["Costa e colline", _build_terrain],
 		["Mare", _build_sea],
 		["Asfalto", _build_road],
-		["Guardrail", _build_rails],
 		["Palme e pini", _build_trees],
 		["Case e faro", _build_village],
 		["Erba", _build_grass],
 		["Scogli e cartelli", _build_rocks],
 		["Coni e segnali", func(): Scenery.dress_road(self, false)],
+		["Ambiente", func(): Roadside.dress(self, "coast")],
 		["Rampe", _build_ramps],
 		["Traiettoria", _build_racing_line],
 	]

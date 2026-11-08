@@ -3,19 +3,21 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bodt2k4l0k7o3"
-path="res://.godot/imported/None.002_normal.jpeg-a023260a70e8e102f358323b799b7b1f.ctex"
+path.s3tc="res://.godot/imported/None.002_normal.jpeg-a023260a70e8e102f358323b799b7b1f.s3tc.ctex"
+path.etc2="res://.godot/imported/None.002_normal.jpeg-a023260a70e8e102f358323b799b7b1f.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/scenery/barriers/textures/None.002_normal.jpeg"
-dest_files=["res://.godot/imported/None.002_normal.jpeg-a023260a70e8e102f358323b799b7b1f.ctex"]
+dest_files=["res://.godot/imported/None.002_normal.jpeg-a023260a70e8e102f358323b799b7b1f.s3tc.ctex", "res://.godot/imported/None.002_normal.jpeg-a023260a70e8e102f358323b799b7b1f.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -23,7 +25,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

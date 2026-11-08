@@ -1,7 +1,7 @@
 class_name Mountain
 extends Track
 ## Daytime mountain pass: a closed 2.7 km road that winds, climbs and drops across hills, with
-## guardrails on both sides, rock cuttings where it runs into the slope and pine woods around.
+## no guardrails (removed 2026-11-04), rock cuttings where it runs into the slope and pine woods around.
 ## Everything is generated from fixed seeds, so the track is the same on every run.
 ## The road is a list of samples every SAMPLE_STEP metres; the AI follows it in either direction.
 
@@ -76,11 +76,11 @@ func build_steps() -> Array:
 		["Tracciato", _make_road_line],
 		["Montagne", _build_terrain],
 		["Asfalto", _build_road],
-		["Guardrail", _build_rails],
 		["Alberi", _build_trees],
 		["Erba", _build_grass],
 		["Rocce e cartelli", _build_rocks],
 		["Case, coni e segnali", func(): Scenery.dress_road(self, true)],
+		["Ambiente", func(): Roadside.dress(self, "mountain")],
 		["Rampe", _build_ramps],
 		["Traiettoria", _build_racing_line],
 	]
@@ -263,7 +263,9 @@ func _build_terrain() -> void:
 			if d == INF:
 				_heights[i] = nat
 			else:
-				var bed := road_h[i] - 0.4
+				# 10 cm under the road (v0.18, Stefano): level with it (v0.16, 3 cm) the coarse
+				# terrain grid often came up through the asphalt.
+				var bed := road_h[i] - 0.1
 				_heights[i] = lerpf(bed, nat, smoothstep(flat_r, BLEND, d))
 
 	var mat := _terrain_material()
@@ -372,8 +374,8 @@ func _build_road() -> void:
 	var asphalt_mat := _pbr("asphalt_02")
 	asphalt_mat.albedo_color = road_tint
 	asphalt.surface_set_material(0, asphalt_mat)
-	var verge_l := _ribbon([-RAIL_OFFSET, -ROAD_HALF], -0.03, 4.0)
-	var verge_r := _ribbon([ROAD_HALF, RAIL_OFFSET], -0.03, 4.0)
+	var verge_l := _ribbon([-RAIL_OFFSET, -ROAD_HALF], 0.0, 4.0)
+	var verge_r := _ribbon([ROAD_HALF, RAIL_OFFSET], 0.0, 4.0)
 	var gravel := _pbr("clean_asphalt")
 	gravel.albedo_color = verge_tint
 	verge_l.surface_set_material(0, gravel)
@@ -478,6 +480,8 @@ func _markings() -> void:
 
 # ---------- Guardrails ----------
 
+## Not used since 2026-11-04: Stefano asked to take the guardrails off every circuit (they got in
+## the way). Put ["Guardrail", _build_rails] back in a level's build_steps() to bring them back.
 func _build_rails() -> void:
 	# Straight 4 m sections on both sides; each one can be torn off by a hard hit (GuardRails).
 	var steel := CarModel.mat(Color(0.72, 0.74, 0.76), Color.BLACK, 0.0, 0.85, 0.35)
@@ -594,7 +598,7 @@ func _build_trees() -> void:
 	var per_chunk := {}  # Vector3i(chunk x, chunk z, model) -> transforms
 	var trunks: Array[Vector3] = []
 	var size := (_gw - 1) * CELL
-	for i in tree_tries:
+	for i in int(tree_tries * Perf.density()):
 		var x := _min.x + _rng.randf() * size
 		var z := _min.y + _rng.randf() * size
 		var d := _road_dist_at(x, z)
@@ -691,7 +695,7 @@ func _build_grass() -> void:
 		return
 	var chunk_size := CHUNK * CELL
 	var per_chunk := {}
-	for i in pts.size() * 6:
+	for i in int(pts.size() * 6 * Perf.density()):
 		var p := pts[_rng.randi() % pts.size()]
 		var x := p.x + _rng.randf_range(-70.0, 70.0)
 		var z := p.z + _rng.randf_range(-70.0, 70.0)
@@ -923,7 +927,7 @@ func _build_racing_line() -> void:
 			col = Color(1.0, 0.15, 0.1)
 		elif drop > 0.05 or line_speed[k] < 30.0:
 			col = Color(1.0, 0.8, 0.1)
-		col.a = 0.9
+		col.a = 0.5  # half see-through (v0.18, Stefano)
 		var a0 := _line_point(k) - _right(k) * 0.3 + lift
 		var a1 := _line_point(k) + _right(k) * 0.3 + lift
 		var b0 := _line_point(k2) - _right(k2) * 0.3 + lift
