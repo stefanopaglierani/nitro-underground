@@ -53,26 +53,27 @@ static func sale_value(id: String) -> int:
 	return roundi(CarCatalog.price(id) * minf(share, SALE_MAX) / 50.0) * 50
 
 
-## What a part does, for the dealer page.
+## What a part does, for the dealer page. v0.20.4: three times the v0.19 effects (Stefano: the
+## engine at stage 5 gave "veramente poco").
 static func describe(part: int) -> String:
 	match part:
-		0: return "+4% spinta per livello"
-		1: return "+2% spinta e +1,5% velocità max per livello"
-		2: return "+2% spinta e +1% velocità max per livello"
-		3: return "nitro più forte e più lunga"
-		4: return "+6% frenata per livello"
-		5: return "+2,5% aderenza per livello"
+		0: return "+12% spinta per stage"
+		1: return "+6% spinta e +4,5% velocità max per stage"
+		2: return "+6% spinta e +3% velocità max per stage"
+		3: return "nitro +18% più forte e +24% più lunga per stage"
+		4: return "+18% frenata per stage"
+		5: return "+7,5% aderenza per stage"
 	return ""
 
 
-## Applies the levels of car `id` (from SaveGame) to a player car already set up.
+## Applies the stages of car `id` (from SaveGame) to a player car already set up.
 static func apply(car: Car, id: String) -> void:
 	var lv := SaveGame.levels_of(id)
-	var power: float = 1.0 + 0.04 * lv[0] + 0.02 * lv[1] + 0.02 * lv[2]
-	var top: float = 1.0 + 0.015 * lv[1] + 0.01 * lv[2]
+	var power: float = 1.0 + 0.12 * lv[0] + 0.06 * lv[1] + 0.06 * lv[2]
+	var top: float = 1.0 + 0.045 * lv[1] + 0.03 * lv[2]
 	car.engine_force *= power
 	car.max_speed *= top
-	car.nitro_force_mult += 0.06 * lv[3]
-	car.nitro_drain *= 1.0 - 0.08 * lv[3]
-	car.brake_force *= 1.0 + 0.06 * lv[4]
-	car.grip *= 1.0 + 0.025 * lv[5]
+	car.nitro_force_mult += 0.18 * lv[3]
+	car.nitro_drain /= 1.0 + 0.24 * lv[3]
+	car.brake_force *= 1.0 + 0.18 * lv[4]
+	car.grip *= 1.0 + 0.075 * lv[5]

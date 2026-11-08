@@ -71,7 +71,11 @@ var _floor_mat: ShaderMaterial
 var _mirror: Node3D
 var _pending: Array[String] = []
 var _loaded := {}
-var _turn := 0.6
+## The car stands still, almost side on with the nose a little towards the player (v0.20.4,
+## Stefano); a finger or the mouse dragged sideways turns it.
+const VIEW_ANGLE := 1.9
+var _turn := VIEW_ANGLE
+var _car_arrows: Array[Button] = []
 var _leaving := false
 
 
@@ -171,14 +175,14 @@ func _build_header() -> void:
 	# The three sections (v0.20, Stefano).
 	var tabs := HBoxContainer.new()
 	UiKit.anchor(tabs, 0.5, 0.0, 0.5, 0.0)
-	tabs.offset_left = -300
-	tabs.offset_right = 300
+	tabs.offset_left = -340
+	tabs.offset_right = 340
 	tabs.offset_top = 102
 	tabs.offset_bottom = 152
 	tabs.add_theme_constant_override("separation", 14)
 	add_child(tabs)
-	for t in [["mine", "LE MIE AUTO", Neon.CYAN], ["shop", "IN VENDITA", Neon.YELLOW], ["tune", "TUNING", Neon.LIME]]:
-		var b := Neon.NeonButton.new().setup(t[1], "", t[2], false, 22)
+	for t in [["mine", "LE MIE AUTO", Neon.CYAN, "car"], ["shop", "IN VENDITA", Neon.YELLOW, "tag"], ["tune", "TUNING", Neon.LIME, "tuning"]]:
+		var b := Neon.NeonButton.new().setup(t[1], t[3], t[2], false, 22)
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.pressed.connect(_on_tab.bind(t[0]))
 		tabs.add_child(b)
@@ -196,6 +200,21 @@ func _build_header() -> void:
 		b.pressed.connect(_step.bind(dir))
 		add_child(b)
 		_arrows.append(b)
+
+	# In TUNING the big arrows would sit under the card: small ones beside the name instead, to
+	# change car without leaving the section.
+	for dir in [-1, 1]:
+		var b := UiKit.ArrowButton.new()
+		b.dir = dir
+		UiKit.anchor(b, 0.5, 0.0, 0.5, 0.0)
+		b.offset_left = -300 if dir < 0 else 240
+		b.offset_right = -240 if dir < 0 else 300
+		b.offset_top = 6
+		b.offset_bottom = 66
+		b.pressed.connect(_step.bind(dir))
+		b.visible = false
+		add_child(b)
+		_car_arrows.append(b)
 
 	_toast = Neon.label(34, Color.WHITE, 12)
 	_toast.set_anchors_preset(Control.PRESET_CENTER)
@@ -238,7 +257,7 @@ func _build_bottom() -> void:
 	_action.pressed.connect(_on_action)
 	add_child(_action)
 
-	_sell = Neon.NeonButton.new().setup("VENDI", "tag", Neon.RED, false, 22)
+	_sell = Neon.NeonButton.new().setup("VENDI", "cash", Neon.RED, false, 22)
 	_sell.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	_sell.offset_left = 214
 	_sell.offset_right = 444
@@ -280,13 +299,13 @@ func _build_color_panel() -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 12)
 	box.add_child(row)
-	var reset := Neon.NeonButton.new().setup("ORIGINALE", "", Neon.CYAN, false, 20)
+	var reset := Neon.NeonButton.new().setup("ORIGINALE", "undo", Neon.CYAN, false, 20)
 	reset.custom_minimum_size = Vector2(0, 52)
 	reset.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	reset.pressed.connect(_reset_color)
 	row.add_child(reset)
-	var ok := Neon.NeonButton.new().setup("OK", "", Neon.GREEN, false, 22)
-	ok.custom_minimum_size = Vector2(100, 52)
+	var ok := Neon.NeonButton.new().setup("OK", "check", Neon.GREEN, false, 22)
+	ok.custom_minimum_size = Vector2(110, 52)
 	ok.pressed.connect(_close_colors)
 	row.add_child(ok)
 
@@ -345,7 +364,7 @@ func _build_tune_card() -> void:
 	var spacer := Control.new()
 	spacer.custom_minimum_size = Vector2(0, 6)
 	box.add_child(spacer)
-	_tune_buy = Neon.NeonButton.new().setup("", "", Color.WHITE, false, 21)
+	_tune_buy = Neon.NeonButton.new().setup("", "cash", Color.WHITE, false, 21)
 	_tune_buy.custom_minimum_size = Vector2(0, 54)
 	_tune_buy.pressed.connect(func(): _buy_part(_part))
 	box.add_child(_tune_buy)
@@ -419,6 +438,7 @@ func _step(dir: int) -> void:
 		return
 	_close_colors()
 	_index = posmod(_index + dir, _list.size())
+	_turn = VIEW_ANGLE
 	_show_car()
 
 
@@ -462,6 +482,8 @@ func _refresh() -> void:
 	var tune := _mode == "tune"
 	for b in _arrows:
 		b.visible = not tune and _list.size() > 1 and not _color_panel.visible
+	for b in _car_arrows:
+		b.visible = tune and _list.size() > 1
 	_paint_button.visible = _mode == "mine" and owned
 	_tune_button.visible = _mode == "mine" and owned
 	_action.visible = not tune and id != ""
@@ -674,7 +696,6 @@ func _process(delta: float) -> void:
 				if not keep.has(path):
 					_loaded.erase(path)
 					CarModel.forget(CarCatalog.model_path(CarCatalog.find(path.get_file().get_basename())))
-	_turn += delta * 0.3
 	if _preview:
 		_preview.rotation.y = _turn
 	if _mirror:
@@ -791,6 +812,16 @@ func _buy_part(part: int) -> void:
 	_say("%s: stage %d" % [Tuning.PARTS[part], lv[part]])
 	_refresh()
 	_info.text = "Stage montati: %d / %d" % [Tuning.points(id), Tuning.PARTS.size() * Tuning.LEVELS]
+
+
+## Dragging on the screen (not on a button) turns the car.
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventScreenDrag:
+		_turn += (event as InputEventScreenDrag).relative.x * 0.012
+	elif event.is_action_pressed("ui_left"):
+		_step(-1)
+	elif event.is_action_pressed("ui_right"):
+		_step(1)
 
 
 # ---------- Leaving ----------

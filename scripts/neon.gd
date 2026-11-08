@@ -1,11 +1,11 @@
 class_name Neon
 extends RefCounted
-## Look of the dealer buttons (v0.20, Stefano: "più moderni, leggermente graffitari"): icons drawn
-## as strokes, dark plates with a coloured border and the labels in a marker font (Permanent
-## Marker, Apache 2.0, assets/fonts). Born neon in v0.20; Stefano then asked for no glow
-## (v0.20.1, pastel) and finally strong, bright colours (v0.20.3): fire red, lemon yellow, bright
-## green, electric blue. Icons are drawn in code, so they stay sharp
-## at any size and add nothing to download.
+## Look of the buttons of the dealer and the garage (v0.20, Stefano: "più moderni, leggermente
+## graffitari"): a small coloured picture and a caption in a marker font (Permanent Marker, Apache
+## 2.0, assets/fonts), nothing else. History: neon tubes on dark plates (v0.20), pastel (v0.20.1),
+## strong colours (v0.20.3); since v0.20.4 no plate and no border, and the pictures are flat and
+## coloured like the map icon of the garage, Stefano's favourite. Pictures are drawn in code, so
+## they stay sharp at any size and add nothing to download.
 
 const FONT := "res://assets/fonts/PermanentMarker-Regular.ttf"
 const CYAN := Color(0.15, 0.45, 1.0)
@@ -18,8 +18,13 @@ const YELLOW := Color(1.0, 0.95, 0.0)
 const INK := Color(0.03, 0.02, 0.06)
 
 
+static var _font: Font
+
+
 static func font() -> Font:
-	return load(FONT)
+	if not _font:
+		_font = load(FONT)
+	return _font
 
 
 ## A label in the marker font, coloured, with a dark outline.
@@ -29,152 +34,194 @@ static func label(size: int, color: Color, outline := 8) -> Label:
 	return l
 
 
-## Icon names drawn by draw_icon: garage, spray, tuning, key, tag, motore, centralina, scarico,
-## nitro, freni, sospensioni.
+## Icon names drawn by draw_icon. Since v0.20.4 they are small flat coloured pictures with a dark
+## outline, like the map icon of the garage that Stefano liked best.
 const PART_ICONS := ["motore", "centralina", "scarico", "nitro", "freni", "sospensioni"]
 
-
-## Strokes of an icon in a 100 x 100 box: each one is [points, width factor, closed].
-static func _strokes(kind: String) -> Array:
-	var s: Array = []
-	match kind:
-		"garage":
-			s.append([[Vector2(6, 46), Vector2(50, 10), Vector2(94, 46)], 1.3, false])
-			s.append([[Vector2(17, 37), Vector2(17, 90), Vector2(83, 90), Vector2(83, 37)], 1.0, false])
-			s.append([[Vector2(29, 52), Vector2(71, 52), Vector2(71, 90), Vector2(29, 90)], 0.9, true])
-			for y in [61, 70, 79]:
-				s.append([[Vector2(33, y), Vector2(67, y)], 0.6, false])
-		"spray":
-			s.append([_round_rect(Rect2(30, 38, 34, 54), 6), 1.0, true])
-			s.append([[Vector2(30, 40), Vector2(37, 30), Vector2(57, 30), Vector2(64, 40)], 1.0, false])
-			s.append([[Vector2(41, 30), Vector2(41, 21), Vector2(53, 21), Vector2(53, 30)], 0.9, false])
-			s.append([[Vector2(44, 21), Vector2(44, 14), Vector2(54, 14)], 0.8, false])
-			s.append([[Vector2(30, 56), Vector2(64, 56)], 0.6, false])
-			s.append([[Vector2(30, 76), Vector2(64, 76)], 0.6, false])
-			for p in [Vector2(66, 12), Vector2(76, 8), Vector2(74, 18), Vector2(86, 12), Vector2(84, 24), Vector2(94, 18), Vector2(92, 6)]:
-				s.append([_circle(p, 1.6, 8), 0.8, true])
-		"tuning":
-			# Wrench from bottom left to top right, screwdriver from bottom right to top left.
-			s.append([[Vector2(18, 84), Vector2(60, 42)], 1.6, false])
-			s.append([_arc(Vector2(70, 32), 15, deg_to_rad(80), deg_to_rad(370), 14), 1.2, false])
-			s.append([_circle(Vector2(18, 84), 4, 10), 0.8, true])
-			s.append([[Vector2(86, 86), Vector2(66, 66)], 2.6, false])
-			s.append([[Vector2(64, 64), Vector2(24, 24)], 0.9, false])
-			s.append([[Vector2(24, 24), Vector2(16, 16)], 1.5, false])
-		"key":
-			s.append([_circle(Vector2(28, 50), 15, 20), 1.1, true])
-			s.append([[Vector2(43, 50), Vector2(88, 50), Vector2(88, 62)], 1.1, false])
-			s.append([[Vector2(74, 50), Vector2(74, 60)], 1.1, false])
-		"tag":
-			s.append([[Vector2(14, 32), Vector2(58, 32), Vector2(86, 56), Vector2(58, 80), Vector2(14, 80)], 1.1, true])
-			s.append([_circle(Vector2(28, 56), 5, 12), 0.9, true])
-		"motore":
-			s.append([[Vector2(22, 44), Vector2(78, 44), Vector2(78, 84), Vector2(22, 84)], 1.0, true])
-			s.append([[Vector2(28, 44), Vector2(28, 30), Vector2(72, 30), Vector2(72, 44)], 1.0, false])
-			for x in [38, 50, 62]:
-				s.append([[Vector2(x, 30), Vector2(x, 20)], 0.9, false])
-			s.append([[Vector2(32, 18), Vector2(68, 18)], 1.0, false])
-			s.append([_circle(Vector2(12, 64), 8, 16), 0.9, true])
-			s.append([[Vector2(20, 64), Vector2(22, 64)], 0.9, false])
-			s.append([[Vector2(78, 56), Vector2(90, 56), Vector2(90, 72), Vector2(78, 72)], 0.9, false])
-			s.append([[Vector2(32, 56), Vector2(68, 56)], 0.6, false])
-			s.append([[Vector2(32, 70), Vector2(68, 70)], 0.6, false])
-		"centralina":
-			s.append([[Vector2(28, 28), Vector2(72, 28), Vector2(72, 72), Vector2(28, 72)], 1.1, true])
-			s.append([[Vector2(40, 40), Vector2(60, 40), Vector2(60, 60), Vector2(40, 60)], 0.8, true])
-			for v in [37, 50, 63]:
-				s.append([[Vector2(14, v), Vector2(28, v)], 0.8, false])
-				s.append([[Vector2(72, v), Vector2(86, v)], 0.8, false])
-				s.append([[Vector2(v, 14), Vector2(v, 28)], 0.8, false])
-				s.append([[Vector2(v, 72), Vector2(v, 86)], 0.8, false])
-		"scarico":
-			s.append([[Vector2(6, 46), Vector2(26, 46)], 1.2, false])
-			s.append([_round_rect(Rect2(26, 32, 40, 28), 10), 1.1, true])
-			s.append([[Vector2(66, 46), Vector2(80, 46)], 1.2, false])
-			s.append([_ellipse(Vector2(86, 46), 6, 9), 1.1, true])
-			s.append([_circle(Vector2(78, 74), 6, 14), 0.7, true])
-			s.append([_circle(Vector2(64, 82), 8, 16), 0.7, true])
-			s.append([_circle(Vector2(90, 84), 5, 12), 0.7, true])
-		"nitro":
-			s.append([_round_rect(Rect2(34, 36, 32, 56), 7), 1.1, true])
-			s.append([[Vector2(34, 40), Vector2(41, 27), Vector2(59, 27), Vector2(66, 40)], 1.0, false])
-			s.append([[Vector2(44, 27), Vector2(44, 17), Vector2(56, 17), Vector2(56, 27)], 0.9, false])
-			s.append([[Vector2(36, 12), Vector2(64, 12)], 1.1, false])
-			s.append([[Vector2(50, 12), Vector2(50, 17)], 0.9, false])
-			# A lightning bolt on the bottle.
-			s.append([[Vector2(54, 46), Vector2(44, 64), Vector2(54, 64), Vector2(46, 82)], 0.9, false])
-		"freni":
-			s.append([_circle(Vector2(46, 54), 32, 40), 1.1, true])
-			s.append([_circle(Vector2(46, 54), 11, 18), 0.9, true])
-			for i in 6:
-				var a := TAU * i / 6.0 + 0.3
-				s.append([_circle(Vector2(46, 54) + Vector2(cos(a), sin(a)) * 21.0, 2.5, 8), 0.6, true])
-			s.append([_arc(Vector2(46, 54), 37, deg_to_rad(-75), deg_to_rad(-5), 10), 2.8, false])
-		"sospensioni":
-			s.append([[Vector2(28, 14), Vector2(72, 14)], 1.3, false])
-			s.append([[Vector2(28, 88), Vector2(72, 88)], 1.3, false])
-			var coil: Array = []
-			for i in 13:
-				coil.append(Vector2(50 + (19 if i % 2 == 0 else -19), 22 + i * 5.3))
-			coil[0] = Vector2(50, 18)
-			coil[12] = Vector2(50, 84)
-			s.append([coil, 1.0, false])
-			s.append([[Vector2(50, 4), Vector2(50, 14)], 1.2, false])
-			s.append([[Vector2(50, 88), Vector2(50, 97)], 1.2, false])
-	return s
+const _SILVER := Color(0.78, 0.8, 0.84)
+const _STEEL := Color(0.5, 0.53, 0.58)
+const _DARK := Color(0.16, 0.17, 0.2)
+const _CREAM := Color(0.93, 0.88, 0.74)
 
 
-static func _circle(c: Vector2, r: float, n: int) -> Array:
-	return _ellipse(c, r, r, n)
+## Draws a picture inside a square 100 x 100 box placed in `rect`: every shape gets a fill and a
+## dark outline.
+class _Pen:
+	var ci: CanvasItem
+	var o: Vector2
+	var k: float
+	var line: float
+
+	func _init(canvas: CanvasItem, rect: Rect2) -> void:
+		ci = canvas
+		var side := minf(rect.size.x, rect.size.y)
+		k = side / 100.0
+		o = rect.position + (rect.size - Vector2(side, side)) * 0.5
+		line = maxf(1.5, side * 0.035)
+
+	func pts(a: Array) -> PackedVector2Array:
+		var out := PackedVector2Array()
+		for p in a:
+			out.append(o + (p as Vector2) * k)
+		return out
+
+	func poly(a: Array, fill: Color, outline := true) -> void:
+		var p := pts(a)
+		ci.draw_colored_polygon(p, fill)
+		if outline:
+			p.append(p[0])
+			ci.draw_polyline(p, Neon.INK, line, true)
+
+	func rect(r: Rect2, fill: Color, outline := true) -> void:
+		poly([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)], fill, outline)
+
+	func circle(c: Vector2, r: float, fill: Color, outline := true) -> void:
+		ci.draw_circle(o + c * k, r * k, fill)
+		if outline:
+			ci.draw_arc(o + c * k, r * k, 0, TAU, 32, Neon.INK, line, true)
+
+	func bar(a: Vector2, b: Vector2, w: float, fill: Color, outline := true) -> void:
+		var n := (b - a).normalized().orthogonal() * w * 0.5
+		poly([a + n, b + n, b - n, a - n], fill, outline)
+
+	func stroke(a: Array, w: float, color: Color) -> void:
+		ci.draw_polyline(pts(a), color, w * k, true)
+
+	func text(t: String, c: Vector2, size: float, color: Color) -> void:
+		var f := Neon.font()
+		var fs := int(size * k)
+		var w := f.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		ci.draw_string(f, o + c * k + Vector2(-w * 0.5, fs * 0.35), t, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, color)
 
 
-static func _ellipse(c: Vector2, rx: float, ry: float, n := 18) -> Array:
-	var out: Array = []
-	for i in n:
-		var a := TAU * i / n
-		out.append(c + Vector2(cos(a) * rx, sin(a) * ry))
-	return out
-
-
-static func _arc(c: Vector2, r: float, a0: float, a1: float, n: int) -> Array:
+static func _ring(c: Vector2, r0: float, r1: float, a0: float, a1: float, n := 16) -> Array:
 	var out: Array = []
 	for i in n + 1:
 		var a := lerpf(a0, a1, float(i) / n)
-		out.append(c + Vector2(cos(a), sin(a)) * r)
+		out.append(c + Vector2(cos(a), sin(a)) * r1)
+	for i in n + 1:
+		var a := lerpf(a1, a0, float(i) / n)
+		out.append(c + Vector2(cos(a), sin(a)) * r0)
 	return out
 
 
-static func _round_rect(r: Rect2, k: float) -> Array:
-	var out: Array = []
-	var corners := [[r.end - Vector2(k, k), 0.0], [Vector2(r.position.x + k, r.end.y - k), PI / 2],
-		[r.position + Vector2(k, k), PI], [Vector2(r.end.x - k, r.position.y + k), PI * 1.5]]
-	for c in corners:
-		for i in 5:
-			var a: float = c[1] + PI / 2 * i / 4.0
-			out.append((c[0] as Vector2) + Vector2(cos(a), sin(a)) * k)
-	return out
-
-
-## Draws icon `kind` as strokes inside `rect` of canvas item `ci`.
-static func draw_icon(ci: CanvasItem, kind: String, rect: Rect2, color: Color, bright := 1.0) -> void:
-	var side := minf(rect.size.x, rect.size.y)
-	var k := side / 100.0
-	var o := rect.position + (rect.size - Vector2(side, side)) * 0.5
-	var base := maxf(2.0, side * 0.045)
-	var strokes := _strokes(kind)
-	# Two passes: a dark edge so the icon reads on any background, then the pastel stroke.
-	for pass_i in 2:
-		for st in strokes:
-			var pts := PackedVector2Array()
-			for p in st[0]:
-				pts.append(o + (p as Vector2) * k)
-			if st[2]:
-				pts.append(pts[0])
-			var w: float = base * st[1]
-			if pass_i == 0:
-				ci.draw_polyline(pts, Color(INK, 0.55 * bright), w * 1.8, true)
-			else:
-				ci.draw_polyline(pts, Color(color, bright), w, true)
+## Draws picture `kind` in `rect` of canvas item `ci`; every picture has its own colours.
+static func draw_icon(ci: CanvasItem, kind: String, rect: Rect2) -> void:
+	var p := _Pen.new(ci, rect)
+	match kind:
+		"garage":
+			p.rect(Rect2(16, 40, 68, 52), _CREAM)
+			p.poly([Vector2(6, 46), Vector2(50, 10), Vector2(94, 46)], Color(0.85, 0.2, 0.15))
+			p.rect(Rect2(30, 54, 40, 38), _STEEL)
+			for y in [61, 68, 75, 82]:
+				p.stroke([Vector2(32, y), Vector2(68, y)], 2.2, _DARK)
+		"spray":
+			for d in [[Vector2(70, 14), Color(0.25, 0.6, 1)], [Vector2(80, 8), Color(1, 0.85, 0.1)], [Vector2(84, 20), Color(1, 0.3, 0.6)], [Vector2(92, 10), Color(0.3, 0.9, 0.4)], [Vector2(76, 26), Color(1, 0.55, 0.1)]]:
+				p.circle(d[0], 4, d[1], false)
+			p.poly([Vector2(30, 40), Vector2(37, 30), Vector2(59, 30), Vector2(66, 40)], _SILVER)
+			p.rect(Rect2(30, 40, 36, 52), Color(0.9, 0.15, 0.15))
+			p.rect(Rect2(30, 56, 36, 16), Color(0.97, 0.95, 0.9))
+			p.rect(Rect2(41, 18, 14, 12), Color(0.97, 0.97, 0.97))
+			p.rect(Rect2(45, 11, 8, 7), _DARK)
+		"tuning":
+			p.poly(_ring(Vector2(70, 28), 8, 17, deg_to_rad(100), deg_to_rad(350)), _SILVER)
+			p.bar(Vector2(16, 84), Vector2(60, 40), 12, _SILVER)
+			p.bar(Vector2(64, 64), Vector2(22, 22), 6, _SILVER)
+			p.bar(Vector2(22, 22), Vector2(14, 14), 9, _STEEL)
+			p.bar(Vector2(90, 90), Vector2(64, 64), 17, Color(1, 0.8, 0.1))
+			p.stroke([Vector2(84, 78), Vector2(76, 70)], 2.5, Color(0.6, 0.4, 0.0))
+		"key":
+			p.bar(Vector2(40, 50), Vector2(90, 50), 10, Color(1, 0.8, 0.2))
+			p.rect(Rect2(70, 50, 7, 13), Color(1, 0.8, 0.2))
+			p.rect(Rect2(82, 50, 7, 10), Color(1, 0.8, 0.2))
+			p.circle(Vector2(28, 50), 17, Color(1, 0.8, 0.2))
+			p.circle(Vector2(26, 50), 6, _DARK)
+		"tag":
+			p.poly([Vector2(10, 30), Vector2(58, 30), Vector2(90, 55), Vector2(58, 80), Vector2(10, 80)], Color(1, 0.6, 0.12))
+			p.circle(Vector2(24, 55), 5, Color(0.97, 0.97, 0.97))
+			p.text("$", Vector2(52, 56), 38, _DARK)
+		"car":
+			p.poly([Vector2(6, 64), Vector2(10, 50), Vector2(30, 45), Vector2(42, 30), Vector2(70, 30), Vector2(82, 44), Vector2(94, 48), Vector2(95, 64)], Color(0.2, 0.45, 0.95))
+			p.poly([Vector2(46, 35), Vector2(66, 35), Vector2(75, 45), Vector2(38, 45)], Color(0.75, 0.9, 1))
+			for x in [27, 76]:
+				p.circle(Vector2(x, 66), 10, _DARK)
+				p.circle(Vector2(x, 66), 4, _SILVER, false)
+		"shop":
+			p.rect(Rect2(12, 40, 76, 52), _CREAM)
+			p.rect(Rect2(22, 8, 56, 18), Color(1, 0.85, 0.15))
+			p.text("$", Vector2(50, 18), 22, _DARK)
+			for i in 6:
+				p.rect(Rect2(8 + i * 14, 28, 14, 16), Color(0.9, 0.15, 0.15) if i % 2 == 0 else Color(0.97, 0.97, 0.97))
+			p.rect(Rect2(40, 58, 20, 34), Color(0.45, 0.7, 0.95))
+			p.rect(Rect2(18, 52, 16, 16), Color(0.45, 0.7, 0.95))
+			p.rect(Rect2(66, 52, 16, 16), Color(0.45, 0.7, 0.95))
+		"flag":
+			p.bar(Vector2(22, 8), Vector2(22, 96), 6, _STEEL)
+			p.rect(Rect2(25, 12, 64, 42), Color.WHITE)
+			for r in 4:
+				for c in 6:
+					if (r + c) % 2 == 0:
+						p.rect(Rect2(25 + c * 64.0 / 6.0, 12 + r * 10.5, 64.0 / 6.0, 10.5), _DARK, false)
+			p.rect(Rect2(25, 12, 64, 42), Color(0, 0, 0, 0))
+		"cash":
+			p.rect(Rect2(8, 28, 84, 46), Color(0.3, 0.72, 0.38))
+			p.circle(Vector2(50, 51), 15, Color(0.6, 0.9, 0.6))
+			p.text("$", Vector2(50, 52), 28, Color(0.1, 0.35, 0.15))
+		"check":
+			p.poly([Vector2(10, 52), Vector2(24, 40), Vector2(42, 58), Vector2(78, 18), Vector2(92, 30), Vector2(42, 82)], Color(0.2, 0.85, 0.3))
+		"undo":
+			p.poly(_ring(Vector2(52, 56), 18, 32, deg_to_rad(-200), deg_to_rad(60)), Color(0.3, 0.6, 1))
+			p.poly([Vector2(4, 50), Vector2(36, 50), Vector2(20, 72)], Color(0.3, 0.6, 1))
+		"motore":
+			p.rect(Rect2(20, 44, 60, 42), _STEEL)
+			for x in [34, 46, 58]:
+				p.rect(Rect2(x, 14, 8, 16), _SILVER)
+			p.rect(Rect2(26, 28, 48, 16), Color(0.9, 0.15, 0.15))
+			p.rect(Rect2(80, 54, 12, 16), _STEEL)
+			p.circle(Vector2(13, 64), 10, _DARK)
+			p.circle(Vector2(13, 64), 4, _SILVER, false)
+			p.stroke([Vector2(28, 58), Vector2(72, 58)], 2.5, _DARK)
+			p.stroke([Vector2(28, 70), Vector2(72, 70)], 2.5, _DARK)
+		"centralina":
+			p.rect(Rect2(14, 14, 72, 72), Color(0.15, 0.55, 0.3))
+			for v in [40, 50, 60]:
+				p.rect(Rect2(24, v - 2, 10, 4), Color(1, 0.8, 0.2), false)
+				p.rect(Rect2(66, v - 2, 10, 4), Color(1, 0.8, 0.2), false)
+				p.rect(Rect2(v - 2, 24, 4, 10), Color(1, 0.8, 0.2), false)
+				p.rect(Rect2(v - 2, 66, 4, 10), Color(1, 0.8, 0.2), false)
+			p.rect(Rect2(34, 34, 32, 32), Color(0.12, 0.12, 0.14))
+			p.circle(Vector2(40, 40), 2.5, _STEEL, false)
+		"scarico":
+			for c in [[Vector2(80, 74), 7], [Vector2(66, 82), 9], [Vector2(90, 86), 6]]:
+				p.circle(c[0], c[1], Color(0.75, 0.76, 0.8))
+			p.bar(Vector2(4, 46), Vector2(30, 46), 9, _STEEL)
+			p.bar(Vector2(64, 46), Vector2(84, 46), 10, _SILVER)
+			p.poly([Vector2(28, 34), Vector2(66, 34), Vector2(70, 46), Vector2(66, 58), Vector2(28, 58), Vector2(24, 46)], _SILVER)
+			p.circle(Vector2(87, 46), 8, _DARK)
+			p.circle(Vector2(87, 46), 4, Color(1, 0.5, 0.1), false)
+		"nitro":
+			p.rect(Rect2(45, 12, 10, 14), _SILVER)
+			p.bar(Vector2(34, 12), Vector2(66, 12), 6, _DARK)
+			p.poly([Vector2(34, 40), Vector2(41, 26), Vector2(59, 26), Vector2(66, 40)], Color(0.15, 0.35, 0.85))
+			p.rect(Rect2(34, 38, 32, 54), Color(0.15, 0.35, 0.85))
+			p.rect(Rect2(34, 52, 32, 16), Color(0.97, 0.97, 0.97))
+			p.text("N2O", Vector2(50, 60), 13, Color(0.9, 0.1, 0.1))
+		"freni":
+			p.circle(Vector2(46, 54), 33, _SILVER)
+			p.circle(Vector2(46, 54), 13, _DARK)
+			for i in 6:
+				var a := TAU * i / 6.0 + 0.3
+				p.circle(Vector2(46, 54) + Vector2(cos(a), sin(a)) * 23.0, 2.5, _STEEL, false)
+			p.poly(_ring(Vector2(46, 54), 26, 41, deg_to_rad(-80), deg_to_rad(-5)), Color(0.9, 0.12, 0.12))
+		"sospensioni":
+			p.rect(Rect2(44, 6, 12, 88), _DARK)
+			var coil: Array = []
+			for i in 13:
+				coil.append(Vector2(50 + (20 if i % 2 == 0 else -20), 20 + i * 5.3))
+			p.stroke(coil, 11, Neon.INK)
+			p.stroke(coil, 7, Color(1, 0.8, 0.1))
+			p.bar(Vector2(26, 14), Vector2(74, 14), 8, _STEEL)
+			p.bar(Vector2(26, 88), Vector2(74, 88), 8, _STEEL)
 
 
 ## Text with a dark outline, centred on `center`.
@@ -211,8 +258,10 @@ class NeonButton:
 	var neon := Color.WHITE
 	var tall := false
 	var caption_size := 26
-	## Tabs: the selected one is filled.
+	## Tabs: the selected one is underlined.
 	var active := false
+	## A second, smaller line under the caption (tall buttons), e.g. the name of the next race.
+	var sub := ""
 
 	func _init() -> void:
 		flat = true
@@ -239,29 +288,35 @@ class NeonButton:
 		queue_redraw()
 
 	func _draw() -> void:
-		var c := neon if not disabled else Color(0.55, 0.55, 0.6)
-		var lit := 1.0 if not disabled else 0.45
-		var hot := is_hovered() or button_pressed or active
-		var sb := Neon.plate(c, 22 if tall else int(size.y * 0.5), 10 if hot else 5, 0.8 if not disabled else 0.55)
-		if hot:
-			sb.border_color = c.lerp(Color.WHITE, 0.5)
-		if active:
-			sb.bg_color = Color(c.r * 0.35, c.g * 0.35, c.b * 0.35, 0.9)
-		if is_pressed():
-			sb.bg_color = Color(c.r * 0.5, c.g * 0.5, c.b * 0.5, 0.95)
-		draw_style_box(sb, Rect2(Vector2.ZERO, size))
+		var c := neon if not disabled else Color(0.6, 0.6, 0.62)
+		self_modulate.a = 0.5 if disabled else 1.0
+		var hot := is_hovered() or active
+		# Pressed: everything a little smaller, like a real key going down.
+		var sc := 0.94 if is_pressed() else 1.0
+		draw_set_transform(size * (1.0 - sc) * 0.5, 0.0, Vector2(sc, sc))
+		var text_col := c.lerp(Color.WHITE, 0.25) if hot else c
 		if tall:
-			var cap_h := caption_size * 1.5
-			var icon_rect := Rect2(Vector2(size.x * 0.16, 8), Vector2(size.x * 0.68, size.y - cap_h - 10))
-			Neon.draw_icon(self, icon_kind, icon_rect, c, lit)
-			Neon.draw_text(self, caption, Vector2(size.x * 0.5, size.y - cap_h * 0.5 - 4), caption_size, c)
+			var cap_h := caption_size * 1.45
+			var sub_h := caption_size * 1.1 if sub != "" else 0.0
+			var icon_rect := Rect2(Vector2(size.x * 0.12, 4), Vector2(size.x * 0.76, size.y - cap_h - sub_h - 6))
+			Neon.draw_icon(self, icon_kind, icon_rect)
+			Neon.draw_text(self, caption, Vector2(size.x * 0.5, size.y - sub_h - cap_h * 0.5), caption_size, text_col)
+			if sub != "":
+				Neon.draw_text(self, sub, Vector2(size.x * 0.5, size.y - sub_h * 0.5), int(caption_size * 0.8), Color.WHITE)
 		else:
 			var text_x := size.x * 0.5
 			if icon_kind != "":
-				var s := size.y * 0.62
-				Neon.draw_icon(self, icon_kind, Rect2(Vector2(size.y * 0.3, (size.y - s) * 0.5), Vector2(s, s)), c, lit)
-				text_x += s * 0.45
-			Neon.draw_text(self, caption, Vector2(text_x, size.y * 0.5), caption_size, c if not disabled else Color(0.7, 0.7, 0.75))
+				var s := size.y * 0.85
+				Neon.draw_icon(self, icon_kind, Rect2(Vector2(size.y * 0.05, (size.y - s) * 0.5), Vector2(s, s)))
+				text_x += s * 0.5
+			Neon.draw_text(self, caption, Vector2(text_x, size.y * 0.5), caption_size, text_col)
+		if active:
+			# Selected tab: a thick line of its colour under the caption.
+			var w := minf(size.x * 0.8, Neon.font().get_string_size(caption, HORIZONTAL_ALIGNMENT_LEFT, -1, caption_size).x + 30)
+			var x0 := size.x * 0.5 - w * 0.5 + (size.y * 0.42 if icon_kind != "" else 0.0)
+			draw_rect(Rect2(x0 - 1, size.y - 7, w + 2, 7), Neon.INK)
+			draw_rect(Rect2(x0, size.y - 6, w, 5), c)
+		draw_set_transform(Vector2.ZERO)
 
 
 ## Just an icon (the big pictures of the tuning parts).
@@ -275,7 +330,7 @@ class NeonIcon:
 		resized.connect(queue_redraw)
 
 	func _draw() -> void:
-		Neon.draw_icon(self, kind, Rect2(Vector2.ZERO, size), neon)
+		Neon.draw_icon(self, kind, Rect2(Vector2.ZERO, size))
 
 
 ## A round colour swatch; the chosen one has a white ring.

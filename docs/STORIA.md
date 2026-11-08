@@ -714,9 +714,45 @@ sono ora rosso fuoco, giallo limone, verde acceso, blu elettrico e arancio.
 
 ---
 
+## v0.20.4 — Pulsanti come la mappa, auto ferma, tuning che si sente (8 novembre)
+
+![Il dealer della v0.20.4](immagini/v0.20.4-dealer.jpg)
+
+**Richiesta:** Stefano ha provato la v0.20.3: niente riquadro scuro né bordo colorato sui
+pulsanti, solo icona e scritta; e tutti i pulsanti, anche quelli del garage ("DEALER" e "INIZIO
+GARA" erano "orribili"), allo stesso livello della piccola icona della mappa, la sua preferita.
+L'auto non deve più girare da sola: ferma quasi di lato, verso il giocatore, e si gira col dito o
+col mouse. Nel dealer si deve poter passare da un'auto all'altra anche nel tuning. E il tuning si
+sentiva poco: "+4% di spinta per livello", da triplicare.
+
+**Come è stato costruito:**
+- **Figure colorate** (`scripts/neon.gd`): ogni icona è un piccolo disegno piatto a colori pieni
+  con il contorno scuro, come la mappa: casa con la serranda, bomboletta, chiave inglese e
+  cacciavite, auto, cartellino del prezzo, banconota, negozio con la tenda a strisce, bandiera a
+  scacchi, chiave, spunta, motore, centralina, marmitta, bombola del nitro, disco del freno, molla.
+  Il pulsante è solo figura e scritta; premuto si rimpicciolisce un attimo, la scheda scelta è
+  sottolineata.
+- **Garage** (`scripts/menu.gd`): SELEZIONA, DEALER (negozio) e INIZIO GARA (bandiera, con sotto il
+  nome della gara) nello stesso stile.
+- **Auto ferma:** dealer e garage mostrano l'auto quasi di lato con il muso un po' verso chi
+  guarda; trascinando sullo schermo la si gira. Nel garage il trascinamento prima cambiava auto:
+  ora per quello ci sono solo le frecce.
+- **Tuning:** nella sezione TUNING compaiono due frecce accanto al nome per cambiare auto senza
+  uscire. Effetti triplicati (`scripts/tuning.gd`): motore +12% di spinta per stage, centralina
+  +6% e +4,5% di velocità massima, scarico +6% e +3%, nitro +18% di forza e +24% di durata, freni
+  +18%, sospensioni +7,5% di aderenza.
+
+**Verifica ed esito:** screenshot di garage e dealer; due gare automatiche sulla costa con la
+stessa auto (Kaze R-34), di serie e con tutto a stage 5. Dopo 5 secondi di gara 59 contro 84
+km/h, dopo 7 secondi 104 contro 164 km/h; i primi tre checkpoint arrivano a 11,7 / 22,7 / 29,5 s
+di serie e a 10,3 / 20,0 / 27,9 s elaborata, nonostante il pilota automatico faccia più fatica a
+tenerla (un salto con l'auto di traverso alla terza curva). Da provare su PC.
+
+---
+
 ## Prossimi passi
 
-- Prova sul telefono e sul PC della v0.20.3 (showroom con pavimento 3D, colori accesi).
+- Prova sul telefono e sul PC della v0.20.4.
 - Gli altri pulsanti (garage, menù) nello stesso stile neon; gare che pagano in modo diverso, cosa mostra la mappa.
 - Togliere i loghi dipinti nelle texture delle auto di marchi reali; aggiungere i mezzi della seconda ricerca (fuoristrada, pick-up, buggy, traffico di città).
 - Costruire il nuovo aspetto realistico (luce, cielo, ombre, materiali) un passo approvato alla volta.

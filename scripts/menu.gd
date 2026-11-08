@@ -18,9 +18,9 @@ static var car_index := -1
 var _garage: Array = []
 var _locked := false
 var _confirming := false
-var _select_button: Button
-var _go_button: Button
-var _dealer_button: Button
+var _select_button: Neon.NeonButton
+var _go_button: Neon.NeonButton
+var _dealer_button: Neon.NeonButton
 var _arrows: Array[Button] = []
 var _car_name: Label
 var _car_info: Label
@@ -32,8 +32,9 @@ var _preview: Node3D
 var _cam: Camera3D
 var _pending: Array[String] = []  # car models being read in the background
 var _loaded := {}  # car models already read, kept so switching back to a car is instant
-var _swipe := 0.0
-var _turn := 0.6
+## The car stands still, almost side on (Stefano, v0.20.4); dragging turns it.
+const VIEW_ANGLE := 1.9
+var _turn := VIEW_ANGLE
 var _leaving := false
 
 
@@ -160,34 +161,35 @@ func _build_top_bar() -> void:
 	add_child(_toast)
 
 
-## SELEZIONA above the car, DEALER bottom left, INIZIO GARA bottom right.
+## SELEZIONA above the car, DEALER bottom left, INIZIO GARA bottom right: since v0.20.4 a
+## coloured picture and a caption, no box (Neon, like the dealer).
 func _build_buttons() -> void:
-	_select_button = UiKit.button("SELEZIONA", GREEN, 34)
+	_select_button = Neon.NeonButton.new().setup("SELEZIONA", "check", Neon.GREEN, false, 32)
 	_select_button.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	_select_button.offset_left = -170
-	_select_button.offset_right = 170
-	_select_button.offset_top = 22
+	_select_button.offset_left = -190
+	_select_button.offset_right = 190
+	_select_button.offset_top = 18
 	_select_button.offset_bottom = 92
 	_select_button.pressed.connect(_on_select)
 	add_child(_select_button)
 
-	_dealer_button = UiKit.button("DEALER", Color(0.2, 0.5, 0.9), 34)
+	_dealer_button = Neon.NeonButton.new().setup("DEALER", "shop", Neon.YELLOW, true, 26)
 	_dealer_button.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	_dealer_button.offset_left = 24
-	_dealer_button.offset_right = 250
-	_dealer_button.offset_top = -110
-	_dealer_button.offset_bottom = -24
+	_dealer_button.offset_left = 18
+	_dealer_button.offset_right = 178
+	_dealer_button.offset_top = -168
+	_dealer_button.offset_bottom = -12
 	_dealer_button.pressed.connect(_open_dealer)
 	add_child(_dealer_button)
 
 	var race: Array = Main.CAMPAIGN[SaveGame.race_index % Main.CAMPAIGN.size()]
-	_go_button = UiKit.button("INIZIO GARA\n%s" % race[1], Color(0.9, 0.2, 0.15), 30)
-	_go_button.add_theme_constant_override("line_spacing", -6)
+	_go_button = Neon.NeonButton.new().setup("INIZIO GARA", "flag", Neon.RED, true, 26)
+	_go_button.sub = race[1]
 	_go_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	_go_button.offset_left = -330
-	_go_button.offset_right = -24
-	_go_button.offset_top = -110
-	_go_button.offset_bottom = -24
+	_go_button.offset_left = -218
+	_go_button.offset_right = -18
+	_go_button.offset_top = -190
+	_go_button.offset_bottom = -12
 	_go_button.pressed.connect(_start_race)
 	add_child(_go_button)
 
@@ -207,7 +209,8 @@ func _set_locked(on: bool) -> void:
 			car_index = i
 	for b in _arrows:
 		b.visible = _garage.size() > 1
-	_select_button.text = "LA TUA AUTO" if on else "SELEZIONA"
+	_select_button.set_caption("LA TUA AUTO" if on else "SELEZIONA")
+	_select_button.icon_kind = "key" if on else "check"
 	_select_button.disabled = on
 	_go_button.disabled = not on
 	_dealer_button.disabled = not on
@@ -220,7 +223,7 @@ func _on_select() -> void:
 	if not _confirming:
 		# First tap: one more tap to confirm, the choice is for good.
 		_confirming = true
-		_select_button.text = "CONFERMI?"
+		_select_button.set_caption("CONFERMI?")
 		_say("Tocca ancora: poi non potrai più cambiarla")
 		return
 	SaveGame.car = _garage[car_index]["id"]
@@ -235,9 +238,10 @@ func _step_car(dir: int) -> void:
 	if _garage.size() < 2 or _leaving:
 		return
 	car_index = posmod(car_index + dir, _garage.size())
+	_turn = VIEW_ANGLE
 	if _confirming:
 		_confirming = false
-		_select_button.text = "SELEZIONA"
+		_select_button.set_caption("SELEZIONA")
 	if _locked:
 		# The car on show is the one the player drives.
 		SaveGame.car = _garage[car_index]["id"]
@@ -311,7 +315,6 @@ func _process(delta: float) -> void:
 				_pending.append(next)
 				ResourceLoader.load_threaded_request(next)
 				break
-	_turn += delta * 0.3
 	if _preview:
 		_preview.rotation.y = _turn
 	if _toast_t > 0.0:
@@ -321,11 +324,9 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	var dx := 0.0
 	if event is InputEventScreenDrag:
-		dx = (event as InputEventScreenDrag).relative.x
-	elif event is InputEventScreenTouch and not (event as InputEventScreenTouch).pressed:
-		_swipe = 0.0
+		# Dragging turns the car (the arrows change it).
+		_turn += (event as InputEventScreenDrag).relative.x * 0.012
 	elif event.is_action_pressed("ui_left"):
 		_step_car(-1)
 	elif event.is_action_pressed("ui_right"):
@@ -335,10 +336,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			_start_race()
 		else:
 			_on_select()
-	_swipe += dx
-	if absf(_swipe) > 90.0:
-		_step_car(-1 if _swipe > 0.0 else 1)
-		_swipe = 0.0
 
 
 ## Android back button (the game no longer quits on it by itself): from the garage out of the game.
@@ -380,6 +377,6 @@ func _start_race() -> void:
 		_say("Prima scegli la tua auto")
 		return
 	Main.level = Main.CAMPAIGN[SaveGame.race_index % Main.CAMPAIGN.size()][0]
-	_go_button.text = "CARICAMENTO..."
+	_go_button.set_caption("CARICAMENTO...")
 	_go_button.disabled = true
 	_leave(RACE_SCENE)
