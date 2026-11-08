@@ -698,9 +698,25 @@ questa schermata. Da provare su PC e telefono.
 
 ---
 
+## v0.20.3 — Colori accesi, tuning sopra l'auto (8 novembre)
+
+![Il tuning sopra l'auto](immagini/v0.20.3-tuning.jpg)
+
+**Richiesta:** il catalogo del tuning va bene, ma l'auto non va rimpicciolita né spostata: la
+scheda si mette sopra l'auto, un po' trasparente. E i pastello sono "troppo sciapi": rosso acceso
+al posto del rosa, giallo limone, verde acceso, blu elettrico al posto dell'azzurro.
+
+**Come è stato costruito:** in TUNING l'auto resta grande al centro del piatto e la scheda le sta
+sopra con lo sfondo più trasparente; i colori di pulsanti, icone e scritte (`scripts/neon.gd`)
+sono ora rosso fuoco, giallo limone, verde acceso, blu elettrico e arancio.
+
+**Verifica ed esito:** screenshot delle sezioni. Da provare su PC.
+
+---
+
 ## Prossimi passi
 
-- Prova sul telefono e sul PC della v0.20.2 (showroom con pavimento 3D).
+- Prova sul telefono e sul PC della v0.20.3 (showroom con pavimento 3D, colori accesi).
 - Gli altri pulsanti (garage, menù) nello stesso stile neon; gare che pagano in modo diverso, cosa mostra la mappa.
 - Togliere i loghi dipinti nelle texture delle auto di marchi reali; aggiungere i mezzi della seconda ricerca (fuoristrada, pick-up, buggy, traffico di città).
 - Costruire il nuovo aspetto realistico (luce, cielo, ombre, materiali) un passo approvato alla volta.

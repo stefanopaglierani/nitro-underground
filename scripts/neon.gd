@@ -2,18 +2,19 @@ class_name Neon
 extends RefCounted
 ## Look of the dealer buttons (v0.20, Stefano: "più moderni, leggermente graffitari"): icons drawn
 ## as strokes, dark plates with a coloured border and the labels in a marker font (Permanent
-## Marker, Apache 2.0, assets/fonts). Born neon in v0.20; in v0.21 Stefano found the neon too
-## much and asked for pastel colours, without glow. Icons are drawn in code, so they stay sharp
+## Marker, Apache 2.0, assets/fonts). Born neon in v0.20; Stefano then asked for no glow
+## (v0.20.1, pastel) and finally strong, bright colours (v0.20.3): fire red, lemon yellow, bright
+## green, electric blue. Icons are drawn in code, so they stay sharp
 ## at any size and add nothing to download.
 
 const FONT := "res://assets/fonts/PermanentMarker-Regular.ttf"
-const CYAN := Color(0.6, 0.86, 0.96)
-const PINK := Color(0.98, 0.64, 0.82)
-const LIME := Color(0.76, 0.92, 0.6)
-const GREEN := Color(0.6, 0.9, 0.7)
-const ORANGE := Color(1.0, 0.78, 0.56)
-const RED := Color(0.98, 0.6, 0.6)
-const YELLOW := Color(1.0, 0.92, 0.6)
+const CYAN := Color(0.15, 0.45, 1.0)
+const PINK := Color(1.0, 0.1, 0.12)
+const LIME := Color(0.15, 0.95, 0.2)
+const GREEN := Color(0.15, 0.95, 0.2)
+const ORANGE := Color(1.0, 0.5, 0.0)
+const RED := Color(1.0, 0.1, 0.12)
+const YELLOW := Color(1.0, 0.95, 0.0)
 const INK := Color(0.03, 0.02, 0.06)
 
 

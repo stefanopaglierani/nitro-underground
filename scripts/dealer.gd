@@ -485,7 +485,7 @@ func _refresh() -> void:
 	if tune and id != "":
 		var lv := SaveGame.levels_of(id)
 		var col: Color = PART_COLORS[_part]
-		_tune_card.add_theme_stylebox_override("panel", Neon.plate(col, 22, 8, 0.85))
+		_tune_card.add_theme_stylebox_override("panel", Neon.plate(col, 22, 8, 0.6))
 		_tune_icon.kind = Neon.PART_ICONS[_part]
 		_tune_icon.neon = col
 		_tune_icon.queue_redraw()
@@ -625,7 +625,7 @@ func _build_floor() -> void:
 ## Puts the camera so the car stands on the centre of the platform of the picture, as long as
 ## the platform is wide (CAR_FILL), on any screen: the picture covers the screen keeping its
 ## shape, so the platform's place on screen comes from the same scale and crop. In TUNING the
-## car is smaller and moves left, beside the tuning card.
+## car stays as it is and the card goes over it (Stefano, v0.20.3).
 func _place_camera() -> void:
 	if not _cam:
 		return
@@ -636,10 +636,6 @@ func _place_camera() -> void:
 	var crop := (screen - IMAGE_SIZE * s) * 0.5
 	var at := crop + PLATFORM_CENTER * s
 	var length_px := PLATFORM_WIDTH * s * CAR_FILL
-	if _mode == "tune":
-		# Still on the platform, smaller and to the left of the tuning card.
-		at.x = minf(at.x, screen.x - 480.0 - PLATFORM_WIDTH * s * 0.33)
-		length_px *= 0.72
 	var f := screen.y * 0.5 / tan(deg_to_rad(CAM_FOV * 0.5))
 	var dist := _car_length * f / length_px
 	var pitch := deg_to_rad(CAM_PITCH)
