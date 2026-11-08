@@ -1,18 +1,19 @@
 class_name Neon
 extends RefCounted
-## Neon look of the dealer (v0.20, Stefano: "più moderni, leggermente graffitari, colori al neon"):
-## icons drawn as glowing tubes, buttons with a glowing border and the labels in a marker font
-## (Permanent Marker, Apache 2.0, assets/fonts). Icons are drawn in code, so they stay sharp at
-## any size and add nothing to download.
+## Look of the dealer buttons (v0.20, Stefano: "più moderni, leggermente graffitari"): icons drawn
+## as strokes, dark plates with a coloured border and the labels in a marker font (Permanent
+## Marker, Apache 2.0, assets/fonts). Born neon in v0.20; in v0.21 Stefano found the neon too
+## much and asked for pastel colours, without glow. Icons are drawn in code, so they stay sharp
+## at any size and add nothing to download.
 
 const FONT := "res://assets/fonts/PermanentMarker-Regular.ttf"
-const CYAN := Color(0.15, 0.9, 1.0)
-const PINK := Color(1.0, 0.2, 0.75)
-const LIME := Color(0.7, 1.0, 0.15)
-const GREEN := Color(0.2, 1.0, 0.45)
-const ORANGE := Color(1.0, 0.55, 0.1)
-const RED := Color(1.0, 0.2, 0.3)
-const YELLOW := Color(1.0, 0.88, 0.2)
+const CYAN := Color(0.6, 0.86, 0.96)
+const PINK := Color(0.98, 0.64, 0.82)
+const LIME := Color(0.76, 0.92, 0.6)
+const GREEN := Color(0.6, 0.9, 0.7)
+const ORANGE := Color(1.0, 0.78, 0.56)
+const RED := Color(0.98, 0.6, 0.6)
+const YELLOW := Color(1.0, 0.92, 0.6)
 const INK := Color(0.03, 0.02, 0.06)
 
 
@@ -20,7 +21,7 @@ static func font() -> Font:
 	return load(FONT)
 
 
-## A label in the marker font, neon coloured with a dark outline.
+## A label in the marker font, coloured, with a dark outline.
 static func label(size: int, color: Color, outline := 8) -> Label:
 	var l := UiKit.label(size, color, outline)
 	l.add_theme_font_override("font", font())
@@ -153,15 +154,15 @@ static func _round_rect(r: Rect2, k: float) -> Array:
 	return out
 
 
-## Draws icon `kind` as glowing neon tubes inside `rect` of canvas item `ci`.
+## Draws icon `kind` as strokes inside `rect` of canvas item `ci`.
 static func draw_icon(ci: CanvasItem, kind: String, rect: Rect2, color: Color, bright := 1.0) -> void:
 	var side := minf(rect.size.x, rect.size.y)
 	var k := side / 100.0
 	var o := rect.position + (rect.size - Vector2(side, side)) * 0.5
 	var base := maxf(2.0, side * 0.045)
 	var strokes := _strokes(kind)
-	# Three passes: wide soft glow, the coloured tube, a white hot core.
-	for pass_i in 3:
+	# Two passes: a dark edge so the icon reads on any background, then the pastel stroke.
+	for pass_i in 2:
 		for st in strokes:
 			var pts := PackedVector2Array()
 			for p in st[0]:
@@ -169,42 +170,37 @@ static func draw_icon(ci: CanvasItem, kind: String, rect: Rect2, color: Color, b
 			if st[2]:
 				pts.append(pts[0])
 			var w: float = base * st[1]
-			match pass_i:
-				0:
-					ci.draw_polyline(pts, Color(color, 0.16 * bright), w * 3.2, true)
-					ci.draw_polyline(pts, Color(color, 0.22 * bright), w * 2.0, true)
-				1:
-					ci.draw_polyline(pts, Color(color, bright), w, true)
-				2:
-					ci.draw_polyline(pts, Color(1, 1, 1, 0.75 * bright), w * 0.35, true)
+			if pass_i == 0:
+				ci.draw_polyline(pts, Color(INK, 0.55 * bright), w * 1.8, true)
+			else:
+				ci.draw_polyline(pts, Color(color, bright), w, true)
 
 
-## Text with a dark outline and a soft glow, centred on `center`.
+## Text with a dark outline, centred on `center`.
 static func draw_text(ci: CanvasItem, text: String, center: Vector2, size: int, color: Color) -> void:
 	var f := font()
 	var w := f.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 	var pos := center + Vector2(-w * 0.5, size * 0.35)
-	ci.draw_string_outline(f, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, maxi(4, size / 4), Color(color, 0.25))
 	ci.draw_string_outline(f, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, maxi(3, size / 7), INK)
-	ci.draw_string(f, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, color.lerp(Color.WHITE, 0.25))
+	ci.draw_string(f, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, color)
 
 
-## A dark glassy plate with a neon border.
-static func plate(color: Color, radius := 18, glow := 10, fill_alpha := 0.72) -> StyleBoxFlat:
+## A dark glassy plate with a pastel border; `lift` is the size of its soft dark shadow.
+static func plate(color: Color, radius := 18, lift := 6, fill_alpha := 0.72) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.03, 0.02, 0.07, fill_alpha)
 	sb.border_color = color
 	sb.set_border_width_all(3)
 	sb.set_corner_radius_all(radius)
-	sb.shadow_color = Color(color, 0.45)
-	sb.shadow_size = glow
+	sb.shadow_color = Color(0, 0, 0, 0.4)
+	sb.shadow_size = lift
 	sb.anti_aliasing = true
 	for side in [SIDE_LEFT, SIDE_RIGHT, SIDE_TOP, SIDE_BOTTOM]:
 		sb.set_content_margin(side, 12)
 	return sb
 
 
-## A button drawn by hand: a plate with a neon border, an icon (optional) and a marker-font
+## A button drawn by hand: a plate with a coloured border, an icon (optional) and a marker-font
 ## caption. With `tall` the icon sits on top and the caption under it (the dealer's big icons);
 ## otherwise it is a pill with the caption in the middle and the icon on its left.
 class NeonButton:
@@ -245,7 +241,9 @@ class NeonButton:
 		var c := neon if not disabled else Color(0.55, 0.55, 0.6)
 		var lit := 1.0 if not disabled else 0.45
 		var hot := is_hovered() or button_pressed or active
-		var sb := Neon.plate(c, 22 if tall else int(size.y * 0.5), 14 if hot else 8, 0.8 if not disabled else 0.55)
+		var sb := Neon.plate(c, 22 if tall else int(size.y * 0.5), 10 if hot else 5, 0.8 if not disabled else 0.55)
+		if hot:
+			sb.border_color = c.lerp(Color.WHITE, 0.5)
 		if active:
 			sb.bg_color = Color(c.r * 0.35, c.g * 0.35, c.b * 0.35, 0.9)
 		if is_pressed():

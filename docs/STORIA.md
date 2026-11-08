@@ -648,9 +648,35 @@ telefono.
 
 ---
 
+## v0.20.1 — Pastello, catalogo e ombra (8 novembre)
+
+![Il dealer della v0.20.1](immagini/v0.20.1-dealer.jpg)
+
+**Richiesta:** dopo la prova su PC della v0.20, Stefano ha trovato il neon troppo forte: "teniamo un
+colore pastello". Per il tuning ha chiesto una sola scheda in basso a destra, con due frecce per
+sfogliare i pezzi "come se stessimo sfogliando un catalogo". E ha notato che l'auto sembrava
+"appiccicata" sulla foto: niente ombre, quasi rialzata dietro.
+
+**Come è stato costruito:**
+- **Pastello** (`scripts/neon.gd`): stessi disegni e stesso font, ma colori tenui, nessun alone;
+  icone e scritte hanno un bordo scuro per leggersi su qualunque sfondo.
+- **Catalogo del tuning** (`scripts/dealer.gd`): una scheda (icona, nome, cosa fa, pallini stage
+  1-5, prezzo, "1 / 6") con le frecce ai lati; l'auto resta sul piatto, più piccola e spostata a
+  sinistra.
+- **Auto appoggiata:** il modello viene abbassato finché le gomme toccano il piatto (prima ogni
+  auto stava all'altezza del suo punto d'origine). Sotto l'auto c'è un'ombra morbida che gira con
+  lei. La finestra 3D ha lo sfondo trasparente e lì Godot non riesce a sfumare un'ombra
+  semitrasparente (provato: non si vedeva), quindi l'ombra è disegnata in 2D sotto la finestra,
+  proiettando la sagoma dell'auto con la stessa camera 3D.
+
+**Verifica ed esito:** screenshot di tutte le sezioni. È un rimedio: per un'integrazione vera con
+riflessi e luci coerenti serve uno showroom costruito in 3D. Da provare su PC.
+
+---
+
 ## Prossimi passi
 
-- Prova sul telefono e sul PC della v0.20.
+- Prova sul telefono e sul PC della v0.20.1; decidere se costruire lo showroom del dealer in 3D.
 - Gli altri pulsanti (garage, menù) nello stesso stile neon; gare che pagano in modo diverso, cosa mostra la mappa.
 - Togliere i loghi dipinti nelle texture delle auto di marchi reali; aggiungere i mezzi della seconda ricerca (fuoristrada, pick-up, buggy, traffico di città).
 - Costruire il nuovo aspetto realistico (luce, cielo, ombre, materiali) un passo approvato alla volta.

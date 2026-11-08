@@ -50,15 +50,24 @@ var _sell_armed := 0.0
 var _arrows: Array[Button] = []
 var _color_panel: PanelContainer
 var _swatches: Array[Neon.Swatch] = []
-var _tune_strip: ScrollContainer
-var _tune_dots: Array = []  # per part: its 5 dot icons
-var _tune_buttons: Array[Neon.NeonButton] = []
+var _tune_box: Control
+var _tune_card: PanelContainer
+var _tune_icon: Neon.NeonIcon
+var _tune_title: Label
+var _tune_what: Label
+var _tune_dots: Array[UiKit.Icon] = []
+var _tune_buy: Neon.NeonButton
+var _tune_page: Label
+## The part shown on the tuning card (index in Tuning.PARTS).
+var _part := 0
 var _paint_mats: Array[StandardMaterial3D] = []
 var _view: SubViewportContainer
 var _stage: Node3D
 var _cam: Camera3D
 var _preview: Node3D
 var _car_length := 4.5
+var _car_width := 1.8
+var _shadow: FloorShadow
 var _pending: Array[String] = []
 var _loaded := {}
 var _turn := 0.6
@@ -80,6 +89,9 @@ func _ready() -> void:
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
 
+	_shadow = FloorShadow.new()
+	UiKit.anchor(_shadow, 0, 0, 1, 1)
+	add_child(_shadow)
 	# The car's 3D window covers the whole screen, so a big car is never cut.
 	var win := UiKit.car_window(self)
 	_view = win[0]
@@ -99,7 +111,7 @@ func _ready() -> void:
 	_build_header()
 	_build_bottom()
 	_build_color_panel()
-	_build_tune_strip()
+	_build_tune_card()
 
 	var start_mode := "mine"
 	var show := SaveGame.car
@@ -111,6 +123,8 @@ func _ready() -> void:
 			start_mode = a.substr(6)  # test aid: mine, shop or tune
 		if a == "--panel=tune":
 			start_mode = "tune"
+		if a.begins_with("--part="):
+			_part = int(a.substr(7))  # test aid: tuning card shown
 	_set_mode(start_mode, show)
 
 	for a in args:
@@ -278,75 +292,83 @@ func _build_color_panel() -> void:
 	row.add_child(ok)
 
 
-## One big card per part, side by side, scrolling sideways: icon, name, what it does, the five
-## stage dots and the price of the next stage.
-func _build_tune_strip() -> void:
-	_tune_strip = ScrollContainer.new()
-	UiKit.anchor(_tune_strip, 0.0, 0.5, 1.0, 1.0)
-	_tune_strip.offset_left = 16
-	_tune_strip.offset_right = -16
-	_tune_strip.offset_bottom = -8
-	_tune_strip.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_tune_strip.visible = false
-	add_child(_tune_strip)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 16)
-	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_tune_strip.add_child(row)
-	for part in Tuning.PARTS.size():
-		var col: Color = PART_COLORS[part]
-		var card := PanelContainer.new()
-		card.add_theme_stylebox_override("panel", Neon.plate(col, 20, 8, 0.82))
-		card.custom_minimum_size = Vector2(250, 0)
-		card.mouse_filter = Control.MOUSE_FILTER_PASS
-		row.add_child(card)
-		var box := VBoxContainer.new()
-		box.add_theme_constant_override("separation", 2)
-		box.alignment = BoxContainer.ALIGNMENT_CENTER
-		card.add_child(box)
-		var icon := Neon.NeonIcon.new()
-		icon.kind = Neon.PART_ICONS[part]
-		icon.neon = col
-		icon.custom_minimum_size = Vector2(0, 84)
-		box.add_child(icon)
-		var title := Neon.label(28, col, 7)
-		title.text = Tuning.PARTS[part].to_upper()
-		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		box.add_child(title)
-		var what := UiKit.label(15, Color(0.9, 0.9, 0.9), 4)
-		what.text = Tuning.describe(part)
-		what.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		what.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		what.custom_minimum_size = Vector2(226, 40)
-		box.add_child(what)
-		var dots_row := HBoxContainer.new()
-		dots_row.alignment = BoxContainer.ALIGNMENT_CENTER
-		dots_row.add_theme_constant_override("separation", 4)
-		box.add_child(dots_row)
-		var dots := []
-		for k in Tuning.LEVELS:
-			var cell := VBoxContainer.new()
-			cell.add_theme_constant_override("separation", 0)
-			cell.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			dots_row.add_child(cell)
-			var d := UiKit.Icon.new()
-			d.kind = "dot"
-			d.custom_minimum_size = Vector2(40, 24)
-			cell.add_child(d)
-			var l := UiKit.label(12, Color(0.85, 0.85, 0.85), 3)
-			l.text = "stage %d" % (k + 1)
-			l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			cell.add_child(l)
-			dots.append(d)
-		_tune_dots.append(dots)
-		var spacer := Control.new()
-		spacer.custom_minimum_size = Vector2(0, 6)
-		box.add_child(spacer)
-		var b := Neon.NeonButton.new().setup("", "", col, false, 19)
-		b.custom_minimum_size = Vector2(0, 50)
-		b.pressed.connect(_buy_part.bind(part))
-		box.add_child(b)
-		_tune_buttons.append(b)
+## TUNING as a catalogue (v0.21, Stefano): one card at the bottom right, the arrows beside it turn
+## to the next part. The card: icon, name, what it does, the five stage dots, the price of the
+## next stage and which page it is.
+func _build_tune_card() -> void:
+	_tune_box = Control.new()
+	UiKit.anchor(_tune_box, 1.0, 1.0, 1.0, 1.0)
+	_tune_box.offset_left = -470
+	_tune_box.offset_right = -10
+	_tune_box.offset_top = -372
+	_tune_box.offset_bottom = -12
+	_tune_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_tune_box.visible = false
+	add_child(_tune_box)
+	_tune_card = PanelContainer.new()
+	UiKit.anchor(_tune_card, 0.0, 0.0, 1.0, 1.0)
+	_tune_card.offset_left = 62
+	_tune_card.offset_right = -62
+	_tune_box.add_child(_tune_card)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 2)
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	_tune_card.add_child(box)
+	_tune_icon = Neon.NeonIcon.new()
+	_tune_icon.custom_minimum_size = Vector2(0, 92)
+	box.add_child(_tune_icon)
+	_tune_title = Neon.label(30, Color.WHITE, 7)
+	_tune_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(_tune_title)
+	_tune_what = UiKit.label(16, Color(0.92, 0.92, 0.92), 4)
+	_tune_what.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_tune_what.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_tune_what.custom_minimum_size = Vector2(300, 42)
+	box.add_child(_tune_what)
+	var dots_row := HBoxContainer.new()
+	dots_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	dots_row.add_theme_constant_override("separation", 6)
+	box.add_child(dots_row)
+	for k in Tuning.LEVELS:
+		var cell := VBoxContainer.new()
+		cell.add_theme_constant_override("separation", 0)
+		cell.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		dots_row.add_child(cell)
+		var d := UiKit.Icon.new()
+		d.kind = "dot"
+		d.custom_minimum_size = Vector2(50, 26)
+		cell.add_child(d)
+		var l := UiKit.label(13, Color(0.88, 0.88, 0.88), 3)
+		l.text = "stage %d" % (k + 1)
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		cell.add_child(l)
+		_tune_dots.append(d)
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0, 6)
+	box.add_child(spacer)
+	_tune_buy = Neon.NeonButton.new().setup("", "", Color.WHITE, false, 21)
+	_tune_buy.custom_minimum_size = Vector2(0, 54)
+	_tune_buy.pressed.connect(func(): _buy_part(_part))
+	box.add_child(_tune_buy)
+	_tune_page = UiKit.label(15, Color(0.85, 0.85, 0.85), 4)
+	_tune_page.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(_tune_page)
+	for dir in [-1, 1]:
+		var b := UiKit.ArrowButton.new()
+		b.dir = dir
+		var x := 0.0 if dir < 0 else 1.0
+		UiKit.anchor(b, x, 0.5, x, 0.5)
+		b.offset_left = 0 if dir < 0 else -60
+		b.offset_right = 60 if dir < 0 else 0
+		b.offset_top = -45
+		b.offset_bottom = 45
+		b.pressed.connect(_turn_page.bind(dir))
+		_tune_box.add_child(b)
+
+
+func _turn_page(dir: int) -> void:
+	_part = posmod(_part + dir, Tuning.PARTS.size())
+	_refresh()
 
 
 # ---------- Sections ----------
@@ -379,8 +401,7 @@ func _set_mode(mode: String, show := "") -> void:
 	for k in _tabs:
 		_tabs[k].active = k == mode
 		_tabs[k].queue_redraw()
-	_tune_strip.visible = mode == "tune"
-	_tune_strip.scroll_horizontal = 0
+	_tune_box.visible = mode == "tune"
 	_show_car()
 
 
@@ -464,19 +485,26 @@ func _refresh() -> void:
 		_action.set_caption("GUIDA QUESTA", Neon.GREEN)
 	if tune and id != "":
 		var lv := SaveGame.levels_of(id)
-		for part in Tuning.PARTS.size():
-			for k in Tuning.LEVELS:
-				var d: UiKit.Icon = _tune_dots[part][k]
-				d.kind = "dot_on" if k < lv[part] else "dot"
-				d.queue_redraw()
-			var b := _tune_buttons[part]
-			if lv[part] >= Tuning.LEVELS:
-				b.set_caption("MAX")
-				b.disabled = true
-			else:
-				var cost := Tuning.cost(id, part, lv[part] + 1)
-				b.set_caption("STAGE %d · %s $" % [lv[part] + 1, UiKit.thousands(cost)])
-				b.disabled = SaveGame.money < cost
+		var col: Color = PART_COLORS[_part]
+		_tune_card.add_theme_stylebox_override("panel", Neon.plate(col, 22, 8, 0.85))
+		_tune_icon.kind = Neon.PART_ICONS[_part]
+		_tune_icon.neon = col
+		_tune_icon.queue_redraw()
+		_tune_title.text = Tuning.PARTS[_part].to_upper()
+		_tune_title.add_theme_color_override("font_color", col)
+		_tune_what.text = Tuning.describe(_part)
+		for k in Tuning.LEVELS:
+			_tune_dots[k].kind = "dot_on" if k < lv[_part] else "dot"
+			_tune_dots[k].queue_redraw()
+		_tune_buy.neon = col
+		if lv[_part] >= Tuning.LEVELS:
+			_tune_buy.set_caption("MAX")
+			_tune_buy.disabled = true
+		else:
+			var cost := Tuning.cost(id, _part, lv[_part] + 1)
+			_tune_buy.set_caption("STAGE %d · %s $" % [lv[_part] + 1, UiKit.thousands(cost)])
+			_tune_buy.disabled = SaveGame.money < cost
+		_tune_page.text = "%d / %d" % [_part + 1, Tuning.PARTS.size()]
 
 
 func _model_file(entry: Dictionary) -> String:
@@ -495,17 +523,77 @@ func _build_preview() -> void:
 		_paint_mats = CarModel.paint_model(_preview, id, SaveGame.color_of(id))
 	_stage.add_child(_preview)
 	_preview.rotation.y = _turn
-	_car_length = 4.5
+	# Size of the car and how low it goes: it is lowered so the tyres touch the platform.
+	var box := AABB()
+	var first := true
 	for mi in _preview.find_children("*", "MeshInstance3D", true, false):
 		var bb: AABB = CarModel._xf_in(mi, _preview) * (mi as MeshInstance3D).get_aabb()
-		_car_length = maxf(_car_length, maxf(absf(bb.position.z), absf(bb.end.z)) * 2.0)
+		box = bb if first else box.merge(bb)
+		first = false
+	_car_length = maxf(4.5, maxf(absf(box.position.z), absf(box.end.z)) * 2.0)
+	var width := maxf(1.7, maxf(absf(box.position.x), absf(box.end.x)) * 2.0)
+	_preview.position.y = -box.position.y if not first else 0.0
+	_car_width = width
 	_place_camera()
+
+
+## The car's shadow on the floor of the picture (v0.21, Stefano: the car looked "stuck on" the
+## picture). The 3D window has a see-through background, where Godot can't blend a transparent
+## shadow, so the shadow is drawn in 2D right under it: the car's footprint, turned with the
+## car, is projected on screen through the 3D camera and painted as soft dark layers.
+class FloorShadow:
+	extends Control
+	## Footprint corners on screen, and a smaller, darker core under the tyres.
+	var outer := PackedVector2Array()
+	var inner := PackedVector2Array()
+
+	func _init() -> void:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	func _draw() -> void:
+		for pts_alpha in [[outer, 0.11, 9], [inner, 0.16, 6]]:
+			var pts: PackedVector2Array = pts_alpha[0]
+			if pts.size() < 3:
+				continue
+			var c := Vector2.ZERO
+			for p in pts:
+				c += p
+			c /= pts.size()
+			for i in pts_alpha[2]:
+				var k: float = 1.0 - i * 0.09
+				var layer := PackedVector2Array()
+				for p in pts:
+					layer.append(c + (p - c) * k)
+				draw_colored_polygon(layer, Color(0, 0, 0, pts_alpha[1]))
+
+
+func _update_shadow() -> void:
+	if not _preview or not _preview.visible:
+		_shadow.outer = PackedVector2Array()
+		_shadow.inner = PackedVector2Array()
+		_shadow.queue_redraw()
+		return
+	var basis := Basis(Vector3.UP, _turn)
+	for which in 2:
+		var hw := _car_width * (0.9 if which == 0 else 0.55)
+		var hl := _car_length * (0.68 if which == 0 else 0.48)
+		var pts := PackedVector2Array()
+		# A rounded box: eight points around the car.
+		for corner in [Vector2(-1, -0.7), Vector2(-0.7, -1), Vector2(0.7, -1), Vector2(1, -0.7),
+				Vector2(1, 0.7), Vector2(0.7, 1), Vector2(-0.7, 1), Vector2(-1, 0.7)]:
+			var local := Vector3(corner.x * hw, 0.0, corner.y * hl)
+			pts.append(_cam.unproject_position(basis * local))
+		if which == 0:
+			_shadow.outer = pts
+		else:
+			_shadow.inner = pts
+	_shadow.queue_redraw()
 
 
 ## Puts the camera so the car stands on the centre of the platform of the picture, as long as
 ## the platform is wide (CAR_FILL), on any screen: the picture covers the screen keeping its
 ## shape, so the platform's place on screen comes from the same scale and crop. In TUNING the
-## car is smaller and higher, above the cards.
+## car is smaller and moves left, beside the tuning card.
 func _place_camera() -> void:
 	if not _cam:
 		return
@@ -517,8 +605,9 @@ func _place_camera() -> void:
 	var at := crop + PLATFORM_CENTER * s
 	var length_px := PLATFORM_WIDTH * s * CAR_FILL
 	if _mode == "tune":
-		at = Vector2(screen.x * 0.5, screen.y * 0.46)
-		length_px = minf(screen.x * 0.34, PLATFORM_WIDTH * s * 0.45)
+		# Still on the platform, smaller and to the left of the tuning card.
+		at.x = minf(at.x, screen.x - 480.0 - PLATFORM_WIDTH * s * 0.33)
+		length_px *= 0.72
 	var f := screen.y * 0.5 / tan(deg_to_rad(CAM_FOV * 0.5))
 	var dist := _car_length * f / length_px
 	var pitch := deg_to_rad(CAM_PITCH)
@@ -557,6 +646,7 @@ func _process(delta: float) -> void:
 	_turn += delta * 0.3
 	if _preview:
 		_preview.rotation.y = _turn
+	_update_shadow()
 	if _toast_t > 0.0:
 		_toast_t -= delta
 		_toast.modulate.a = clampf(_toast_t / 0.5, 0.0, 1.0)

@@ -8,7 +8,7 @@ Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come
 [![Godot 4.7](https://img.shields.io/badge/Godot-4.7-478CBF?logo=godotengine&logoColor=white)](https://godotengine.org)
 ![GDScript](https://img.shields.io/badge/GDScript-~7.500_righe-355570)
 ![Android](https://img.shields.io/badge/Android-arm64-3DDC84?logo=android&logoColor=white)
-![Versione](https://img.shields.io/badge/versione-0.20-ff3d8b)
+![Versione](https://img.shields.io/badge/versione-0.20.1-ff3d8b)
 ![Stato](https://img.shields.io/badge/stato-prototipo_giocabile-f5a623)
 
 📖 [Storia dello sviluppo](docs/STORIA.md) · 🛠️ [Come è costruito](docs/TECNICO.md) · 🎨 [Crediti e licenze](CREDITI.md) · 🇬🇧 [English](#english)
@@ -23,8 +23,8 @@ Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come
 - **Chi l'ha fatto:** **Stefano Paglierani** ha ideato e diretto il gioco: concept, stile,
   circuiti, auto, comandi e ogni scelta di prodotto, provando ogni build sul suo telefono Android.
   Il codice è stato scritto da **Claude** (l'assistente AI di Anthropic) sulle sue indicazioni.
-- **In quanto tempo:** 13 giorni, dal 27 ottobre all'8 novembre 2026: **21 versioni** dal primo prototipo
-  alla v0.20, ognuna provata su telefono o PC e migliorata in base alle prove.
+- **In quanto tempo:** 13 giorni, dal 27 ottobre all'8 novembre 2026: **22 versioni** dal primo prototipo
+  alla v0.20.1, ognuna provata su telefono o PC e migliorata in base alle prove.
 - **Cosa dimostra:** direzione di prodotto e game design su un progetto reale, ciclo rapido
   prova → feedback → nuova versione, uso dell'intelligenza artificiale come squadra di sviluppo,
   attenzione alle licenze degli asset e alle prestazioni su telefono.
@@ -106,6 +106,7 @@ cosa è stato chiesto e come è stato costruito.
 | v0.18 | Pagina d'attesa con START, denaro e reputazione guadagnati in gara, asfalto rialzato |
 | v0.19 | Dealer: compra auto, colore RGB, 6 elaborazioni a 5 livelli; campagna Costa → Città |
 | v0.20 | Dealer rifatto: auto grande sul piatto, sezioni, vendita, 15 colori, tuning a schede, pulsanti neon |
+| v0.20.1 | Dealer: colori pastello, tuning sfogliabile come un catalogo, ombra dell'auto sul piatto |
 
 ## Provarlo
 
@@ -149,7 +150,7 @@ diritti sono riservati all'autore.
 ## Roadmap
 
 1. ~~Documento di concept~~ ✔
-2. **Prototipo giocabile su telefono** ← siamo qui (v0.1 → v0.20, fase di stabilizzazione)
+2. **Prototipo giocabile su telefono** ← siamo qui (v0.1 → v0.20.1, fase di stabilizzazione)
 3. Vertical slice: un circuito e un'auto rifiniti al livello del gioco finale
 4. Produzione e pubblicazione, con sostituzione degli asset non commerciali
 
@@ -159,11 +160,11 @@ diritti sono riservati all'autore.
 
 **Nitro Underground** is a 3D arcade street-racing game for Android with realistic graphics (the 2.5D comic look was dropped in v0.13),
 built with **Godot 4.7** (GDScript, Compatibility/OpenGL renderer on Android, Jolt physics). Current version:
-**v0.20**, a playable prototype (stabilisation phase).
+**v0.20.1**, a playable prototype (stabilisation phase).
 
 **Who made it.** **Stefano Paglierani** conceived and directed the game: concept, art direction,
 circuits, cars, controls and every product decision, testing each build on his Android phone.
-The code was written by **Claude** (Anthropic's AI assistant) from his direction. 21 versions were
+The code was written by **Claude** (Anthropic's AI assistant) from his direction. 22 versions were
 designed, built and play-tested in 13 days (27 October - 8 November 2026).
 
 **Highlights**
