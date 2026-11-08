@@ -70,6 +70,22 @@ static func levels_of(id: String) -> Array:
 	return lv
 
 
+## Sells car `id` to the dealer (v0.20): the money goes up by Tuning.sale_value, the car with its
+## colour and tuning is gone. The last car can't be sold. Returns the money earned (0 = not sold).
+static func sell(id: String) -> int:
+	if owned.size() < 2 or not owned.has(id):
+		return 0
+	var value := Tuning.sale_value(id)
+	money += value
+	owned.erase(id)
+	colors.erase(id)
+	tuning.erase(id)
+	if car == id:
+		car = owned[0]
+	save_game()
+	return value
+
+
 ## Forgets everything (test aid: --reset-garage).
 static func reset() -> void:
 	car = ""

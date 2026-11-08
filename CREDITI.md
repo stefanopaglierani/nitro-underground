@@ -20,6 +20,7 @@ l'elenco completo, file per file, con autore, link, licenza e modifiche, è in
 | [Freesound](https://freesound.org), OpenGameArt | Registrazioni di urti, cambiate, gomme, freno a mano | CC0 |
 | [Sketchfab](https://sketchfab.com) | Alberi, chalet, cartelli, barriere, palazzi, palme, faro, motel, cactus, rocce | **CC BY 4.0** (attribuzione obbligatoria) |
 | Sketchfab | Tutte le auto: garage e avversari, polizia, traffico (DanielZhabotinsky, Lexyc16, TinoD2, ollitei e altri) | CC BY 4.0 in gioco; nessuna auto NC (vedi sotto) |
+| [Google Fonts](https://fonts.google.com) | Font Permanent Marker (Font Diner) delle scritte del dealer | Apache 2.0 |
 
 Tutti gli autori Sketchfab sono citati per nome in `assets/LICENSES.md`.
 

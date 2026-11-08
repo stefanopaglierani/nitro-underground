@@ -246,3 +246,12 @@ La libreria completa scaricata (58 modelli, anche quelli non ancora usati) è ne
 | `garage_bg.jpg` | Sfondo del garage iniziale | Ricavata da `loading_garage.jpg` | Come sopra | Ritagliata senza il cofano |
 | `title.jpg` | Pagina d'attesa (titolo, auto sulla costa) | Immagine fornita da Stefano Paglierani il 07/11/2026 | Fornita da Stefano per il gioco (origine e diritti da confermare prima della pubblicazione) | Convertita in JPG |
 | `dealer_bg.jpg` | Sfondo del dealer (showroom con piatto girevole) | Immagine fornita da Stefano Paglierani l'08/11/2026 | Fornita da Stefano per il gioco (origine e diritti da confermare prima della pubblicazione) | Convertita in JPG |
+
+## Font — `assets/fonts/`
+
+| File | Cosa è | Fonte | Licenza | Modifiche |
+|---|---|---|---|---|
+| `PermanentMarker-Regular.ttf` | Font "a pennarello" delle scritte neon del dealer (v0.20) | [Permanent Marker](https://fonts.google.com/specimen/Permanent+Marker) di Font Diner, da [google/fonts](https://github.com/google/fonts/tree/main/apache/permanentmarker) (08/11/2026) | Apache 2.0 (uso commerciale permesso; testo in `PermanentMarker-LICENSE.txt`) | — |
+
+Le icone al neon della v0.20 (garage, bomboletta, chiave e cacciavite, pezzi del tuning) sono
+disegnate nel codice (`scripts/neon.gd`): nostre, nessun file.

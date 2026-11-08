@@ -603,10 +603,55 @@ costa con l'auto verde e tre elaborazioni. Da provare su PC e telefono.
 
 ---
 
+## v0.20 — Il dealer rifatto (8 novembre)
+
+![Il dealer rifatto](immagini/v0.20-dealer.jpg)
+
+**Richiesta:** dopo la prova su PC della v0.19, Stefano ha trovato l'auto "decentrata rispetto
+alla piattaforma" e "molto piccola": da raddoppiare. Poi un pulsante per dividere le auto del
+garage, quelle da comprare e le elaborazioni; sull'auto in uso il pulsante deve diventare "acquista
+nuova"; la vendita delle auto (mai l'ultima), pagata il 50% al massimo con un po' di valore in più
+per ogni elaborazione; 15 colori al posto dell'RGB; elaborazioni come grandi icone che scorrono di
+lato, con i pallini "stage 1-5" e il prezzo, ogni stage più caro del precedente. E i pulsanti,
+"veramente orribili": icone con scritte moderne, un po' graffiti, colori al neon, una bomboletta per
+la verniciatura, chiave inglese e cacciavite incrociati per il tuning, una casa con la serranda per
+il garage.
+
+**Come è stato costruito:**
+- **Auto sul piatto** (`scripts/dealer.gd`): la finestra 3D ora copre tutto lo schermo e la camera
+  viene calcolata dalla posizione del piatto nell'immagine di Stefano. Lo sfondo copre lo schermo
+  tenendo le proporzioni, quindi il gioco rifà lo stesso conto (scala e ritaglio) e mette il centro
+  dell'auto sul centro del piatto, lunga quasi quanto il piatto, su qualunque schermo (PC 16:9 o
+  telefono 20:9). Camera leggermente dall'alto (7°) come la foto, obiettivo più "lungo" per non
+  deformare l'auto.
+- **Tre sezioni** in alto: LE MIE AUTO, IN VENDITA, TUNING. Le frecce scorrono solo le auto della
+  sezione. Sull'auto in uso il pulsante centrale dice "ACQUISTA NUOVA" e porta alle auto in vendita;
+  sulle altre auto possedute dice "GUIDA QUESTA"; tra quelle in vendita "COMPRA".
+- **Vendita:** il pulsante VENDI compare solo con almeno due auto e chiede conferma al primo tocco.
+  La richiesta era ambigua (50% più 0,2% per stage, ma "al massimo il 50%"); scelta: il 44% del
+  prezzo più lo 0,2% per ogni stage montato, così un'auto con tutto a stage 5 (30 stage) arriva
+  esattamente al 50%. Colore e tuning dell'auto venduta spariscono con lei.
+- **Verniciatura:** 15 colori (dal bianco al nero, rossi, arancio, giallo, verdi, azzurri, blu,
+  viola, rosa) e ORIGINALE.
+- **Tuning a schede:** sei schede grandi, ognuna con la sua icona, il nome, cosa fa, i cinque
+  pallini "stage 1-5" e il prezzo dello stage dopo; scorrono di lato. I prezzi ora salgono per
+  forza a ogni stage (almeno 50 $ in più), anche dopo l'arrotondamento.
+- **Stile neon** (`scripts/neon.gd`): icone disegnate nel codice come tubi al neon (casa con
+  serranda, bomboletta, chiave e cacciavite, motore, centralina, scarico, bombola nitro, disco del
+  freno, molla), pulsanti scuri con il bordo luminoso, scritte nel font Permanent Marker (stile
+  pennarello, licenza Apache 2.0, `assets/fonts/`).
+
+**Verifica ed esito:** screenshot del dealer in 16:9 e in 20:9 in tutte le sezioni; prova a parte di
+vendita (l'ultima auto non si vende, vendendo quella in uso si passa all'altra) e dei prezzi degli
+stage (nessuno stage costa meno o uguale al precedente, su tutte le 14 auto). Da provare su PC e
+telefono.
+
+---
+
 ## Prossimi passi
 
-- Prova sul telefono e sul PC della v0.19.
-- Il resto del dealer (Stefano ha altre idee), gare che pagano in modo diverso, cosa mostra la mappa.
+- Prova sul telefono e sul PC della v0.20.
+- Gli altri pulsanti (garage, menù) nello stesso stile neon; gare che pagano in modo diverso, cosa mostra la mappa.
 - Togliere i loghi dipinti nelle texture delle auto di marchi reali; aggiungere i mezzi della seconda ricerca (fuoristrada, pick-up, buggy, traffico di città).
 - Costruire il nuovo aspetto realistico (luce, cielo, ombre, materiali) un passo approvato alla volta.
 - Passo 3 del piano: **vertical slice**, cioè un circuito e un'auto rifiniti al livello del gioco finale.
