@@ -307,3 +307,9 @@ Scaricati l'8/11/2026 (libreria nei file di progetto: `libreria-3d/ambientazione
 
 Le icone al neon della v0.20 (garage, bomboletta, chiave e cacciavite, pezzi del tuning) sono
 disegnate nel codice (`scripts/neon.gd`): nostre, nessun file.
+
+## Icone dell'interfaccia — `assets/ui/icons/`
+
+| File | Cosa è | Fonte | Licenza | Modifiche |
+|---|---|---|---|---|
+| 18 file `*.svg` (garage, dealer, race_start, map, my_cars, for_sale, tuning, paint, shop, switch_car, wallet, confirm, reset, garage_upgrade, previous, next, currency, star_currency) | Icone di garage e dealer (v0.22.1) | "Nitro UI Icon Pack v1", fornito da Stefano Paglierani l'08/11/2026 (50 icone, disegnate per il gioco) | Fornite da Stefano per il gioco (origine e diritti da confermare prima della pubblicazione) | Nessuna; importate con scala 2 |

@@ -867,6 +867,29 @@ di marcia".
 
 ---
 
+## v0.22.1 — Il set di icone di Stefano (8 novembre)
+
+![Il dealer con le icone del set](immagini/v0.22.1-icone.jpg)
+
+**Richiesta:** Stefano ha preparato un pacchetto di 50 icone SVG per il gioco ("Nitro UI Icon
+Pack v1": linee argento metallizzate con un accento blu, ambra, rosso o verde, sfondo
+trasparente) e ha chiesto di usarlo come set d'interfaccia di garage e dealer.
+
+**Come è stato costruito:**
+- Le 18 icone che servono sono in `assets/ui/icons/` (importate al doppio della risoluzione, con
+  mipmap, così restano nitide su ogni schermo); le altre 32 restano nel pacchetto per i menù futuri.
+- `Neon.draw_icon` usa l'icona del set quando ne esiste una con quel nome; i sei pezzi del tuning
+  (motore, centralina, ...), che il set non ha, tengono i disegni della v0.20.4.
+- Garage: MAPPA, DEALER, INIZIO GARA, SELEZIONA / LA TUA AUTO. Dealer: GARAGE, LE MIE AUTO,
+  IN VENDITA, TUNING, VERNICIATURA, COMPRA / ACQUISTA NUOVA, GUIDA QUESTA, VENDI, ORIGINALE, OK e il
+  pulsante dello stage. Frecce (precedente / successiva) e pannelli di soldi e reputazione presi
+  dal set. Le scritte usano i quattro colori d'accento del pacchetto.
+- Il bagliore delle icone (un filtro SVG) non viene letto da Godot: restano linee e colori.
+
+**Verifica ed esito:** screenshot di garage e dealer in tutte le sezioni. Da provare su PC.
+
+---
+
 ## Prossimi passi
 
 - Prova sul telefono della v0.22: se scatta ancora, il passo dopo è ridurre ancora la risoluzione 3D o togliere le ombre del tutto.

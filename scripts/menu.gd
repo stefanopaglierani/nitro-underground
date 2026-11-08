@@ -133,20 +133,12 @@ func _build_car_window() -> void:
 func _build_top_bar() -> void:
 	UiKit.money_and_rep(self)
 
-	var map := UiKit.button("", Color(0.25, 0.45, 0.75))
+	var map := Neon.NeonButton.new().setup("MAPPA", "map", Neon.CYAN, true, 22)
 	map.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	map.offset_left = 20
-	map.offset_top = 18
-	map.offset_right = 100
-	map.offset_bottom = 98
-	var icon := UiKit.Icon.new()
-	icon.kind = "map"
-	icon.set_anchors_preset(Control.PRESET_FULL_RECT)
-	icon.offset_left = 12
-	icon.offset_top = 12
-	icon.offset_right = -12
-	icon.offset_bottom = -12
-	map.add_child(icon)
+	map.offset_left = 14
+	map.offset_top = 10
+	map.offset_right = 134
+	map.offset_bottom = 130
 	map.pressed.connect(func(): _say("La mappa arriverà presto"))
 	add_child(map)
 
@@ -164,7 +156,7 @@ func _build_top_bar() -> void:
 ## SELEZIONA above the car, DEALER bottom left, INIZIO GARA bottom right: since v0.20.4 a
 ## coloured picture and a caption, no box (Neon, like the dealer).
 func _build_buttons() -> void:
-	_select_button = Neon.NeonButton.new().setup("SELEZIONA", "check", Neon.GREEN, false, 32)
+	_select_button = Neon.NeonButton.new().setup("SELEZIONA", "confirm", Neon.GREEN, false, 32)
 	_select_button.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	_select_button.offset_left = -190
 	_select_button.offset_right = 190
@@ -173,7 +165,7 @@ func _build_buttons() -> void:
 	_select_button.pressed.connect(_on_select)
 	add_child(_select_button)
 
-	_dealer_button = Neon.NeonButton.new().setup("DEALER", "shop", Neon.YELLOW, true, 26)
+	_dealer_button = Neon.NeonButton.new().setup("DEALER", "dealer", Neon.CYAN, true, 26)
 	_dealer_button.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	_dealer_button.offset_left = 18
 	_dealer_button.offset_right = 178
@@ -183,7 +175,7 @@ func _build_buttons() -> void:
 	add_child(_dealer_button)
 
 	var race: Array = Main.CAMPAIGN[SaveGame.race_index % Main.CAMPAIGN.size()]
-	_go_button = Neon.NeonButton.new().setup("INIZIO GARA", "flag", Neon.RED, true, 26)
+	_go_button = Neon.NeonButton.new().setup("INIZIO GARA", "race_start", Neon.RED, true, 26)
 	_go_button.sub = race[1]
 	_go_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	_go_button.offset_left = -218
@@ -210,7 +202,7 @@ func _set_locked(on: bool) -> void:
 	for b in _arrows:
 		b.visible = _garage.size() > 1
 	_select_button.set_caption("LA TUA AUTO" if on else "SELEZIONA")
-	_select_button.icon_kind = "key" if on else "check"
+	_select_button.icon_kind = "my_cars" if on else "confirm"
 	_select_button.disabled = on
 	_go_button.disabled = not on
 	_dealer_button.disabled = not on

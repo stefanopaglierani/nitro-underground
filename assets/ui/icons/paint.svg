@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Verniciatura">
+  <defs>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".48" stop-color="#D6E0EA"/><stop offset="1" stop-color="#7D91A7"/></linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <g fill="none" stroke="#09121D" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M34 24H86L98 36V68H78V48H42V68H22V36Z"/><path d="M42 68V100Q42 108 50 108H78Q86 108 86 100V68"/><path d="M54 84H74"/><path d="M100 20 108 28M108 42H116M96 50 104 58"/></g>
+  <g fill="none" stroke="url(#metal)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"><path d="M34 24H86L98 36V68H78V48H42V68H22V36Z"/><path d="M42 68V100Q42 108 50 108H78Q86 108 86 100V68"/><path d="M54 84H74"/><path d="M100 20 108 28M108 42H116M96 50 104 58"/></g>
+  <g fill="none" stroke="#FFC247" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity=".95" filter="url(#glow)"><path d="M34 24H86L98 36V68H78V48H42V68H22V36Z"/><path d="M42 68V100Q42 108 50 108H78Q86 108 86 100V68"/><path d="M54 84H74"/><path d="M100 20 108 28M108 42H116M96 50 104 58"/></g>
+</svg>
