@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Tuning">
-  <defs>
-    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".48" stop-color="#D6E0EA"/><stop offset="1" stop-color="#7D91A7"/></linearGradient>
-    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-  </defs>
-  <g fill="none" stroke="#09121D" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M24 30 42 48 30 60 12 42Z"/><path d="M42 48 94 100 106 88 54 36"/><path d="M78 24 104 50 88 66 62 40Z"/><path d="M18 100 42 76 54 88 30 112Z"/></g>
-  <g fill="none" stroke="url(#metal)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"><path d="M24 30 42 48 30 60 12 42Z"/><path d="M42 48 94 100 106 88 54 36"/><path d="M78 24 104 50 88 66 62 40Z"/><path d="M18 100 42 76 54 88 30 112Z"/></g>
-  <g fill="none" stroke="#35A8FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity=".95" filter="url(#glow)"><path d="M24 30 42 48 30 60 12 42Z"/><path d="M42 48 94 100 106 88 54 36"/><path d="M78 24 104 50 88 66 62 40Z"/><path d="M18 100 42 76 54 88 30 112Z"/></g>
-</svg>

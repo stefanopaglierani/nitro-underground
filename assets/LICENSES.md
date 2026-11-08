@@ -312,4 +312,4 @@ disegnate nel codice (`scripts/neon.gd`): nostre, nessun file.
 
 | File | Cosa è | Fonte | Licenza | Modifiche |
 |---|---|---|---|---|
-| 18 file `*.svg` (garage, dealer, race_start, map, my_cars, for_sale, tuning, paint, shop, switch_car, wallet, confirm, reset, garage_upgrade, previous, next, currency, star_currency) | Icone di garage e dealer (v0.22.1) | "Nitro UI Icon Pack v1", fornito da Stefano Paglierani l'08/11/2026 (50 icone, disegnate per il gioco) | Fornite da Stefano per il gioco (origine e diritti da confermare prima della pubblicazione) | Nessuna; importate con scala 2 |
+| 18 file `*.png` (garage, dealer, race_start, map, my_cars, for_sale, tuning, paint, shop, switch_car, wallet, confirm, reset, garage_upgrade, previous, next, currency, star_currency) | Icone di garage e dealer (v0.22.2; sostituiscono gli SVG della v0.22.1, ritirati) | Foglio "Glossy Racing Garage UI Icon Sheet" (50 icone), fornito da Stefano Paglierani l'08/11/2026 | Fornite da Stefano per il gioco (origine e diritti da confermare prima della pubblicazione) | Ritagliate dal foglio, sfondo reso trasparente, 256×256; `wallet.png` è una copia di `currency.png` |

@@ -890,6 +890,29 @@ trasparente) e ha chiesto di usarlo come set d'interfaccia di garage e dealer.
 
 ---
 
+## v0.22.2 — Le icone giuste, ritagliate dal foglio di Stefano (8 novembre)
+
+![Il dealer con le icone del foglio](immagini/v0.22.2-icone.jpg)
+
+**Richiesta:** subito dopo la v0.22.1 Stefano si è accorto che il pacchetto SVG non era quello
+giusto e l'ha ritirato. Al suo posto ha mandato un'immagine con 50 icone lucide in stile racing
+(garage, dealer, bandiera a scacchi, mappa, auto, cartellino del prezzo, chiave e cacciavite,
+bomboletta, monete, stella, carrello, frecce...) e ha chiesto di ricavare da lì le icone di garage
+e dealer.
+
+**Come è stato costruito:**
+- Le 17 icone necessarie sono state ritagliate dal foglio con uno script: lo sfondo scuro
+  attorno a ogni icona diventa trasparente partendo dai bordi, si tolgono i frammenti delle
+  targhette con le scritte e ogni icona viene centrata in un quadrato di 256 pixel.
+- I file SVG della v0.22.1 sono stati tolti; `Neon` ora carica `assets/ui/icons/<nome>.png`.
+  Stessi nomi e stessi pulsanti di prima, quindi garage e dealer non cambiano nel codice.
+- Le icone sono a colori pieni e non vengono più tinte: VENDI usa le monete, lo stage del tuning il "+".
+- I sei pezzi del tuning tengono ancora i disegni della v0.20.4, perché il foglio non li ha.
+
+**Verifica ed esito:** screenshot di garage, dealer e tuning. Da provare su PC e telefono.
+
+---
+
 ## Prossimi passi
 
 - Prova sul telefono della v0.22: se scatta ancora, il passo dopo è ridurre ancora la risoluzione 3D o togliere le ombre del tutto.

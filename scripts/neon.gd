@@ -108,7 +108,7 @@ static func _ring(c: Vector2, r0: float, r1: float, a0: float, a1: float, n := 1
 ## Stefano's icon set (v0.20.5, "Nitro UI Icon Pack", assets/ui/icons): metallic line icons with
 ## a blue, amber, red or green accent. An icon of the set is used when there is one with that
 ## name; the tuning parts, which the set doesn't have, keep the drawn pictures below.
-const ICON_DIR := "res://assets/ui/icons/%s.svg"
+const ICON_DIR := "res://assets/ui/icons/%s.png"
 static var _textures := {}
 
 

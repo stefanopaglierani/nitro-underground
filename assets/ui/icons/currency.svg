@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Crediti">
-  <defs>
-    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".48" stop-color="#D6E0EA"/><stop offset="1" stop-color="#7D91A7"/></linearGradient>
-    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-  </defs>
-  <g fill="none" stroke="#09121D" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><circle cx="64" cy="64" r="44"/><path d="M80 42Q72 32 60 36Q44 40 48 54Q52 62 66 64Q84 66 80 82Q74 94 54 88Q46 86 42 80M64 26V102"/></g>
-  <g fill="none" stroke="url(#metal)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="64" cy="64" r="44"/><path d="M80 42Q72 32 60 36Q44 40 48 54Q52 62 66 64Q84 66 80 82Q74 94 54 88Q46 86 42 80M64 26V102"/></g>
-  <g fill="none" stroke="#FFC247" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity=".95" filter="url(#glow)"><circle cx="64" cy="64" r="44"/><path d="M80 42Q72 32 60 36Q44 40 48 54Q52 62 66 64Q84 66 80 82Q74 94 54 88Q46 86 42 80M64 26V102"/></g>
-</svg>
