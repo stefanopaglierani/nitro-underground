@@ -49,6 +49,7 @@ func build_steps() -> Array:
 		["Cactus e rocce", _build_desert_plants],
 		["Paese", _build_town],
 		["Cartelli", _build_rocks],
+		["Ambiente", func(): Roadside.dress(self, "desert")],
 		["Rampe", _build_ramps],
 		["Traiettoria", _build_racing_line],
 	]

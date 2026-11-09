@@ -15,6 +15,9 @@ const TRACKS := [
 	["night", "CITTÀ DI NOTTE", "Downtown: gomiti tra i palazzi"],
 	["desert", "DESERTO", "Route 66: canyon e motel"],
 ]
+## The races of the campaign, in order (v0.19, Stefano: the coast first, then the city): [circuit id,
+## name on the garage button]. Finishing a race moves on to the next; after the last it starts again.
+const CAMPAIGN := [["coast", "COSTA"], ["night", "CITTÀ"], ["desert", "DESERTO"], ["mountain", "MONTAGNA"]]
 ## Map file of each circuit (tracks/<name>.txt), drawn on its button in the menu.
 const TRACK_MAPS := {"mountain": "montagna", "coast": "costa", "night": "citta_notte", "desert": "deserto"}
 ## The level object for a circuit id (not built yet).
@@ -55,14 +58,16 @@ const WRONG_WAY_SPEED := 8.0
 const WRONG_WAY_TIME := 1.5
 ## Money for every race finished (Stefano, v0.18); a race lost on time or by arrest pays nothing.
 const PRIZE := 5000
-## Reputation (Stefano, v0.18): a win, a police chase shaken off, and drifts: each drift is worth
-## REP_DRIFT, doubled for every next drift started within REP_COMBO_TIME seconds of the last one
-## (up to REP_COMBO_MAX times the base). Drifts shorter than REP_DRIFT_MIN seconds do not count.
+## Reputation (Stefano): a win, a police chase shaken off, and drifts (v0.19 combo): every drift
+## is worth REP_DRIFT; drifts in a row (each started within REP_COMBO_TIME seconds of the end of the
+## one before) make a combo: at the 5th the combo total doubles, from the 6th each drift is worth
+## REP_DRIFT_LATE, at the 10th the total triples; after that drifts stay at REP_DRIFT_LATE.
+## Drifts shorter than REP_DRIFT_MIN seconds do not count.
 const REP_WIN := 1000
 const REP_POLICE := 100
 const REP_DRIFT := 20
+const REP_DRIFT_LATE := 30
 const REP_COMBO_TIME := 3.0
-const REP_COMBO_MAX := 16
 const REP_DRIFT_MIN := 0.5
 ## Seconds into the race when someone calls the police.
 const POLICE_CALL_TIME := 20.0
@@ -111,11 +116,12 @@ var _off_track_t := {}
 var _racer_stall := {}  # racer -> [wp_index, seconds without reaching the next point]
 var _warn_t := 0.0
 ## Reputation earned in this race, and the drift combo: seconds of the drift going on, seconds
-## since the last one ended, value of the next one.
+## since the last one ended, drifts in the combo and its total.
 var rep_gained := 0
 var _drift_t := 0.0
 var _since_drift := INF
-var _drift_value := REP_DRIFT
+var _combo := 0
+var _combo_total := 0
 var cam_yaw := 0.0
 var _cam_dist := CAM_DIST
 var _cam_y := 0.0
@@ -191,12 +197,13 @@ func _ready() -> void:
 	ComicStyle.setup_environment(self, city.night)
 	ComicStyle.add_stylize_pass(camera)
 	camera.far = city.view_distance
+	Perf.apply(self, camera, city)
 	await _loading("Ritocchi finali", (steps.size() + 1) / total)
 	ComicStyle.install(get_tree())
 	await _loading("Traffico", (steps.size() + 2) / total)
 	var traffic: Array[TrafficCar] = []
 	var grid_front: Vector3 = city.start_grid(1)[0][0]
-	for i in (0 if OS.get_cmdline_user_args().has("--notraffic") else TRAFFIC_CARS):
+	for i in (0 if OS.get_cmdline_user_args().has("--notraffic") else (Perf.TRAFFIC if Perf.mobile else TRAFFIC_CARS)):
 		var t := TrafficCar.new()
 		add_child(t)
 		t.setup(city, rng)
@@ -535,6 +542,36 @@ func _race_logic(delta: float) -> void:
 ## Keeps every car inside the level: past OFF_TRACK_WARN metres beyond the guardrail the player
 ## gets a warning, and a car that stays past OFF_TRACK_LIMIT for OFF_TRACK_TIME seconds (or goes
 ## much further, or falls down the mountain) is put back on the road.
+## Direction of the race at `pos`: along race_path, near the player's progress (the path may pass
+## close to itself, e.g. both carriageways of a street).
+func _race_direction(pos: Vector3) -> Vector3:
+	var best := -1
+	var best_d := INF
+	var lo := clampi(player_wp - 4, 0, race_path.size() - 2)
+	var hi := clampi(player_wp + 8, lo + 1, race_path.size() - 1)
+	for k in range(lo, hi):
+		var d := _segment_distance(pos, race_path[k], race_path[k + 1])
+		if d < best_d:
+			best_d = d
+			best = k
+	if best_d > 60.0:
+		# Progress index lost (far shortcut): look at the whole path.
+		for k in race_path.size() - 1:
+			var d := _segment_distance(pos, race_path[k], race_path[k + 1])
+			if d < best_d:
+				best_d = d
+				best = k
+	var dir := race_path[best + 1] - race_path[best]
+	dir.y = 0.0
+	return dir.normalized()
+
+
+static func _segment_distance(p: Vector3, a: Vector3, b: Vector3) -> float:
+	var ab := b - a
+	var t := clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.001), 0.0, 1.0)
+	return p.distance_to(a + ab * t)
+
+
 func _off_track_logic(delta: float) -> void:
 	for c: Car in [player] + racers:
 		var d := city.off_track_distance(c.global_position)
@@ -549,7 +586,13 @@ func _off_track_logic(delta: float) -> void:
 			_off_track_t[c] = 0.0
 			var spot := city.recovery_point(c.global_position)
 			var facing: Vector3 = spot[1]
-			if c.driver != Car.Driver.RACER and facing.dot(-c.global_transform.basis.z) < 0.0:
+			if c == player and race_path.size() > 1:
+				# Towards the next checkpoint, not the way the car happened to point when it left
+				# the road (Stefano: "9 volte su 10 ci rimette nel senso sbagliato di marcia").
+				var ahead := _race_direction(spot[0])
+				if facing.dot(ahead) < 0.0:
+					facing = -facing
+			elif c.driver != Car.Driver.RACER and facing.dot(-c.global_transform.basis.z) < 0.0:
 				facing = -facing
 			c.place(spot[0], facing)
 			if c == player:
@@ -611,6 +654,7 @@ func _checkpoints_logic() -> void:
 			var pos := finish_order.find(player) + 1
 			var won := pos == 1
 			SaveGame.money += PRIZE
+			SaveGame.race_index += 1  # back in the garage, the next race of the campaign waits
 			if won:
 				_add_rep(REP_WIN, "Vittoria")
 			_end(won, "%d° POSTO" % pos, "Tempo %s\nVincita: %d $   Reputazione: +%d" % [_fmt_time(race_time), PRIZE, rep_gained])
@@ -715,22 +759,32 @@ func _on_crash(impact: float, other: Object, car: Car) -> void:
 	hud.set_heat(heat)
 
 
-## Reputation for drifts: counted when a drift ends; the next one within REP_COMBO_TIME doubles.
+## Reputation for drifts: counted when a drift ends, see REP_DRIFT.
 func _drift_logic(delta: float) -> void:
 	if player.drifting:
 		_drift_t += delta
 		return
 	_since_drift += delta
+	if _since_drift > REP_COMBO_TIME:
+		_combo = 0  # too long since the last drift: the combo is over
+		_combo_total = 0
 	if _drift_t >= REP_DRIFT_MIN:
-		# _since_drift stopped when this drift started: the gap before it decides the combo,
-		# and _drift_value was put back to the base below if that gap was over REP_COMBO_TIME.
-		var times := _drift_value / REP_DRIFT
-		_add_rep(_drift_value, "Derapata" if times == 1 else "Derapata x%d" % times)
-		_drift_value = mini(_drift_value * 2, REP_DRIFT * REP_COMBO_MAX)
+		# _since_drift stopped while this drift went on: the gap before it decided the combo above.
+		_combo += 1
+		var value := REP_DRIFT if _combo <= 5 else REP_DRIFT_LATE
+		_combo_total += value
+		var bonus := 0
+		if _combo == 5:
+			bonus = _combo_total  # doubles
+		elif _combo == 10:
+			bonus = _combo_total * 2  # triples
+		_combo_total += bonus
+		if bonus > 0:
+			_add_rep(value + bonus, "Combo x%d! (%d derapate)" % [2 if _combo == 5 else 3, _combo])
+		else:
+			_add_rep(value, "Derapata" if _combo == 1 else "Derapata %d" % _combo)
 		_since_drift = 0.0
 	_drift_t = 0.0
-	if _since_drift > REP_COMBO_TIME:
-		_drift_value = REP_DRIFT
 
 
 func _add_rep(amount: int, why: String) -> void:

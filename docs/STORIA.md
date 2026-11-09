@@ -40,6 +40,9 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.16 | 06/11/2026 | Auto lontane in versione leggera contro gli scatti, asfalto a filo del terreno, avviso rosso di contromano, Petalo Roadster non più sospesa | ramo `claude/project-thread-8bmj8s` |
 | v0.17 | 07/11/2026 | Si entra direttamente nel garage (3 auto, scelta definitiva, denaro e reputazione), minimappa in gara, caricamento con la serranda del garage che si apre | ramo `claude/project-thread-v3cjse` |
 | v0.18 | 07/11/2026 | Pagina d'attesa con START, denaro e reputazione che si guadagnano in gara, asfalto 10 cm sopra il terreno, traiettoria semitrasparente | ramo `claude/project-thread-v3cjse` |
+| v0.19 | 08/11/2026 | Dealer con 14 auto, colore RGB ed elaborazioni a 5 livelli; nuova combo delle derapate; dopo la Costa la Città | ramo `claude/project-thread-v3cjse` |
+| v0.21 | 08/11/2026 | Ambienti più ricchi: 51 modelli nuovi (boschi, rocce, case americane, arredo urbano, pali della luce, cartelli americani), neon della città ridotti a un terzo | ramo `claude/project-thread-u6ha4a` |
+| v0.22 | 08/11/2026 | Profilo grafico leggero per il telefono; freno, freno a mano e nitro sistemati, auto più pesanti, rientro in pista nel verso giusto | ramo `claude/project-thread-u6ha4a` |
 
 ## Le svolte principali
 
@@ -567,14 +570,360 @@ al 50%, e una pagina d'attesa con una sua immagine e solo un pulsante START in b
   la strada, trattini della traiettoria con trasparenza al 50%.
 
 **Verifica ed esito:** screenshot della pagina d'attesa e del garage con 2.000 di partenza, gara
-automatica sulla costa con i guadagni di reputazione scritti nel registro. Da provare su PC e telefono.
+automatica sulla costa con i guadagni di reputazione scritti nel registro. Stefano l'ha provata e ha
+deciso che raddoppiare ogni derapata era troppo: la combo è stata rifatta nella v0.19.
+
+---
+
+## v0.19 — Il dealer (8 novembre)
+
+![Il dealer](immagini/v0.19-dealer.jpg)
+
+**Richiesta:** "la parte fondamentale è costruire il dealer, ovvero l'autoconcessionaria", con una
+sua immagine come sfondo: le altre auto in vendita, la possibilità di cambiare colore "con un RGB
+classico", e un menù di modifiche su sei punti (motore, centralina, scarico, nitro, freni,
+sospensioni), cinque livelli ciascuno a pallini, con prezzi tali che portare tutto al massimo costi
+circa il doppio dell'auto; le tre auto di partenza valgono 9.000. Nel garage il pulsante per il
+dealer; finita la prima gara si torna al garage e la gara dopo è la città. E una nuova combo: ogni
+derapata vale 20, alla quinta di fila il totale raddoppia, dalla sesta ognuna vale 30, alla decima
+il totale triplica.
+
+**Come è stato costruito:**
+- **Dealer** (`scripts/dealer.gd`, `scenes/dealer.tscn`): le 14 auto del garage girano una alla volta
+  sul piatto dello showroom, con le frecce, il prezzo e "COMPRA"; quelle già possedute mostrano
+  "GUIDA QUESTA". Si caricano dal disco solo l'auto in vista e le due vicine.
+- **Colore:** tre cursori R, G, B; l'auto cambia colore mentre si muovono. Il gioco tinge solo il
+  materiale della carrozzeria (indicato per ogni auto in `scripts/car_catalog.gd`), così le
+  carrozzerie con texture tengono i dettagli. "ORIGINALE" torna al colore del modello.
+- **Elaborazioni** (`scripts/tuning.gd`): sei righe con cinque pallini e il prezzo del livello dopo.
+  Ogni parte ha una quota un po' diversa del totale (fissa per ogni auto) e i livelli alti costano
+  di più. In gara, ad esempio, il motore dà +4% di spinta per livello, i freni +6% di frenata.
+- **Salvataggio** (`scripts/save_game.gd`): auto possedute, auto in uso, colori, livelli, prossima
+  gara. Nel garage le frecce ora scorrono le auto possedute; quella in vista è quella che si guida.
+- **Campagna:** Costa, Città, Deserto, Montagna, poi di nuovo dall'inizio; il pulsante del garage
+  dice quale gara aspetta. Si passa alla successiva arrivando al traguardo.
+- **Combo** (`scripts/main.gd`): dieci derapate di fila valgono 1.050 punti reputazione.
+
+**Verifica ed esito:** la combo è stata provata a parte (20, 20, 20, 20, +120, 30, 30, 30, 30, +730);
+ogni auto è stata dipinta di fucsia per controllare che il colore prenda la carrozzeria giusta (la
+Goblin ha due gusci sovrapposti: la vernice viene spinta fuori di un soffio); gara automatica sulla
+costa con l'auto verde e tre elaborazioni. Da provare su PC e telefono.
+
+---
+
+## v0.20 — Il dealer rifatto (8 novembre)
+
+![Il dealer rifatto](immagini/v0.20-dealer.jpg)
+
+**Richiesta:** dopo la prova su PC della v0.19, Stefano ha trovato l'auto "decentrata rispetto
+alla piattaforma" e "molto piccola": da raddoppiare. Poi un pulsante per dividere le auto del
+garage, quelle da comprare e le elaborazioni; sull'auto in uso il pulsante deve diventare "acquista
+nuova"; la vendita delle auto (mai l'ultima), pagata il 50% al massimo con un po' di valore in più
+per ogni elaborazione; 15 colori al posto dell'RGB; elaborazioni come grandi icone che scorrono di
+lato, con i pallini "stage 1-5" e il prezzo, ogni stage più caro del precedente. E i pulsanti,
+"veramente orribili": icone con scritte moderne, un po' graffiti, colori al neon, una bomboletta per
+la verniciatura, chiave inglese e cacciavite incrociati per il tuning, una casa con la serranda per
+il garage.
+
+**Come è stato costruito:**
+- **Auto sul piatto** (`scripts/dealer.gd`): la finestra 3D ora copre tutto lo schermo e la camera
+  viene calcolata dalla posizione del piatto nell'immagine di Stefano. Lo sfondo copre lo schermo
+  tenendo le proporzioni, quindi il gioco rifà lo stesso conto (scala e ritaglio) e mette il centro
+  dell'auto sul centro del piatto, lunga quasi quanto il piatto, su qualunque schermo (PC 16:9 o
+  telefono 20:9). Camera leggermente dall'alto (7°) come la foto, obiettivo più "lungo" per non
+  deformare l'auto.
+- **Tre sezioni** in alto: LE MIE AUTO, IN VENDITA, TUNING. Le frecce scorrono solo le auto della
+  sezione. Sull'auto in uso il pulsante centrale dice "ACQUISTA NUOVA" e porta alle auto in vendita;
+  sulle altre auto possedute dice "GUIDA QUESTA"; tra quelle in vendita "COMPRA".
+- **Vendita:** il pulsante VENDI compare solo con almeno due auto e chiede conferma al primo tocco.
+  La richiesta era ambigua (50% più 0,2% per stage, ma "al massimo il 50%"); scelta: il 44% del
+  prezzo più lo 0,2% per ogni stage montato, così un'auto con tutto a stage 5 (30 stage) arriva
+  esattamente al 50%. Colore e tuning dell'auto venduta spariscono con lei.
+- **Verniciatura:** 15 colori (dal bianco al nero, rossi, arancio, giallo, verdi, azzurri, blu,
+  viola, rosa) e ORIGINALE.
+- **Tuning a schede:** sei schede grandi, ognuna con la sua icona, il nome, cosa fa, i cinque
+  pallini "stage 1-5" e il prezzo dello stage dopo; scorrono di lato. I prezzi ora salgono per
+  forza a ogni stage (almeno 50 $ in più), anche dopo l'arrotondamento.
+- **Stile neon** (`scripts/neon.gd`): icone disegnate nel codice come tubi al neon (casa con
+  serranda, bomboletta, chiave e cacciavite, motore, centralina, scarico, bombola nitro, disco del
+  freno, molla), pulsanti scuri con il bordo luminoso, scritte nel font Permanent Marker (stile
+  pennarello, licenza Apache 2.0, `assets/fonts/`).
+
+**Verifica ed esito:** screenshot del dealer in 16:9 e in 20:9 in tutte le sezioni; prova a parte di
+vendita (l'ultima auto non si vende, vendendo quella in uso si passa all'altra) e dei prezzi degli
+stage (nessuno stage costa meno o uguale al precedente, su tutte le 14 auto). Da provare su PC e
+telefono.
+
+---
+
+## v0.20.1 — Pastello, catalogo e ombra (8 novembre)
+
+![Il dealer della v0.20.1](immagini/v0.20.1-dealer.jpg)
+
+**Richiesta:** dopo la prova su PC della v0.20, Stefano ha trovato il neon troppo forte: "teniamo un
+colore pastello". Per il tuning ha chiesto una sola scheda in basso a destra, con due frecce per
+sfogliare i pezzi "come se stessimo sfogliando un catalogo". E ha notato che l'auto sembrava
+"appiccicata" sulla foto: niente ombre, quasi rialzata dietro.
+
+**Come è stato costruito:**
+- **Pastello** (`scripts/neon.gd`): stessi disegni e stesso font, ma colori tenui, nessun alone;
+  icone e scritte hanno un bordo scuro per leggersi su qualunque sfondo.
+- **Catalogo del tuning** (`scripts/dealer.gd`): una scheda (icona, nome, cosa fa, pallini stage
+  1-5, prezzo, "1 / 6") con le frecce ai lati; l'auto resta sul piatto, più piccola e spostata a
+  sinistra.
+- **Auto appoggiata:** il modello viene abbassato finché le gomme toccano il piatto (prima ogni
+  auto stava all'altezza del suo punto d'origine). Sotto l'auto c'è un'ombra morbida che gira con
+  lei (prima disegnata in 2D, dalla v0.20.2 sostituita dal pavimento 3D).
+
+**Verifica ed esito:** screenshot di tutte le sezioni. È un rimedio: per un'integrazione vera con
+riflessi e luci coerenti serve uno showroom costruito in 3D. Da provare su PC.
+
+---
+
+## v0.20.2 — Il pavimento 3D dello showroom (8 novembre)
+
+![Lo showroom con il pavimento 3D](immagini/v0.20.2-dealer.jpg)
+
+**Richiesta:** l'auto della v0.20.1 sembrava ancora appoggiata sopra una foto. Tra tre strade
+(pavimento 3D con la foto sullo sfondo, showroom tutto in 3D, lasciare così) Stefano ha scelto la
+prima.
+
+**Come è stato costruito** (`scripts/dealer.gd`):
+- **Pavimento invisibile ma vero:** un piano 3D all'altezza del piatto, con uno shader che mostra
+  in ogni punto esattamente il pixel della foto che c'è dietro (stesso conto di scala e ritaglio
+  della camera). Non si vede come oggetto separato, ma essendo 3D riceve luci e ombre.
+- **Ombra vera:** una luce che arriva dalla porta aperta, alle spalle del piatto, proietta l'ombra
+  dell'auto verso chi guarda; le altre luci illuminano solo l'auto, così il pavimento resta del
+  colore della foto. Sotto l'auto, una zona più scura che gira con lei la "appoggia" a terra.
+- **Riflesso:** una copia capovolta dell'auto sotto il pavimento; il pavimento la lascia
+  intravedere solo vicino all'auto, come sul cemento lucido della foto.
+- Il tonemapping della scena del dealer è lineare, perché il pavimento deve restituire i colori
+  della foto senza cambiarli.
+
+**Verifica ed esito:** screenshot in 16:9 e 20:9 (il pavimento combacia con la foto, nessuna
+cucitura visibile). Costo sul telefono: una copia in più dell'auto e una mappa d'ombra, solo in
+questa schermata. Da provare su PC e telefono.
+
+---
+
+## v0.20.3 — Colori accesi, tuning sopra l'auto (8 novembre)
+
+![Il tuning sopra l'auto](immagini/v0.20.3-tuning.jpg)
+
+**Richiesta:** il catalogo del tuning va bene, ma l'auto non va rimpicciolita né spostata: la
+scheda si mette sopra l'auto, un po' trasparente. E i pastello sono "troppo sciapi": rosso acceso
+al posto del rosa, giallo limone, verde acceso, blu elettrico al posto dell'azzurro.
+
+**Come è stato costruito:** in TUNING l'auto resta grande al centro del piatto e la scheda le sta
+sopra con lo sfondo più trasparente; i colori di pulsanti, icone e scritte (`scripts/neon.gd`)
+sono ora rosso fuoco, giallo limone, verde acceso, blu elettrico e arancio.
+
+**Verifica ed esito:** screenshot delle sezioni. Da provare su PC.
+
+---
+
+## v0.20.4 — Pulsanti come la mappa, auto ferma, tuning che si sente (8 novembre)
+
+![Il dealer della v0.20.4](immagini/v0.20.4-dealer.jpg)
+
+**Richiesta:** Stefano ha provato la v0.20.3: niente riquadro scuro né bordo colorato sui
+pulsanti, solo icona e scritta; e tutti i pulsanti, anche quelli del garage ("DEALER" e "INIZIO
+GARA" erano "orribili"), allo stesso livello della piccola icona della mappa, la sua preferita.
+L'auto non deve più girare da sola: ferma quasi di lato, verso il giocatore, e si gira col dito o
+col mouse. Nel dealer si deve poter passare da un'auto all'altra anche nel tuning. E il tuning si
+sentiva poco: "+4% di spinta per livello", da triplicare.
+
+**Come è stato costruito:**
+- **Figure colorate** (`scripts/neon.gd`): ogni icona è un piccolo disegno piatto a colori pieni
+  con il contorno scuro, come la mappa: casa con la serranda, bomboletta, chiave inglese e
+  cacciavite, auto, cartellino del prezzo, banconota, negozio con la tenda a strisce, bandiera a
+  scacchi, chiave, spunta, motore, centralina, marmitta, bombola del nitro, disco del freno, molla.
+  Il pulsante è solo figura e scritta; premuto si rimpicciolisce un attimo, la scheda scelta è
+  sottolineata.
+- **Garage** (`scripts/menu.gd`): SELEZIONA, DEALER (negozio) e INIZIO GARA (bandiera, con sotto il
+  nome della gara) nello stesso stile.
+- **Auto ferma:** dealer e garage mostrano l'auto quasi di lato con il muso un po' verso chi
+  guarda; trascinando sullo schermo la si gira. Nel garage il trascinamento prima cambiava auto:
+  ora per quello ci sono solo le frecce.
+- **Tuning:** nella sezione TUNING compaiono due frecce accanto al nome per cambiare auto senza
+  uscire. Effetti triplicati (`scripts/tuning.gd`): motore +12% di spinta per stage, centralina
+  +6% e +4,5% di velocità massima, scarico +6% e +3%, nitro +18% di forza e +24% di durata, freni
+  +18%, sospensioni +7,5% di aderenza.
+
+**Verifica ed esito:** screenshot di garage e dealer; due gare automatiche sulla costa con la
+stessa auto (Kaze R-34), di serie e con tutto a stage 5. Dopo 5 secondi di gara 59 contro 84
+km/h, dopo 7 secondi 104 contro 164 km/h; i primi tre checkpoint arrivano a 11,7 / 22,7 / 29,5 s
+di serie e a 10,3 / 20,0 / 27,9 s elaborata, nonostante il pilota automatico faccia più fatica a
+tenerla (un salto con l'auto di traverso alla terza curva). Da provare su PC.
+
+---
+
+## v0.21 — Ambienti più pieni (8 novembre)
+
+![La costa con le nuove case, palme e pali della luce](immagini/v0.21-costa.jpg)
+
+**Richiesta:** usare i modelli d'ambiente appena scaricati (114, tutti vendibili: CC BY 4.0 o
+CC0) per "migliorare la grafica dell'ambiente": la vegetazione tutta, "per riempire parecchio";
+del resto una buona parte, ma senza doppioni ("abbiamo tre tipi di cassonetto... ne utilizziamo
+uno solo"). Pali della luce sì; il ponte ad arco più avanti, quando ci sarà una mappa 3D completa.
+Studiare i pezzi di strada (incrocio, strada in collina, strada con parcheggio). Poi, dopo la
+prova della v0.20.3: i neon della città "sono veramente troppi... anche più che dimezzare".
+
+**Come è stato costruito:**
+- **51 modelli scelti** (`assets/scenery/env/`): tutta la vegetazione e le rocce (17 file), un
+  solo modello per ogni tipo doppio (un cassonetto, un sacco, una cassetta postale, un parchimetro,
+  una recinzione, un lampione, un container...), case americane, palazzi di mattoni, una fila di
+  edifici da paese con la tavola calda, distributori, magazzini, pali della luce. Esclusi i
+  doppioni, gli oggetti con marchi veri (una Coca-Cola dipinta, la benzina "Flying A") e le
+  insegne in cinese. Elenco completo con autori e licenze in `assets/LICENSES.md`.
+- **Alleggeriti per il telefono** prima di entrare nel progetto: texture ridotte (256-1024 px,
+  JPEG quando non serve la trasparenza) e compresse a 512 px; i modelli più pesanti semplificati
+  (un cespuglino da 27.000 triangoli ne ha ora 1.400, le rocce scansionate da 84.000 a 16.000).
+  La libreria da 920 MB è diventata 65 MB.
+- **Un "kit" per ogni circuito** in `scripts/roadside.gd`: una lista di modelli con quante copie,
+  quanto grandi e a che distanza dalla strada. Lo script li sparge lungo il tracciato solo dove
+  c'è posto (non sull'asfalto, non in mare, non addosso a case e alberi già presenti), gira le
+  case verso la strada e le appoggia sul terreno in piano. Montagna: boschi, cespugli, rocce, una
+  baita, una fattoria, tavoli da picnic. Costa: palme, case di legno con le cassette postali,
+  lampioni, cabine telefoniche. Deserto: rocce e erba secca, edifici di paese, pompe di benzina,
+  copertoni e bidoni. Città: cassonetti, parchimetri, cabine e centraline sui marciapiedi, cortili
+  con container e magazzini, 7 palazzi nuovi tra quelli delle vie.
+- **Pali della luce veri**: il modello ha palo e cavi insieme; il gioco li separa e tende i cavi
+  da un palo al successivo, seguendo le curve e le salite.
+- **Cartelli americani** (limite 55, Route 66, SLOW, strada tortuosa) al posto di quelli europei.
+- **Prestazioni:** le copie sono disegnate a gruppi (MultiMesh) per zone di 128 m, così le zone
+  lontane spariscono; cespugli e oggetti piccoli si vedono fino a 80-100 m e non fanno ombra.
+- **Città:** neon delle facciate ridotti a circa un terzo (`scripts/night_city.gd`).
+
+**Verifica ed esito:** screenshot dei quattro circuiti e autotest di gara in tutti e quattro.
+Misurato sul PC di sviluppo (rendering software, quindi solo i conteggi valgono, non gli FPS),
+nello stesso istante dopo la partenza: triangoli disegnati +13-22% e draw call +3-11% rispetto
+alla v0.20.3. Stefano l'ha provata: sul PC "lavora tutto molto bene", sul telefono invece
+scattava molto (vedi v0.22).
+
+**I pezzi di strada (studio, non ancora nel gioco):** incrocio, incrocio in collina e strada con
+parcheggio sono "piastrelle" fisse di 35-84 m con strade larghe circa 7 m (le nostre sono 12 m).
+Per guidarci sopra servono: una collisione ricavata dall'asfalto del modello, un comando nella
+mappa del circuito (es. `INCROCIO`) che faccia passare la nostra strada esattamente dentro la
+piastrella e in piano, e la scala adattata alla nostra carreggiata. Proposta da approvare.
+
+## v0.22 — Telefono leggero e guida sistemata (8 novembre)
+
+**Richiesta:** dopo la prova della v0.21 Stefano scrive che sul PC "lavora tutto molto bene", ma
+sul telefono ci sono "grossissimi problemi di lag... bisogna trovare il modo di alleggerire il
+tutto, ma veramente, veramente tanto". E sulla guida: il freno "non lavora minimamente" (provato
+con tre auto), il freno a mano "manda l'auto completamente fuori controllo", il nitro "sembra non
+dare praticamente niente", negli scontri l'auto "vola per diversi metri" ("darei più peso, nel
+senso di chili, più gravità"), e il rientro in pista "9 volte su 10 ci rimette nel senso sbagliato
+di marcia".
+
+**Come è stato costruito:**
+- **Un profilo grafico solo per il telefono** (`scripts/perf.gd`); il PC resta com'era.
+  - Il 3D viene calcolato al 62% della risoluzione e poi allargato: meno del 40% dei pixel.
+    Pulsanti e scritte restano nitidi.
+  - Niente antialiasing e niente bagliore (glow): il bagliore sfoca tutto lo schermo più volte
+    a ogni fotogramma.
+  - L'ombra del sole è una sola mappa invece di due, fino a 45 m dalla telecamera.
+  - Si vede fino a metà distanza, e una nebbia nasconde il taglio.
+  - Alberi, erba, rocce, case e oggetti a bordo strada sono la metà e spariscono prima.
+  - Le auto del traffico sono 12 invece di 24 (ognuna è un corpo fisico con quattro ruote
+    simulate).
+  - Di giorno il faro dell'auto è spento. Ogni luce costringe il telefono a ridisegnare una
+    seconda volta ciò che illumina, quindi in città le luci dei lampioni sono 3 invece di 8.
+  - Per provarlo sul PC basta avviare il gioco con `--mobile`.
+- **Freno** (`scripts/car.gd`): le gomme dividono la loro aderenza tra frenare e curvare, così in
+  curva o con un po' di sbandata il pedale non frenava quasi niente. Ora i freni sono più forti
+  del 20% e c'è un aiuto arcade di 9 m/s² che frena sempre.
+- **Freno a mano**: il posteriore tiene il 65% dell'aderenza invece del 43%, frena di meno e
+  l'aiuto allo sterzo resta attivo, quindi l'auto scivola di traverso senza girarsi.
+- **Nitro**: velocità massima +30% invece di +20%, motore 2,6 volte più forte invece di 1,8, e
+  una spinta in più che non dipende dalla marcia. Il tuning del nitro ora dà davvero +18% per
+  stage, come scritto nel dealer.
+- **Peso**: le auto pesano 1.800 kg invece di 1.200. Motore, freni e sospensioni sono cresciuti
+  in proporzione, quindi la guida non cambia, ma il traffico la sposta molto meno. In più:
+  - negli urti tra auto la spinta verso l'alto e il ribaltamento sono limitati;
+  - mentre l'auto sale in aria c'è quasi una gravità in più.
+- **Rientro in pista**: il gioco girava l'auto nel verso in cui puntava quando era uscita
+  (spesso girata dopo un testacoda). Ora la mette nel verso della gara, verso il prossimo
+  checkpoint (`scripts/main.gd`).
+
+**Verifica ed esito:**
+- **Prestazioni**, misurate sul PC di sviluppo con il profilo telefono, nelle stesse
+  inquadrature della stessa gara automatica:
+
+  | Circuito | Triangoli | Chiamate di disegno |
+  |---|---|---|
+  | Montagna | −37% | −29% |
+  | Costa | −39% | −32% |
+  | Deserto | −30% | −27% |
+  | Città di notte | −25% | −21% |
+
+  Il rendering lì è software, quindi gli FPS del PC non dicono niente sul telefono.
+- **Banco prova** a 30, 60 e 120 tick, con risultati uguali a ogni frequenza:
+  - frenata da 144 km/h in 33 m invece di 63 m;
+  - derapata col freno a mano a 38° invece di 84° (testacoda), con uscita a 95 km/h invece
+    di 38;
+  - col nitro, 146 km/h dopo 3 s invece di 91;
+  - salti dalle rampe più corti del 25%;
+  - curve, accelerazione e velocità massima invariate.
+- **Autotest:** 12 gare del pilota automatico, 3 per circuito. 9 arrivano al traguardo; le
+  altre 3 finiscono con un arresto o con il tempo scaduto dopo un incidente nel traffico. Due di
+  questi stessi casi finiscono male anche con la guida della v0.21. Il gioco va provato sul
+  Galaxy A51.
+
+---
+
+## v0.22.1 — Il set di icone di Stefano (8 novembre)
+
+![Il dealer con le icone del set](immagini/v0.22.1-icone.jpg)
+
+**Richiesta:** Stefano ha preparato un pacchetto di 50 icone SVG per il gioco ("Nitro UI Icon
+Pack v1": linee argento metallizzate con un accento blu, ambra, rosso o verde, sfondo
+trasparente) e ha chiesto di usarlo come set d'interfaccia di garage e dealer.
+
+**Come è stato costruito:**
+- Le 18 icone che servono sono in `assets/ui/icons/` (importate al doppio della risoluzione, con
+  mipmap, così restano nitide su ogni schermo); le altre 32 restano nel pacchetto per i menù futuri.
+- `Neon.draw_icon` usa l'icona del set quando ne esiste una con quel nome; i sei pezzi del tuning
+  (motore, centralina, ...), che il set non ha, tengono i disegni della v0.20.4.
+- Garage: MAPPA, DEALER, INIZIO GARA, SELEZIONA / LA TUA AUTO. Dealer: GARAGE, LE MIE AUTO,
+  IN VENDITA, TUNING, VERNICIATURA, COMPRA / ACQUISTA NUOVA, GUIDA QUESTA, VENDI, ORIGINALE, OK e il
+  pulsante dello stage. Frecce (precedente / successiva) e pannelli di soldi e reputazione presi
+  dal set. Le scritte usano i quattro colori d'accento del pacchetto.
+- Il bagliore delle icone (un filtro SVG) non viene letto da Godot: restano linee e colori.
+
+**Verifica ed esito:** screenshot di garage e dealer in tutte le sezioni. Da provare su PC.
+
+---
+
+## v0.22.2 — Le icone giuste, ritagliate dal foglio di Stefano (8 novembre)
+
+![Il dealer con le icone del foglio](immagini/v0.22.2-icone.jpg)
+
+**Richiesta:** subito dopo la v0.22.1 Stefano si è accorto che il pacchetto SVG non era quello
+giusto e l'ha ritirato. Al suo posto ha mandato un'immagine con 50 icone lucide in stile racing
+(garage, dealer, bandiera a scacchi, mappa, auto, cartellino del prezzo, chiave e cacciavite,
+bomboletta, monete, stella, carrello, frecce...) e ha chiesto di ricavare da lì le icone di garage
+e dealer.
+
+**Come è stato costruito:**
+- Le 17 icone necessarie sono state ritagliate dal foglio con uno script: lo sfondo scuro
+  attorno a ogni icona diventa trasparente partendo dai bordi, si tolgono i frammenti delle
+  targhette con le scritte e ogni icona viene centrata in un quadrato di 256 pixel.
+- I file SVG della v0.22.1 sono stati tolti; `Neon` ora carica `assets/ui/icons/<nome>.png`.
+  Stessi nomi e stessi pulsanti di prima, quindi garage e dealer non cambiano nel codice.
+- Le icone sono a colori pieni e non vengono più tinte: VENDI usa le monete, lo stage del tuning il "+".
+- I sei pezzi del tuning tengono ancora i disegni della v0.20.4, perché il foglio non li ha.
+
+**Verifica ed esito:** screenshot di garage, dealer e tuning. Da provare su PC e telefono.
 
 ---
 
 ## Prossimi passi
 
-- Prova sul telefono e sul PC della v0.18.
-- Decidere a cosa servono denaro e reputazione e cosa mostra la mappa.
+- Prova sul telefono della v0.22: se scatta ancora, il passo dopo è ridurre ancora la risoluzione 3D o togliere le ombre del tutto.
+- Pezzi di strada (incrocio, strada con parcheggio) dentro i circuiti, se approvato; ponte ad arco con la mappa 3D completa.
+- Gli altri pulsanti (garage, menù) nello stesso stile neon; gare che pagano in modo diverso, cosa mostra la mappa.
 - Togliere i loghi dipinti nelle texture delle auto di marchi reali; aggiungere i mezzi della seconda ricerca (fuoristrada, pick-up, buggy, traffico di città).
 - Costruire il nuovo aspetto realistico (luce, cielo, ombre, materiali) un passo approvato alla volta.
 - Passo 3 del piano: **vertical slice**, cioè un circuito e un'auto rifiniti al livello del gioco finale.

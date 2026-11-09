@@ -535,7 +535,7 @@ func _build_end() -> void:
 	end_text.add_theme_color_override("font_color", Color(0.85, 0.87, 0.95))
 	box.add_child(end_text)
 	_big_button(box, "RIPROVA", ACCENT).pressed.connect(func(): restart_pressed.emit())
-	_big_button(box, "MENU", CYAN).pressed.connect(func(): menu_pressed.emit())
+	_big_button(box, "GARAGE", CYAN).pressed.connect(func(): menu_pressed.emit())
 	end_panel.visible = false
 
 
@@ -550,7 +550,7 @@ func _build_pause() -> void:
 	title.add_theme_color_override("font_color", Color(1, 0.85, 0.2))
 	box.add_child(title)
 	_big_button(box, "RIPRENDI GARA", Color(0.3, 1, 0.45)).pressed.connect(func(): resume_pressed.emit())
-	_big_button(box, "MENÙ", CYAN).pressed.connect(func(): menu_pressed.emit())
+	_big_button(box, "GARAGE", CYAN).pressed.connect(func(): menu_pressed.emit())
 	pause_panel.visible = false
 
 

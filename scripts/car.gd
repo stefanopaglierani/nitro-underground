@@ -59,23 +59,40 @@ var frozen := true:
 		freeze = value
 
 # ---- Tuning (SI units: kg, m, s, N). 60 m/s is about 215 km/h. ----
+## v0.22 (Stefano: "più peso, più chili"): the cars weigh 1.5 times what they did (1800 kg).
+## Engine, brakes, springs, dampers, drag and downforce grew by the same factor, so the car
+## accelerates, corners and rides as before, but in a crash it gets pushed around much less.
+const WEIGHT := 1.5
 var max_speed := 60.0
-var engine_force := 11000.0
-var brake_force := 15000.0
+var engine_force := 11000.0 * WEIGHT
+## Tyre brake (v0.22: +20%), plus BRAKE_ASSIST below.
+var brake_force := 18000.0 * WEIGHT
 var reverse_max := 10.0
-var nitro_mult := 1.2
-var nitro_force_mult := 1.8
+## Nitro (v0.22, Stefano: "da aumentare tantissimo"): higher top speed, stronger engine, and a
+## push of NITRO_PUSH m/s² straight from the bottle that does not care about the gear.
+var nitro_mult := 1.3
+var nitro_force_mult := 2.6
+const NITRO_PUSH := 5.5
 var gravity_mult := 1.5
+## Extra gravity while the car rises in the air (in g), so a car thrown by a crash or a ramp
+## doesn't fly as high or as far.
+const AIR_GRAVITY := 0.8
+## Brake help on top of the tyres (m/s² at full pedal): the tyres share their grip between
+## braking and turning, so in a bend the pedal alone did almost nothing (Stefano: "il freno non
+## lavora minimamente"). With it a full stop from 200 km/h takes about 2.5 s.
+const BRAKE_ASSIST := 9.0
 var spring_rest := 0.3
 var wheel_radius := 0.35
-var spring_k := 45000.0
-var damper := 4200.0
+var spring_k := 45000.0 * WEIGHT
+var damper := 4200.0 * WEIGHT
 ## Extension is damped harder than compression, like a real shock absorber, so hard landings
 ## don't throw the car back into the air.
 var rebound_ratio := 1.8
 var bump_stop := 0.08
 var grip := 1.15
-var handbrake_rear_grip := 0.5
+## Rear grip with the handbrake pulled (front 1.15). v0.22: 0.5 -> 0.75, the car slides
+## instead of spinning round (Stefano: "il freno a mano manda l'auto fuori controllo").
+var handbrake_rear_grip := 0.75
 ## Share of the engine force on the front wheels: 0 rear-wheel drive, 1 front-wheel drive.
 var front_drive := 0.35
 ## Front wheel angle at full lock, at walking pace and at top speed.
@@ -87,8 +104,8 @@ const PLAYER_STEER := 0.7
 const RACER_CORNER_MARGIN := 0.92
 var steer_rate := 4.0
 var yaw_assist := 0.55
-var downforce := 1.0
-var drag := 0.42
+var downforce := 1.0 * WEIGHT
+var drag := 0.42 * WEIGHT
 var roll_reduction := 0.75
 ## Air control (player only): brake lifts the nose, handbrake drops it. Steering does nothing in
 ## the air: a car has nothing to turn against.
@@ -179,7 +196,7 @@ func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 	add_to_group("cars")
 	driver = kind
 	city = the_city
-	mass = 1200.0
+	mass = 1200.0 * WEIGHT
 	gravity_scale = gravity_mult
 	center_of_mass_mode = RigidBody3D.CENTER_OF_MASS_MODE_CUSTOM
 	center_of_mass = Vector3(0, 0.15, 0)
@@ -229,7 +246,8 @@ func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 		_susp_len[i] = spring_rest
 
 	var body := player_body
-	var model_paint := Color(0, 0, 0, 0) if kind == Driver.PLAYER else paint
+	# Every car keeps its own colours; the player's gets the colour chosen at the dealer below.
+	var model_paint := Color(0, 0, 0, 0)
 	if kind == Driver.RACER:
 		var pool := rival_bodies()
 		body = racer_body if racer_body != "" else pool[absi(hash(paint)) % pool.size()]
@@ -242,6 +260,7 @@ func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 	_model = CarModel.build(model_paint, kind == Driver.POLICE, body)
 	if kind == Driver.PLAYER:
 		CarModel.keep_detailed(_model)  # always close to the camera
+		CarModel.paint_model(_model, body, SaveGame.color_of(body))
 	add_child(_model)
 	for n in ["WheelFL", "WheelFR", "WheelRL", "WheelRR"]:
 		_wheel_nodes.append(_model.get_node(n))
@@ -263,25 +282,22 @@ func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 
 	match kind:
 		Driver.PLAYER:
-			var head := SpotLight3D.new()
-			head.position = Vector3(0, 0.8, -2.2)
-			head.rotation_degrees.x = -8
-			head.spot_range = 32
-			head.spot_angle = 32
-			head.light_energy = 4.0
-			head.light_color = Color(1, 0.95, 0.85)
-			add_child(head)
-			var glow := OmniLight3D.new()
-			glow.position = Vector3(0, 0.25, 0)
-			glow.omni_range = 4.5
-			glow.light_energy = 3.0
-			glow.light_color = paint.lightened(0.3)
-			add_child(glow)
+			# Phone: every lamp redraws what it touches once more, so the headlight is lit only at
+			# night and the coloured glow under the car stays on PC.
+			if not Perf.mobile or Perf.night_level:
+				_add_headlight()
+			if not Perf.mobile:
+				var glow := OmniLight3D.new()
+				glow.position = Vector3(0, 0.25, 0)
+				glow.omni_range = 4.5
+				glow.light_energy = 3.0
+				glow.light_color = paint.lightened(0.3)
+				add_child(glow)
 		Driver.RACER:
 			max_speed = 57.0
 		Driver.POLICE:
 			max_speed = 59.0
-			engine_force = 11500.0
+			engine_force = 11500.0 * WEIGHT
 			_siren_red = _model.get_meta("siren_red")
 			_siren_blue = _model.get_meta("siren_blue")
 			_siren_light = OmniLight3D.new()
@@ -289,6 +305,8 @@ func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 			_siren_light.omni_range = 12
 			_siren_light.light_energy = 3.0
 			add_child(_siren_light)
+	if kind == Driver.PLAYER:
+		Tuning.apply(self, body)  # parts bought at the dealer
 	var audio := CarAudio.new()
 	add_child(audio)
 	audio.setup(self)
@@ -466,9 +484,9 @@ func _apply_vehicle_forces(delta: float) -> void:
 		if braking > 0.0:
 			f_long -= signf(v_long) * brake_force * braking * 0.25
 		if in_handbrake and not front:
-			f_long -= signf(v_long) * minf(absf(v_long) * mass / 4.0 / delta, max_f * 0.8)
+			f_long -= signf(v_long) * minf(absf(v_long) * mass / 4.0 / delta, max_f * 0.5)
 		if drive == 0.0 and braking == 0.0:
-			f_long -= v_long * 30.0
+			f_long -= v_long * 30.0 * WEIGHT
 		var f := Vector2(f_long, f_lat)
 		if f.length() > max_f:
 			f = f.normalized() * max_f
@@ -495,13 +513,24 @@ func _apply_vehicle_forces(delta: float) -> void:
 		# Yaw assist: pull the spin rate towards what the steering asks for.
 		var target_yaw := -speed * tan(_steer) / (WHEEL_Z * 2.0)
 		var yaw := angular_velocity.dot(up)
-		var assist := yaw_assist * (0.5 if in_handbrake else 1.0) * (0.0 if _knocked > 0.0 else 1.0)
+		var assist := yaw_assist * (0.8 if in_handbrake else 1.0) * (0.0 if _knocked > 0.0 else 1.0)
 		apply_torque(up * (target_yaw - yaw) * assist * mass * 1.5 * float(wheels_on_ground) / 4.0)
 		apply_central_force(-up * downforce * v.length_squared())
+		var ground_share := float(wheels_on_ground) / 4.0
+		if braking > 0.0:
+			# Brake help, never more than what stops the car in this step.
+			var dec := minf(BRAKE_ASSIST * braking, absf(speed) / delta) * ground_share
+			apply_central_force(-fwd * signf(speed) * dec * mass)
+		if using_nitro and speed > 0.0:
+			var push := NITRO_PUSH * clampf(1.0 - pow(speed / top, 4.0), 0.0, 1.0) * ground_share
+			apply_central_force(fwd * push * mass)
 	elif not on_ground:
 		if airborne_time == 0.0:
 			air_rotation = Vector3.ZERO
 		airborne_time += delta
+		if v.y > 0.0:
+			# Only on the way up: shorter, lower flights, but no harder landings.
+			apply_central_force(Vector3.DOWN * AIR_GRAVITY * 9.8 * mass)
 		air_rotation += rad_to_deg(1.0) * (b.inverse() * angular_velocity) * delta
 		if driver == Driver.PLAYER:
 			_air_control(b)
@@ -592,7 +621,6 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		if breaker.smash(other, state.get_contact_collider_shape(i), impact, _prev_velocity):
 			state.linear_velocity = _prev_velocity * 0.75
 			break
-	var v_now := state.linear_velocity
 	if driver != Driver.PLAYER:
 		for i in state.get_contact_count():
 			var other := state.get_contact_collider_object(i)
@@ -600,6 +628,21 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 				var knock := state.get_contact_impulse(i).length() / mass
 				if knock > 2.5:
 					_knocked = maxf(_knocked, clampf(knock * 0.15, 0.6, 1.8))
+	# Car against car: Jolt pushes overlapping bodies apart in one step and sometimes throws them
+	# into the air (Stefano: "vola per diversi metri"). Keep only a small hop and little roll.
+	for i in state.get_contact_count():
+		if state.get_contact_collider_object(i) is RigidBody3D and state.get_contact_local_normal(i).y < 0.7:
+			var lv := state.linear_velocity
+			if lv.y > maxf(_prev_velocity.y, 0.0) + 1.0:
+				lv.y = maxf(_prev_velocity.y, 0.0) + 1.0
+				state.linear_velocity = lv
+			var bb := state.transform.basis
+			var av := state.angular_velocity
+			var yaw_part := bb.y * av.dot(bb.y)
+			var tilt_part := av - yaw_part
+			if tilt_part.length() > 1.5:
+				state.angular_velocity = yaw_part + tilt_part.normalized() * 1.5
+			break
 	if _hit_cooldown <= 0.0:
 		for i in state.get_contact_count():
 			var n := state.get_contact_local_normal(i)
@@ -610,7 +653,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 				_hit_cooldown = 0.6
 				crashed.emit(impact, state.get_contact_collider_object(i))
 				break
-	_prev_velocity = v_now
+	_prev_velocity = state.linear_velocity
 
 
 func _update_visuals(delta: float) -> void:
@@ -799,3 +842,14 @@ func _drive_police(delta: float) -> void:
 		in_brake = 1.0 if closing > 14.0 else 0.0  # head-on: slow down, block the road
 		in_throttle = 1.0 if closing < 6.0 else 0.0
 		in_nitro = nitro > 0.2 and closing < 3.0
+
+
+func _add_headlight() -> void:
+	var head := SpotLight3D.new()
+	head.position = Vector3(0, 0.8, -2.2)
+	head.rotation_degrees.x = -8
+	head.spot_range = 32
+	head.spot_angle = 32
+	head.light_energy = 4.0
+	head.light_color = Color(1, 0.95, 0.85)
+	add_child(head)

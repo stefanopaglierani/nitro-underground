@@ -4,14 +4,9 @@ Ogni file in `assets/` deve comparire qui, con fonte, autore, licenza alla data 
 
 Tutti gli asset attuali vengono da [Poly Haven](https://polyhaven.com) e sono **CC0 1.0** (pubblico dominio): uso commerciale libero, modifiche libere, attribuzione non obbligatoria (la diamo comunque per correttezza). Licenza verificata su https://polyhaven.com/license il 2026-10-28.
 
-## HDRI (cielo notturno e riflessi) — `assets/hdri/`
+## HDRI (tolti dal repository l'08/11/2026)
 
-| File | Asset | Autore | Link | Licenza | Download | Modifiche |
-|---|---|---|---|---|---|---|
-| `modern_evening_street_1k.hdr` | Modern Evening Street | Grzegorz Wronkowski | https://polyhaven.com/a/modern_evening_street | CC0 1.0 | 2026-10-28 | Nessuna (risoluzione 1K) |
-| `cobblestone_street_night_1k.hdr` | Cobblestone Street Night | Greg Zaal, Jenelle van Heerden | https://polyhaven.com/a/cobblestone_street_night | CC0 1.0 | 2026-10-28 | Nessuna (risoluzione 1K) |
-| `modern_buildings_night_1k.hdr` | Modern Buildings Night | Greg Zaal | https://polyhaven.com/a/modern_buildings_night | CC0 1.0 | 2026-10-28 | Nessuna (risoluzione 1K) |
-| `dresden_station_night_1k.hdr` | Dresden Station Night | Greg Zaal | https://polyhaven.com/a/dresden_station_night | CC0 1.0 | 2026-10-28 | Nessuna (risoluzione 1K) |
+I cieli HDRI di Poly Haven (CC0: Modern Evening Street, Cobblestone Street Night, Modern Buildings Night, Dresden Station Night, Kloofendal 48d Partly Cloudy Pure Sky) non erano più usati dal gioco, che disegna il cielo con gli shader `comic_sky` e `night_sky`, ed erano già esclusi dall'APK. Sono stati tolti per alleggerire il repository; restano scaricabili da Poly Haven se serviranno.
 
 ## Texture PBR — `assets/materials/`
 
@@ -55,7 +50,6 @@ Il pack KayKit (CC0, Kay Lousberg) dava solo le auto low poly di riserva: è sta
 
 | File e uso | Tipo | Asset | Autore | Link | Licenza | Download | Modifiche |
 |---|---|---|---|---|---|---|---|
-| `assets/hdri/kloofendal_48d_partly_cloudy_puresky_2k.hdr`, cielo della montagna | HDRI 2K | Kloofendal 48d Partly Cloudy (Pure Sky) | Greg Zaal, Jarod Guest | https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky | CC0 1.0 | 2026-10-29 | Nessuna |
 | `assets/materials/aerial_grass_rock/`, erba del terreno (colorata più verde nello shader) | Texture 1K | Aerial Grass Rock | Rob Tuytel | https://polyhaven.com/a/aerial_grass_rock | CC0 1.0 | 2026-10-29 | Nessuna |
 | `assets/materials/aerial_beach_01/`, sabbia della spiaggia (circuito Costa) | Texture 1K | Aerial Beach 01 | Rob Tuytel | https://polyhaven.com/a/aerial_beach_01 | CC0 1.0 | 2026-10-30 | Nessuna |
 | `assets/materials/rocky_terrain_02/`, terreno vicino alla strada | Texture 1K | Rocky Terrain 02 | Amal Kumar | https://polyhaven.com/a/rocky_terrain_02 | CC0 1.0 | 2026-10-29 | Nessuna |
@@ -66,9 +60,9 @@ Il pack KayKit (CC0, Kay Lousberg) dava solo le auto low poly di riserva: è sta
 
 I pini, i guardrail e la strada della montagna sono generati dal codice (`scripts/mountain.gd`), non sono asset esterni. `clean_asphalt` (già registrato sopra) è usato anche per le banchine.
 
-## Libreria di modelli da OpenGameArt — `assets/library/`
+## Libreria di modelli da OpenGameArt (tolta dal repository l'08/11/2026)
 
-Scaricati il 2026-10-29 da https://opengameart.org (dominio aperto da Stefano). Tutti i pacchetti sono marcati **CC0** sulla loro pagina OpenGameArt (verificato pagina per pagina al download). La cartella ha un file `.gdignore`: Godot non la importa e non finisce nell'APK. Per usare un modello, si copia fuori dalla libreria (per esempio in `assets/props/`) e si annota l'uso qui.
+Scaricati il 2026-10-29 da https://opengameart.org (dominio aperto da Stefano). Tutti i pacchetti sono marcati **CC0** sulla loro pagina OpenGameArt (verificato pagina per pagina al download). Fino all'08/11/2026 stavano in `assets/library/` (104 MB, con `.gdignore`, mai nell'APK). Su decisione di Stefano la cartella è stata tolta dal repository, come già si fa con la libreria dei modelli nuovi, che vive fuori dal repository: i due modelli già presi (tabella qui sotto) restano nel gioco. Gli elenchi qui sotto restano come registro della provenienza; i pacchetti si possono riscaricare dalle pagine indicate.
 
 Modifiche comuni a tutti i pacchetti: tenuti solo i formati che Godot legge (glTF/GLB, FBX, OBJ). Tolti i file `.blend`, i collegamenti `.url`/`.html` e i doppioni in altri formati. Le immagini di anteprima sono state ridotte a 960 px in JPG. Le texture `.tga` sono state convertite in PNG (le diffuse e le speculari delle barriere Yughues in JPG), e i `.mtl` sono stati aggiornati di conseguenza.
 
@@ -235,6 +229,64 @@ Scaricati il 2026-10-31 in formato GLB dall'API di Sketchfab, non modificati. Li
 
 La libreria completa scaricata (58 modelli, anche quelli non ancora usati) è nella cartella del progetto `nitro-underground/libreria-3d/`, con i crediti in `CREDITI.md`.
 
+## Ambientazione v0.21 (Sketchfab CC BY 4.0 e Poly Haven CC0) — `assets/scenery/env/`
+
+Scaricati l'8/11/2026 (libreria nei file di progetto: `libreria-3d/ambientazione-vendibile/`, numeri come nella pagina di proposta). Tutti con licenza commerciale; i CC BY 4.0 vanno citati anche nei titoli di coda. Modifiche comuni: texture ridotte a 256-1024 px (JPEG dove non c'è trasparenza) e importate compresse a 512 px; i modelli più pesanti sono stati alleggeriti (colonna Triangoli: originale → nel gioco). Li dispone `scripts/roadside.gd`. Per i tipi doppi ne è stato preso uno solo (scelta di Stefano dell'8/11/2026).
+
+| File | N. | Modello | Autore | Fonte | Licenza | Triangoli | Link |
+|---|---|---|---|---|---|---|---|
+| `bush.glb` | 1 | Real Bush | marblesstudio | Sketchfab | CC BY 4.0 | 472 | https://sketchfab.com/3d-models/none-62618c3260b142cfb7ef499d75a8d21a |
+| `rock_scan.glb` | 2 | Stránská rock 1 | 3dhdscan | Sketchfab | CC BY 4.0 | 84283 → 16157 | https://sketchfab.com/3d-models/none-4118802ad14243d59f34c2be3fa77cd4 |
+| `cliff_rock.glb` | 3 | Free_cliff_rock | kwinto | Sketchfab | CC BY 4.0 | 41112 → 3083 | https://sketchfab.com/3d-models/none-75fb6b34dc0d46259dedc8c7cd94e7b7 |
+| `cliffs.glb` | 4 | Cliffs | bumstrum | Sketchfab | CC BY 4.0 | 2436 | https://sketchfab.com/3d-models/none-14fe5023840146179c8515093e88fae0 |
+| `grass_patches.glb` | 5 | Grass patches | bumstrum | Sketchfab | CC BY 4.0 | 1910 | https://sketchfab.com/3d-models/none-6952780b80594a31aab2dedf7249a47a |
+| `trees_collection.glb` | 6 | Realistic Trees Collection | jungle_jim | Sketchfab | CC BY 4.0 | 127660 → 21596 | https://sketchfab.com/3d-models/none-fe67c886eebf4bcb988d7c45e69995ad |
+| `oak_set.glb` | 7 | 3 English Oak Set (Quercus Robur) *Updated | Yag1z | Sketchfab | CC BY 4.0 | 28379 → 9361 | https://sketchfab.com/3d-models/none-750fac732a8c453e9dd748f1396275fa |
+| `oak.glb` | 8 | Oak tree | evolveduk | Sketchfab | CC BY 4.0 | 8364 → 4017 | https://sketchfab.com/3d-models/none-6468dd4d3eb240ef902b9057d9913606 |
+| `palm.glb` | 9 | Realistic Palm Tree 2 Free | NextSpring | Sketchfab | CC BY 4.0 | 60764 → 31187 | https://sketchfab.com/3d-models/none-d05c8ffb6ec64a7184c4b673e21f7224 |
+| `conifer_pack.glb` | 10 | Coniferous Forest Assets Pack | dariiiii | Sketchfab | CC BY 4.0 | 58390 → 10985 | https://sketchfab.com/3d-models/none-240ce9cf0ad3474f809a59f9446e63cd |
+| `pine_tree.glb` | 11 | Pine Tree | evolveduk | Sketchfab | CC BY 4.0 | 5627 | https://sketchfab.com/3d-models/none-d45218a3fab349e5b1de040f29e7b6f9 |
+| `vegetation_pack.glb` | 12 | Low poly vegetation for games | denoises | Sketchfab | CC BY 4.0 | 9008 | https://sketchfab.com/3d-models/none-cdac82eb61ab4d83bf162b4c44b44d6d |
+| `stump.glb` | 13 | Boubín Stump | 3dhdscan | Sketchfab | CC BY 4.0 | 23581 → 1532 | https://sketchfab.com/3d-models/none-b968b5dc462148989cb87b072885da85 |
+| `shrub.glb` | 14 | Shrub 04 | Rico Cilliers | Poly Haven | CC0 | 47813 → 1394 | https://polyhaven.com/a/shrub_04 |
+| `rock_face.glb` | 15 | Rock Face 01 | Dario Barresi | Poly Haven | CC0 | 20174 → 3026 | https://polyhaven.com/a/rock_face_01 |
+| `rock_moss.glb` | 16 | Rock Moss Set 01 | Kless Gyzen | Poly Haven | CC0 | 63127 → 4098 | https://polyhaven.com/a/rock_moss_set_01 |
+| `boulders.glb` | 17 | Namaqualand Boulders 01 | Greg Zaal, Jenelle van Heerden | Poly Haven | CC0 | 76590 → 1632 | https://polyhaven.com/a/namaqualand_boulders_01 |
+| `dumpster.glb` | 19 | dumpster | YJ_ | Sketchfab | CC BY 4.0 | 11193 → 3512 | https://sketchfab.com/3d-models/none-989ea7f01b924859b3484ee27103e8d9 |
+| `mailbox.glb` | 23 | Home US Mailbox 📫 | glowbox3d | Sketchfab | CC BY 4.0 | 2074 | https://sketchfab.com/3d-models/none-132c790ac74c42a0bb1a5fc7e3d43d7e |
+| `parking_meter.glb` | 25 | Parking Meter Scan LOWPOLY | evan4129 | Sketchfab | CC BY 4.0 | 3537 | https://sketchfab.com/3d-models/none-c0f5e3e1c8a64ab3b64d4b077bd09210 |
+| `phone_booth.glb` | 27 | Phone booth | YJ_ | Sketchfab | CC BY 4.0 | 8963 | https://sketchfab.com/3d-models/none-f52615a329da4908a42f5fae1d0f37d1 |
+| `chain_fence.glb` | 30 | Modular Chain Link Fence Set | FrodoUndead | Sketchfab | CC BY 4.0 | 3100 | https://sketchfab.com/3d-models/none-bd85a8005ff0403cab2f1e9845016b8f |
+| `trashbag.glb` | 33 | Trashbag | Benny Weimer | Poly Haven | CC0 | 4482 | https://polyhaven.com/a/trashbag |
+| `picnic_table.glb` | 37 | Wooden Picnic Table | Ulan Cabanilla | Poly Haven | CC0 | 10210 → 3062 | https://polyhaven.com/a/wooden_picnic_table |
+| `road_signs.glb` | 39 | Road Signs | FrodoUndead | Sketchfab | CC BY 4.0 | 14252 | https://sketchfab.com/3d-models/none-c39bf97110494b5db3de84165211f592 |
+| `street_light.glb` | 41 | Street light Lamp spotlight - 10MB | ahmagh2e | Sketchfab | CC BY 4.0 | 14120 → 2823 | https://sketchfab.com/3d-models/none-b3534b9033a24f0aad2e1f9527bd4ca8 |
+| `concrete_fence.glb` | 54 | Concrete fence | BlackMike | Sketchfab | CC BY 4.0 | 442 | https://sketchfab.com/3d-models/none-1ca049b5951542f094ef409f74534ae3 |
+| `nyc_dwellings.glb` | 60 | Modern NYC Dwellings | 99.Miles | Sketchfab | CC BY 4.0 | 7042 | https://sketchfab.com/3d-models/none-8ef9555171c44ba1872a17558f589630 |
+| `brick_shop.glb` | 65 | Brick Shop Building / Lowpoly | Fridqeir | Sketchfab | CC BY 4.0 | 1868 | https://sketchfab.com/3d-models/none-548d4a0e62b54efcab4483fb6d0c3611 |
+| `brooklyn_twin.glb` | 66 | Brooklyn Street Twin Buildings Low Poly | B0rn2D13 | Sketchfab | CC BY 4.0 | 6708 → 5404 | https://sketchfab.com/3d-models/none-4038dd25616d420989b11c65a57fd35b |
+| `old_buildings.glb` | 67 | Old Building Pack / Lowpoly | Fridqeir | Sketchfab | CC BY 4.0 | 16824 → 4199 | https://sketchfab.com/3d-models/none-081eccb97be8429c83b2e9fb407727e7 |
+| `downtown_02.glb` | 68 | City Building Downtown 02 | jimbogies | Sketchfab | CC BY 4.0 | 35180 | https://sketchfab.com/3d-models/none-7fbeffa5e541493ba65a0ec27dd295ef |
+| `transformer.glb` | 71 | Transformer Booth / LowPoly | S7NDRIK | Sketchfab | CC BY 4.0 | 952 | https://sketchfab.com/3d-models/none-9d9a74a55f384b6cb80f7453e951f6c8 |
+| `utility_box.glb` | 75 | Utility Box 01 | James Ray Cock | Poly Haven | CC0 | 4404 | https://polyhaven.com/a/utility_box_01 |
+| `house_mobile.glb` | 78 | LP Americans House Mobile | spaceparmesan | Sketchfab | CC BY 4.0 | 6067 | https://sketchfab.com/3d-models/none-bdd2465e5ff54fe09701cd55b9543b25 |
+| `rural_set.glb` | 79 | Rural Buildings Set - Low Poly models | DanielZhabotinsky | Sketchfab | CC BY 4.0 | 10306 | https://sketchfab.com/3d-models/none-51ab7e74bac347a89725f1d22b928edf |
+| `shabby_house.glb` | 81 | Suburban shabby house low poly | simlion | Sketchfab | CC BY 4.0 | 9991 | https://sketchfab.com/3d-models/none-f4678340de204c829e79a01f216e1be0 |
+| `suburban_house.glb` | 82 | Suburban House | mbuannoart | Sketchfab | CC BY 4.0 | 8568 | https://sketchfab.com/3d-models/none-b8375c5e5e6b40639fc06492fbd95fcb |
+| `wooden_house.glb` | 83 | Old Wooden House | rescue3d | Sketchfab | CC BY 4.0 | 453 | https://sketchfab.com/3d-models/none-5dcfdaa520814efa931275563ffb7391 |
+| `brick_house.glb` | 85 | Small Brick House | jimbogies | Sketchfab | CC BY 4.0 | 10272 | https://sketchfab.com/3d-models/none-c9ef0a360eff405682015c8813eee41d |
+| `gas_sign.glb` | 90 | Gasstation Sign - 2048px² | mark-peters | Sketchfab | CC BY 4.0 | 1370 | https://sketchfab.com/3d-models/none-11416edc56e941b7b10bcc87a6dc0ee7 |
+| `gas_pump.glb` | 91 | The gas pump | ivanjirons0708 | Sketchfab | CC BY 4.0 | 6350 | https://sketchfab.com/3d-models/none-47e11796eae3458e955c0809bfcf47cf |
+| `container_building.glb` | 93 | Building / Container / Metal | yadrogames | Sketchfab | CC BY 4.0 | 920 | https://sketchfab.com/3d-models/none-36380c606bae46848237e9bbe073fa3b |
+| `warehouse.glb` | 94 | Small Warehouse | WardsterSAW | Sketchfab | CC BY 4.0 | 1193 → 869 | https://sketchfab.com/3d-models/none-c7f4c017c20943cb9e9e559822a5c402 |
+| `industrial.glb` | 95 | Old Industrial Building | gazdahrco | Sketchfab | CC BY 4.0 | 67127 → 60730 | https://sketchfab.com/3d-models/none-0dafa7aaadfd4666bb4a32776c84b14e |
+| `bricks.glb` | 97 | Stack Of Bricks (Game Ready / 2K PBR) | meerschaumdigital | Sketchfab | CC BY 4.0 | 3348 | https://sketchfab.com/3d-models/none-1a9092ab6cb243d990fddad116f04825 |
+| `container.glb` | 100 | BLUE Container | Kwon_Hyuk | Sketchfab | CC BY 4.0 | 6612 | https://sketchfab.com/3d-models/none-38b62c0ba06a4d38a40204f0bdeaaa2f |
+| `barrels_pack.glb` | 102 | Modular containers and barrells pack game ready | abbasyounis214 | Sketchfab | CC BY 4.0 | 2808 | https://sketchfab.com/3d-models/none-542b68aa56ee44f49c8860fdf158f831 |
+| `propane.glb` | 104 | Propane Tank | Slinc | Poly Haven | CC0 | 5238 | https://polyhaven.com/a/propane_tank |
+| `tyre.glb` | 105 | Old Tyre | MP | Poly Haven | CC0 | 2880 | https://polyhaven.com/a/old_tyre |
+| `power_pole.glb` | 109 | Electrical Powerline Pole (Free Asset) | tiedtke | Sketchfab | CC BY 4.0 | 40006 → 3971 | https://sketchfab.com/3d-models/none-001a960897dd46c9a6a439e5fb1167f8 |
+
 ## Interfaccia — `assets/ui/`
 
 | File | Cosa è | Fonte | Licenza | Modifiche |
@@ -245,3 +297,19 @@ La libreria completa scaricata (58 modelli, anche quelli non ancora usati) è ne
 | `loading_door.png` | La serranda allungata fino a terra, che sale durante il caricamento | Ricavata da `loading_garage.jpg` | Come sopra | Ritagliata, lamelle ripetute |
 | `garage_bg.jpg` | Sfondo del garage iniziale | Ricavata da `loading_garage.jpg` | Come sopra | Ritagliata senza il cofano |
 | `title.jpg` | Pagina d'attesa (titolo, auto sulla costa) | Immagine fornita da Stefano Paglierani il 07/11/2026 | Fornita da Stefano per il gioco (origine e diritti da confermare prima della pubblicazione) | Convertita in JPG |
+| `dealer_bg.jpg` | Sfondo del dealer (showroom con piatto girevole) | Immagine fornita da Stefano Paglierani l'08/11/2026 | Fornita da Stefano per il gioco (origine e diritti da confermare prima della pubblicazione) | Convertita in JPG |
+
+## Font — `assets/fonts/`
+
+| File | Cosa è | Fonte | Licenza | Modifiche |
+|---|---|---|---|---|
+| `PermanentMarker-Regular.ttf` | Font "a pennarello" delle scritte neon del dealer (v0.20) | [Permanent Marker](https://fonts.google.com/specimen/Permanent+Marker) di Font Diner, da [google/fonts](https://github.com/google/fonts/tree/main/apache/permanentmarker) (08/11/2026) | Apache 2.0 (uso commerciale permesso; testo in `PermanentMarker-LICENSE.txt`) | — |
+
+Le icone al neon della v0.20 (garage, bomboletta, chiave e cacciavite, pezzi del tuning) sono
+disegnate nel codice (`scripts/neon.gd`): nostre, nessun file.
+
+## Icone dell'interfaccia — `assets/ui/icons/`
+
+| File | Cosa è | Fonte | Licenza | Modifiche |
+|---|---|---|---|---|
+| 18 file `*.png` (garage, dealer, race_start, map, my_cars, for_sale, tuning, paint, shop, switch_car, wallet, confirm, reset, garage_upgrade, previous, next, currency, star_currency) | Icone di garage e dealer (v0.22.2; sostituiscono gli SVG della v0.22.1, ritirati) | Foglio "Glossy Racing Garage UI Icon Sheet" (50 icone), fornito da Stefano Paglierani l'08/11/2026 | Fornite da Stefano per il gioco (origine e diritti da confermare prima della pubblicazione) | Ritagliate dal foglio, sfondo reso trasparente, 256×256; `wallet.png` è una copia di `currency.png` |

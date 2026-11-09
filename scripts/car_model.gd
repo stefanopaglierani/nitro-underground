@@ -271,6 +271,40 @@ static func _from_merged(data: Dictionary, entry: Dictionary, paint_mat: Materia
 	return _finish(root, entry, tail, data["height"])
 
 
+## Paints a built car (v0.19, dealer colours): every surface with the car's paint material
+## (catalog "paint") gets a copy of that material tinted with `color`, so textured bodies keep
+## their details. Returns the copies, so the dealer can change their colour live. Alpha 0 = the
+## car's own colours (nothing done).
+static func paint_model(model: Node3D, id: String, color: Color) -> Array[StandardMaterial3D]:
+	var out: Array[StandardMaterial3D] = []
+	var key: String = CarCatalog.find(id).get("paint", "")
+	if key == "" or color.a <= 0.0:
+		return out
+	var copies := {}
+	for n in model.find_children("*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		if mi.mesh == null:
+			continue
+		for i in mi.mesh.get_surface_count():
+			var src := mi.get_surface_override_material(i)
+			if src == null:
+				src = mi.mesh.surface_get_material(i)
+			if not (src is StandardMaterial3D) or src.resource_name != key:
+				continue
+			if not copies.has(src):
+				var c := (src as StandardMaterial3D).duplicate() as StandardMaterial3D
+				c.albedo_color = color
+				if CarCatalog.find(id).has("paint_grow"):
+					# A paint layer that sits on another body shell (Goblin): pushed out a hair,
+					# or the shell under it shows through in spots.
+					c.grow = true
+					c.grow_amount = CarCatalog.find(id)["paint_grow"]
+				copies[src] = c
+				out.append(c)
+			mi.set_surface_override_material(i, copies[src])
+	return out
+
+
 ## Drops the far version of a model and always shows the detailed one (the player's car).
 static func keep_detailed(model: Node3D) -> void:
 	for n in model.find_children("*", "MeshInstance3D", true, false):

@@ -16,11 +16,12 @@ l'elenco completo, file per file, con autore, link, licenza e modifiche, è in
 
 | Fonte | Cosa | Licenza |
 |---|---|---|
-| [Poly Haven](https://polyhaven.com) | Cieli HDRI, texture di asfalto, roccia, erba, sabbia; lampioni e rocce | CC0 |
+| [Poly Haven](https://polyhaven.com) | Cieli HDRI, texture di asfalto, roccia, erba, sabbia; lampioni, rocce, cespugli, sacchi, tavoli, bombole, copertoni | CC0 |
 | [OpenGameArt](https://opengameart.org) | Kenney (piste, natura, strade), Quaternius (alberi, versione 2020), Yughues (erba, barriere) e altri | CC0 |
 | [Freesound](https://freesound.org), OpenGameArt | Registrazioni di urti, cambiate, gomme, freno a mano | CC0 |
-| [Sketchfab](https://sketchfab.com) | Alberi, chalet, cartelli, barriere, palazzi, palme, faro, motel, cactus, rocce | **CC BY 4.0** (attribuzione obbligatoria) |
+| [Sketchfab](https://sketchfab.com) | Alberi, chalet, cartelli, barriere, palazzi, palme, faro, motel, cactus, rocce; dalla v0.21 case americane, arredo urbano, distributori, magazzini, pali della luce | **CC BY 4.0** (attribuzione obbligatoria) |
 | Sketchfab | Tutte le auto: garage e avversari, polizia, traffico (DanielZhabotinsky, Lexyc16, TinoD2, ollitei e altri) | CC BY 4.0 in gioco; nessuna auto NC (vedi sotto) |
+| [Google Fonts](https://fonts.google.com) | Font Permanent Marker (Font Diner) delle scritte del dealer | Apache 2.0 |
 
 Tutti gli autori Sketchfab sono citati per nome in `assets/LICENSES.md`.
 

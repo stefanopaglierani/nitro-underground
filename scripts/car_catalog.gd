@@ -8,20 +8,20 @@ extends RefCounted
 const CARS := [
 	# Garage: the player and the rivals drive these. Only CC BY models, sellable (Stefano, 2026-11-06);
 	# real-brand models get invented names and their logos hidden.
-	{"id": "phoenix_455", "name": "Phoenix 455 '71", "kind": "hd", "path": "res://assets/cars_cc/phoenix_455_71.glb", "len": 4.9},
-	{"id": "tiara_gt83", "name": "Tiara GT '83 Tuned", "kind": "hd", "path": "res://assets/cars_cc/tiara_gt_83_tuned.glb", "len": 4.4},
-	{"id": "saba_v12", "name": "Saba V12 '95", "kind": "hd", "path": "res://assets/cars_cc/saba_v12_95.glb", "len": 4.7},
-	{"id": "goblin_v12", "name": "Goblin V12", "kind": "hd", "path": "res://assets/cars_cc/goblin_v12.glb", "len": 4.6, "yaw": 180},
-	{"id": "kaze_r34", "name": "Kaze R-34", "kind": "hd", "path": "res://assets/cars_cc/skyline_r34_gtr.glb", "len": 4.6},
-	{"id": "nova_sx", "name": "Nova SX '90", "kind": "hd", "path": "res://assets/cars_cc/nsx_1990.glb", "len": 4.4, "hide": ["Material.016"]},
-	{"id": "shiro_13", "name": "Shiro 13", "kind": "hd", "path": "res://assets/cars_cc/silvia_s13.glb", "len": 4.5, "hide": ["Object_4", "Object_8"]},
-	{"id": "shiro_14", "name": "Shiro 14", "kind": "hd", "path": "res://assets/cars_cc/silvia_s14.glb", "len": 4.5},
-	{"id": "petalo_roadster", "name": "Petalo Roadster", "kind": "hd", "path": "res://assets/cars_cc/miata_na.glb", "len": 3.95, "hide": ["Plane_Material_005_0"]},
-	{"id": "zenith_proto", "name": "Zenith Proto", "kind": "hd", "path": "res://assets/cars_cc/nissan_z_proto.glb", "len": 4.38},
-	{"id": "falco_turbo", "name": "Falco Turbo '75", "kind": "hd", "path": "res://assets/cars_cc/porsche_930.glb", "len": 4.29},
-	{"id": "kraft_sport", "name": "Kraft Sport '87", "kind": "hd", "path": "res://assets/cars_cc/bmw_m3_e30.glb", "len": 4.35, "hide": ["BMW_E30_M3_EMBLEMS", "Logo_Plane"]},
-	{"id": "sakura_gt", "name": "Sakura GT '78", "kind": "hd", "path": "res://assets/cars_cc/datsun_280z.glb", "len": 4.4},
-	{"id": "sterrato_evo", "name": "Sterrato Evo", "kind": "hd", "path": "res://assets/cars_cc/delta_integrale.glb", "len": 3.9, "hide": ["Logo"]},
+	{"id": "phoenix_455", "name": "Phoenix 455 '71", "kind": "hd", "path": "res://assets/cars_cc/phoenix_455_71.glb", "len": 4.9, "paint": "Phoenix445_Bodymat"},
+	{"id": "tiara_gt83", "name": "Tiara GT '83 Tuned", "kind": "hd", "path": "res://assets/cars_cc/tiara_gt_83_tuned.glb", "len": 4.4, "paint": "TiaraGT83_Bodymat"},
+	{"id": "saba_v12", "name": "Saba V12 '95", "kind": "hd", "path": "res://assets/cars_cc/saba_v12_95.glb", "len": 4.7, "paint": "Saba95_Bodymat"},
+	{"id": "goblin_v12", "name": "Goblin V12", "kind": "hd", "path": "res://assets/cars_cc/goblin_v12.glb", "len": 4.6, "yaw": 180, "paint": "clearcoat", "paint_grow": 0.004},
+	{"id": "kaze_r34", "name": "Kaze R-34", "kind": "hd", "path": "res://assets/cars_cc/skyline_r34_gtr.glb", "len": 4.6, "paint": "Material.001"},
+	{"id": "nova_sx", "name": "Nova SX '90", "kind": "hd", "path": "res://assets/cars_cc/nsx_1990.glb", "len": 4.4, "hide": ["Material.016"], "paint": "Material.003"},
+	{"id": "shiro_13", "name": "Shiro 13", "kind": "hd", "path": "res://assets/cars_cc/silvia_s13.glb", "len": 4.5, "hide": ["Object_4", "Object_8"], "paint": "CarPaint"},
+	{"id": "shiro_14", "name": "Shiro 14", "kind": "hd", "path": "res://assets/cars_cc/silvia_s14.glb", "len": 4.5, "paint": "Material.003"},
+	{"id": "petalo_roadster", "name": "Petalo Roadster", "kind": "hd", "path": "res://assets/cars_cc/miata_na.glb", "len": 3.95, "hide": ["Plane_Material_005_0"], "paint": "Material.002"},
+	{"id": "zenith_proto", "name": "Zenith Proto", "kind": "hd", "path": "res://assets/cars_cc/nissan_z_proto.glb", "len": 4.38, "paint": "Material.001"},
+	{"id": "falco_turbo", "name": "Falco Turbo '75", "kind": "hd", "path": "res://assets/cars_cc/porsche_930.glb", "len": 4.29, "paint": "Material.001"},
+	{"id": "kraft_sport", "name": "Kraft Sport '87", "kind": "hd", "path": "res://assets/cars_cc/bmw_m3_e30.glb", "len": 4.35, "hide": ["BMW_E30_M3_EMBLEMS", "Logo_Plane"], "paint": "BMW_E30_M3_PAINT"},
+	{"id": "sakura_gt", "name": "Sakura GT '78", "kind": "hd", "path": "res://assets/cars_cc/datsun_280z.glb", "len": 4.4, "paint": "280z_CarPaint"},
+	{"id": "sterrato_evo", "name": "Sterrato Evo", "kind": "hd", "path": "res://assets/cars_cc/delta_integrale.glb", "len": 3.9, "hide": ["Logo"], "paint": "Paint"},
 	# Police.
 	{"id": "police_illinois", "name": "Polizia Illinois '90", "kind": "hd", "path": "res://assets/cars_cc/illinois_90_police.glb", "len": 5.2},
 	{"id": "police_negotiator", "name": "Polizia Negotiator '80", "kind": "hd", "path": "res://assets/cars_cc/negotiator_80_police.glb", "len": 5.4},
@@ -96,7 +96,21 @@ const GARAGE := [
 ]
 
 
-## The three cars offered in the starting garage (v0.17). Placeholders until Stefano picks the three.
+## Dealer price of each garage car (v0.19). The three starting cars are worth 9.000 (Stefano);
+## the others are priced by Claude on their top speed, to be tuned.
+const PRICE := {
+	"phoenix_455": 9000, "kaze_r34": 9000, "falco_turbo": 9000,
+	"petalo_roadster": 10000, "tiara_gt83": 11000, "shiro_13": 12000, "sakura_gt": 13000,
+	"shiro_14": 14000, "kraft_sport": 16000, "sterrato_evo": 20000, "nova_sx": 22000,
+	"saba_v12": 25000, "zenith_proto": 28000, "goblin_v12": 40000,
+}
+
+
+static func price(id: String) -> int:
+	return PRICE.get(id, 15000)
+
+
+## The three cars offered in the starting garage (v0.17). Placeholders, kept by Stefano.
 const STARTER := ["phoenix_455", "kaze_r34", "falco_turbo"]
 
 

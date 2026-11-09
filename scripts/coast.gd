@@ -35,6 +35,7 @@ func build_steps() -> Array:
 		["Erba", _build_grass],
 		["Scogli e cartelli", _build_rocks],
 		["Coni e segnali", func(): Scenery.dress_road(self, false)],
+		["Ambiente", func(): Roadside.dress(self, "coast")],
 		["Rampe", _build_ramps],
 		["Traiettoria", _build_racing_line],
 	]
