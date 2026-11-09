@@ -10,10 +10,6 @@ on:
     branches: [prova-pc, claude/apk-prova]
     paths-ignore: ["docs/**", "**.md"]
 
-concurrency:
-  group: apk-prova
-  cancel-in-progress: true
-
 jobs:
   apk:
     runs-on: ubuntu-latest

@@ -1,9 +1,0 @@
-name: Ciao
-on:
-  push:
-    branches: [claude/apk-prova]
-jobs:
-  ciao:
-    runs-on: ubuntu-latest
-    steps:
-      - run: df -h / && echo ciao
