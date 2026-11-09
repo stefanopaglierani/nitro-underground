@@ -31,6 +31,8 @@ static func make_level(id: String) -> Track:
 			return NightCity.new()
 		"desert":
 			return Desert.new()
+		"isola":
+			return BakedWorld.new()
 	return Mountain.new()
 
 

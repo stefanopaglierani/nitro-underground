@@ -209,6 +209,13 @@ flowchart LR
   minima tra tratti di strada diversi (sotto ~33 m si sovrapporrebbero), così un errore si vede
   prima di avviare il gioco.
 
+### Mondi generati (v0.23)
+
+`scripts/baked_world.gd` è un circuito che non costruisce nulla: apre un file già pronto
+(`assets/worlds/isola_gara.scn`) con terreno, strade, villaggi, oggetti e collisioni. Il file
+contiene anche i dati `terrain_data`, tra cui il percorso e le altezze delle strade: la prima è la
+gara. Il gioco non usa il codice degli strumenti che lo hanno creato.
+
 ## 6. Grafica: lo stile a fumetto 2.5D (spento dalla v0.13)
 
 `scripts/comic_style.gd` · `shaders/stylize.gdshader` e altri 12 shader
