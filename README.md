@@ -6,9 +6,9 @@ Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come
 ![Nitro Underground: gara sul passo di montagna](docs/immagini/gara-montagna.jpg)
 
 [![Godot 4.7](https://img.shields.io/badge/Godot-4.7-478CBF?logo=godotengine&logoColor=white)](https://godotengine.org)
-![GDScript](https://img.shields.io/badge/GDScript-~10.600_righe-355570)
+![GDScript](https://img.shields.io/badge/GDScript-~10.900_righe-355570)
 ![Android](https://img.shields.io/badge/Android-arm64-3DDC84?logo=android&logoColor=white)
-![Versione](https://img.shields.io/badge/versione-0.22.2-ff3d8b)
+![Versione](https://img.shields.io/badge/versione-0.23-ff3d8b)
 ![Stato](https://img.shields.io/badge/stato-prototipo_giocabile-f5a623)
 
 📖 [Storia dello sviluppo](docs/STORIA.md) · 🛠️ [Come è costruito](docs/TECNICO.md) · 🎨 [Crediti e licenze](CREDITI.md) · 🇬🇧 [English](#english)
@@ -23,13 +23,13 @@ Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come
 - **Chi l'ha fatto:** **Stefano Paglierani** ha ideato e diretto il gioco: concept, stile,
   circuiti, auto, comandi e ogni scelta di prodotto, provando ogni build sul suo telefono Android.
   Il codice è stato scritto da **Claude** (l'assistente AI di Anthropic) sulle sue indicazioni.
-- **In quanto tempo:** 13 giorni, dal 27 ottobre all'8 novembre 2026: **29 versioni** dal primo prototipo
-  alla v0.22.2, ognuna provata su telefono o PC e migliorata in base alle prove.
+- **In quanto tempo:** 14 giorni, dal 27 ottobre al 9 novembre 2026: **30 versioni** dal primo prototipo
+  alla v0.23, ognuna provata su telefono o PC e migliorata in base alle prove.
 - **Cosa dimostra:** direzione di prodotto e game design su un progetto reale, ciclo rapido
   prova → feedback → nuova versione, uso dell'intelligenza artificiale come squadra di sviluppo,
   attenzione alle licenze degli asset e alle prestazioni su telefono.
 
-## Screenshot (v0.17-v0.22, grafica realistica)
+## Screenshot (v0.17-v0.23, grafica realistica)
 
 | | |
 |---|---|
@@ -41,6 +41,8 @@ Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come
 | *Pagina d'attesa: l'immagine scelta da Stefano e il pulsante START* | *Garage: 3 auto, scelta definitiva, denaro e reputazione* |
 | ![Caricamento con la serranda del garage](docs/immagini/v0.17-caricamento.jpg) | ![Gara sulla costa con la minimappa](docs/immagini/v0.17-minimappa.jpg) |
 | *Caricamento: la serranda del garage si alza con la percentuale* | *Gara sulla costa: minimappa con le frecce delle auto* |
+| ![Gara sull'isola generata](docs/immagini/v0.23-isola.jpg) | |
+| *Isola: la prima gara su un mondo generato dagli strumenti (v0.23)* | |
 
 ### Com'era nella v0.11.1 (stile a fumetto 2.5D, abbandonato nella v0.13)
 
@@ -68,6 +70,7 @@ Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come
 | 💥 **Fisica vera** | Corpo rigido su 4 ruote con sospensioni, salti, derapate, traffico che si urta |
 | 🔊 **Audio** | Motore V8 sintetizzato che segue i giri, cambiate, turbo, gomme, urti, sirena |
 | 🎨 **Grafica realistica** | Modelli 3D realistici con le impostazioni grafiche di base (lo stile a fumetto 2.5D è stato abbandonato nella v0.13) |
+| 🏝️ **Isola generata** | Prima gara su un mondo intero creato con strumenti esterni: strada, due villaggi, alberi e rocce (per ora fuori dalla campagna) |
 | 🗺️ **Circuiti in testo** | Ogni pista è un file che si legge come un navigatore: chiunque può disegnarne una |
 | 📱 **Comandi touch** | Pulsanti a esagono con icone, cruscotto digitale, minimappa con le frecce delle auto, traiettoria ideale colorata a terra |
 
@@ -88,6 +91,12 @@ Il dettaglio completo, con diagrammi e numeri, è in **[docs/TECNICO.md](docs/TE
 - **Progressi salvati sul telefono** (`scripts/save_game.gd`): auto possedute, colore ed
   elaborazioni di ognuna, denaro, reputazione e prossima gara della campagna in un piccolo file di configurazione; la reputazione cresce con vittorie, polizia
   seminata e derapate in combinazione che raddoppiano il valore.
+- **Mondi già pronti** (v0.23, `scripts/baked_world.gd`): l'isola arriva da un solo file con
+  terreno, strade, villaggi e collisioni; dal percorso della strada il gioco ricava partenza,
+  checkpoint, rivali, traffico e polizia.
+- **APK di prova costruito nel cloud** (`.github/workflows/apk-prova.yml`): GitHub Actions crea a
+  ogni aggiornamento di `prova-pc` un'app "Nitro Prova" che si installa accanto al gioco, con FPS,
+  memoria e chiamate di disegno a schermo per misurare il telefono.
 - **Costruito dal codice**: le scene sono quasi vuote, strade, terreno, auto, interfaccia e
   materiali nascono dagli script. Tutto è testo leggibile e versionato.
 - **Pensato per il telefono**: caricamento a passi con modelli letti in thread paralleli, modelli
@@ -130,6 +139,7 @@ cosa è stato chiesto e come è stato costruito.
 | v0.22 | Telefono molto più leggero (profilo grafico apposta), freno vero, freno a mano controllabile, nitro forte, auto più pesanti, rientro in pista nel senso giusto |
 | v0.22.1 | Garage e dealer con il set di icone disegnato per il gioco (Nitro UI Icon Pack) |
 | v0.22.2 | Le icone giuste: ritagliate dal foglio di icone racing di Stefano |
+| v0.23 | Prima gara su un mondo generato dagli strumenti: isola con strada, villaggi, alberi e collisioni in un solo file |
 
 ## Provarlo
 
@@ -159,6 +169,7 @@ e [`gioca-nitro.ps1`](tools/windows/gioca-nitro.ps1) nella stessa cartella e fai
 | `tracks/` | Le mappe dei circuiti in testo e la guida [`COME_FARE.md`](tracks/COME_FARE.md) |
 | `assets/` | Modelli, texture e suoni, con il registro [`LICENSES.md`](assets/LICENSES.md) |
 | `tests/` | Banco prova della fisica |
+| `.github/workflows/` | APK di prova costruito su GitHub Actions |
 | `tools/` | Build Android, preparazione delle auto (`bake_cars.gd`), anteprima mappe, screenshot automatici, launcher Windows, sintesi audio |
 | `docs/` | Storia, documentazione tecnica, immagini |
 
@@ -173,7 +184,7 @@ diritti sono riservati all'autore.
 ## Roadmap
 
 1. ~~Documento di concept~~ ✔
-2. **Prototipo giocabile su telefono** ← siamo qui (v0.1 → v0.22.2, fase di stabilizzazione)
+2. **Prototipo giocabile su telefono** ← siamo qui (v0.1 → v0.23, fase di stabilizzazione)
 3. Vertical slice: un circuito e un'auto rifiniti al livello del gioco finale
 4. Produzione e pubblicazione, con sostituzione degli asset non commerciali
 
@@ -183,12 +194,12 @@ diritti sono riservati all'autore.
 
 **Nitro Underground** is a 3D arcade street-racing game for Android with realistic graphics (the 2.5D comic look was dropped in v0.13),
 built with **Godot 4.7** (GDScript, Compatibility/OpenGL renderer on Android, Jolt physics). Current version:
-**v0.22.2**, a playable prototype (stabilisation phase).
+**v0.23**, a playable prototype (stabilisation phase).
 
 **Who made it.** **Stefano Paglierani** conceived and directed the game: concept, art direction,
 circuits, cars, controls and every product decision, testing each build on his Android phone.
-The code was written by **Claude** (Anthropic's AI assistant) from his direction. 29 versions were
-designed, built and play-tested in 13 days (27 October - 8 November 2026).
+The code was written by **Claude** (Anthropic's AI assistant) from his direction. 30 versions were
+designed, built and play-tested in 14 days (27 October - 9 November 2026).
 
 **Highlights**
 - **Custom vehicle physics** on a `RigidBody3D`: shape-cast wheels that climb kerbs,
@@ -207,6 +218,10 @@ designed, built and play-tested in 13 days (27 October - 8 November 2026).
   and upgrade six parts over five stages, and a campaign of four races in a row.
 - **A phone performance profile** (v0.22, `scripts/perf.gd`): on the test phone the game lowers
   the 3D resolution and the heaviest effects by itself.
+- **Pre-built worlds** (v0.23, `scripts/baked_world.gd`): a whole island (terrain, roads, villages,
+  props, collisions) made by external tools loads from one scene file, and the race start,
+  checkpoints, AI path, traffic and police are derived from its road data. A GitHub Actions
+  workflow builds a side-by-side test APK in the cloud with an on-screen FPS/memory/draw-call readout.
 - **Synthesized V8 engine audio**, crossfaded and pitched to RPM in real time.
 - **Mobile-minded**: staged, threaded loading; models merged into one mesh per material
   (a 123-part model went from 1,000+ draw calls to a handful); GPU-compressed textures.
