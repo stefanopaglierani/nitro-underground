@@ -43,6 +43,7 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.19 | 08/11/2026 | Dealer con 14 auto, colore RGB ed elaborazioni a 5 livelli; nuova combo delle derapate; dopo la Costa la Città | ramo `claude/project-thread-v3cjse` |
 | v0.21 | 08/11/2026 | Ambienti più ricchi: 51 modelli nuovi (boschi, rocce, case americane, arredo urbano, pali della luce, cartelli americani), neon della città ridotti a un terzo | ramo `claude/project-thread-u6ha4a` |
 | v0.22 | 08/11/2026 | Profilo grafico leggero per il telefono; freno, freno a mano e nitro sistemati, auto più pesanti, rientro in pista nel verso giusto | ramo `claude/project-thread-u6ha4a` |
+| v0.23 | 09/11/2026 | Prima gara su un mondo generato dagli strumenti: isola con strada, villaggi e collisioni in un solo file | ramo `claude/mondo-generato-isola` |
 
 ## Le svolte principali
 
@@ -911,9 +912,32 @@ e dealer.
 
 **Verifica ed esito:** screenshot di garage, dealer e tuning. Da provare su PC e telefono.
 
+## v0.23 — La prima gara su un mondo generato (9 novembre)
+
+![La gara sull'isola generata](immagini/v0.23-isola.jpg)
+
+**Richiesta:** provare il mondo 3D fatto con gli strumenti in "una gara vera di Nitro". Stefano l'ha
+provata sul PC e si è detto soddisfatto, e ha chiesto di pubblicare tutto.
+
+**Come è stato costruito:** terreno, strada, due villaggi con le loro vie, alberi, rocce, arredi e
+collisioni arrivano da un unico file, `assets/worlds/isola_gara.scn`, creato fuori dal gioco con
+gli strumenti privati UPTG e UPRG: dentro il gioco non c'è il loro codice. `scripts/baked_world.gd`
+è un circuito come gli altri (`Track`): apre il file, legge il percorso della strada e da lì ricava
+partenza, checkpoint, percorso dei rivali, traffico, polizia e rientro in pista. Il mondo non è
+ancora nella campagna: si avvia con `--level=isola`.
+
+**Verifica ed esito:** gare complete con il pilota automatico, rivali, traffico e polizia, in
+headless, in Vulkan e in OpenGL con il profilo del telefono. Stefano l'ha guidata sul PC e ne è
+soddisfatto. Il telefono vero non è stato provato: con il profilo telefono il PC disegna circa un
+milione di triangoli, quasi il doppio di Costa, e il file aggiunge 45 MB. I modelli sono elencati
+in [`assets/LICENSES.md`](../assets/LICENSES.md).
+
 ---
 
 ## Prossimi passi
+
+- Il mondo 3D completo per Nitro, generato con gli stessi strumenti.
+- Provare l'isola sul Galaxy A51 e misurarne il peso prima di metterla nella campagna.
 
 - Prova sul telefono della v0.22: se scatta ancora, il passo dopo è ridurre ancora la risoluzione 3D o togliere le ombre del tutto.
 - Pezzi di strada (incrocio, strada con parcheggio) dentro i circuiti, se approvato; ponte ad arco con la mappa 3D completa.
