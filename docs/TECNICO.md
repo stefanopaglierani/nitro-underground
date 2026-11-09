@@ -28,11 +28,11 @@ game designer) e vuole capire cosa c'è dietro gli screenshot.
 
 | | |
 |---|---|
-| Durata | 12 giorni, dal 27 ottobre al 7 novembre 2026 (concept → v0.18) |
-| Versioni provate su telefono o PC | 19 (v0.1 → v0.18), più varianti di prova |
-| Codice | ~8.400 righe di GDScript nel gioco, ~500 di shader, ~800 di strumenti e test |
+| Durata | 13 giorni, dal 27 ottobre all'8 novembre 2026 (concept → v0.22.2) |
+| Versioni provate su telefono o PC | 29 (v0.1 → v0.22.2), più varianti di prova |
+| Codice | ~10.600 righe di GDScript nel gioco, ~500 di shader, ~800 di strumenti e test |
 | Circuiti | 4 (Montagna, Costa, Città di notte, Deserto), da 1,7 a 2,8 km |
-| Auto | 14 nel catalogo (tutte CC BY, nomi inventati), 3 da scegliere nel garage iniziale; 4 volanti e 13 mezzi nel traffico |
+| Auto | 14 nel catalogo (tutte CC BY, nomi inventati), 3 da scegliere nel garage iniziale, tutte in vendita al dealer; 4 volanti e 13 mezzi nel traffico |
 | Asset di terze parti | oltre 120 voci nel registro licenze (modelli, texture, suoni), CC0 e CC BY più le eccezioni dichiarate |
 | Budget | 0 €: solo strumenti e asset gratuiti |
 
@@ -46,7 +46,8 @@ aprire l'editor, che era fondamentale per un progetto sviluppato in sessioni rem
 
 ```mermaid
 flowchart LR
-    Title["title.gd<br/>pagina d'attesa: START"] --> Menu["menu.gd<br/>garage: auto, denaro,<br/>reputazione → INIZIO GARA"]
+    Title["title.gd<br/>pagina d'attesa: START"] --> Menu["menu.gd<br/>garage: auto, denaro,<br/>reputazione → GARA"]
+    Menu <--> Dealer["dealer.gd + Tuning<br/>compra, vendi, colore,<br/>6 elaborazioni"]
     Save["SaveGame<br/>user://partita.cfg"] -.-> Menu
     Menu --> Main["main.gd<br/>regole di gara, checkpoint,<br/>tempo, polizia, telecamera"]
     Main --> Track["Track (track.gd)<br/>interfaccia comune dei circuiti"]
@@ -73,15 +74,16 @@ flowchart LR
   quindi con le stesse regole del giocatore, senza scorciatoie.
 - **`CarCatalog`** descrive ogni auto (modello, velocità massima, trazione, nome) e il garage.
 
-### Dalla pagina START alla gara, e i progressi (v0.17-v0.18)
+### Dalla pagina START alla gara, e i progressi (v0.17-v0.22)
 
 - **Pagina d'attesa** (`scenes/title.tscn`, `scripts/title.gd`): è la prima scena del gioco,
   con l'immagine scelta da Stefano e un solo pulsante START, in basso al centro, che apre il garage.
 - **Garage iniziale** (`scripts/menu.gd`): l'auto in 3D al centro, frecce per sfogliare tre auto
   di partenza (provvisorie, scelte da Stefano fra quelle del catalogo), SELEZIONA con conferma in
-  due tocchi perché **la scelta è definitiva**, pannelli di denaro e reputazione, INIZIO GARA che
-  porta alla prima gara sulla costa. Si leggono dal disco solo le auto in offerta.
-- **Salvataggio** (`scripts/save_game.gd`): auto scelta, denaro e reputazione stanno in un file
+  due tocchi perché **la scelta è definitiva**, pannelli di denaro e reputazione, DEALER in basso a
+  sinistra e INIZIO GARA in basso a destra, che apre la prossima gara della campagna. Si leggono dal disco solo le auto in offerta.
+- **Salvataggio** (`scripts/save_game.gd`): auto possedute e quella guidata, colore ed
+  elaborazioni di ognuna, denaro, reputazione e prossima gara della campagna stanno in un file
   `ConfigFile` (`user://partita.cfg`) sul telefono; il file ha un numero di versione, e un
   salvataggio della v0.17 (che partiva da 0) viene portato ai 2.000 di partenza della v0.18.
 - **Economia** (`scripts/main.gd`, regole decise da Stefano): 2.000 di denaro all'inizio,
@@ -90,6 +92,19 @@ flowchart LR
   di almeno mezzo secondo, che raddoppia se la successiva comincia entro 3 secondi (fino a 16 volte,
   320). Il denaro va solo a chi arriva al traguardo; la reputazione guadagnata resta anche se si
   ricomincia la gara o si torna al garage prima della fine.
+- **Campagna** (v0.19, `Main.CAMPAIGN`): le gare si susseguono in un ordine deciso da Stefano,
+  Costa, Città, Deserto, Montagna; finita l'ultima si ricomincia.
+- **Dealer** (v0.19, rifatto nella v0.20, `scripts/dealer.gd`): l'auto gira sul piatto della foto
+  dello showroom, sempre centrata qualunque sia la forma dello schermo. Tre sezioni: LE MIE AUTO
+  (guidare, verniciare, vendere se non è l'ultima), IN VENDITA (14 auto; le tre di partenza
+  valgono 9.000, le altre hanno un prezzo provvisorio legato alla velocità massima) e TUNING.
+- **Tuning** (`scripts/tuning.gd`): sei pezzi (motore, centralina, scarico, nitro, freni,
+  sospensioni) a cinque livelli; portarli tutti al massimo costa circa due volte l'auto, e ogni
+  livello costa più del precedente. Gli effetti si applicano all'auto del giocatore quando parte
+  la gara: per esempio ogni livello di motore dà +12% di forza, ogni livello di freni +18% di
+  frenata, ogni livello di sospensioni +7,5% di aderenza. Un'auto venduta rende circa metà del prezzo.
+- **Pulsanti e icone** (`scripts/ui_kit.gd`, `scripts/neon.gd`): pezzi comuni a garage e
+  dealer; dalla v0.22.2 le icone sono ritagliate da un foglio di icone fornito da Stefano.
 - **Minimappa** (`scripts/minimap.gd`): il percorso visto dall'alto, nord in alto, freccia nera
   per il giocatore e rosse per i rivali. La pista si disegna una volta sola; ogni fotogramma si
   ridisegnano solo le frecce, quindi sul telefono non costa quasi nulla.

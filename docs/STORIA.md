@@ -1,6 +1,6 @@
 # Storia dello sviluppo
 
-Il diario di bordo di Nitro Underground, dalla prima idea alla v0.18, in 12 giorni e 19 versioni.
+Il diario di bordo di Nitro Underground, dalla prima idea alla v0.22.2, in 13 giorni e 29 versioni.
 
 Ogni versione segue lo stesso ciclo: **Stefano prova la build** sul telefono Android o sul PC,
 scrive cosa non va e cosa vuole, **Claude la costruisce** e la verifica con le prove automatiche,
@@ -34,15 +34,17 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.11 | 31/10/2026 | Circuiti scritti come mappe di testo, ambientazioni rifatte, Deserto | [#17](https://github.com/stefanopaglierani/nitro-underground/pull/17) |
 | v0.11.1 | 31/10/2026 | Sterzo più dolce, niente ribaltamenti in aria, garage da 7 | [#17](https://github.com/stefanopaglierani/nitro-underground/pull/17) |
 | v0.12 | 02/11/2026 | Stabilizzazione: pausa, polizia più giusta, rivali e traffico più furbi | [#19](https://github.com/stefanopaglierani/nitro-underground/pull/19) |
-| v0.13.1 | 04/11/2026 | Il telefono si bloccava: auto e texture alleggerite, addio fumetto 2.5D (grafica realistica di base), via i guardrail, nuova polizia | ramo `claude/project-thread-8bmj8s` |
-| v0.14 | 05/11/2026 | OpenGL sul telefono, nuovo garage di 5 auto guidato anche dai rivali, traffico con 9 auto dettagliate, auto "pre-cotte" per un menù più veloce, via tutte le auto low poly | ramo `claude/project-thread-8bmj8s` |
-| v0.15 | 06/11/2026 | Solo auto "vendibili" (CC BY): 14 nel garage e per i rivali, 4 volanti, 13 mezzi nel traffico; nomi inventati e loghi tolti alle auto di marchi reali | ramo `claude/project-thread-8bmj8s` |
-| v0.16 | 06/11/2026 | Auto lontane in versione leggera contro gli scatti, asfalto a filo del terreno, avviso rosso di contromano, Petalo Roadster non più sospesa | ramo `claude/project-thread-8bmj8s` |
-| v0.17 | 07/11/2026 | Si entra direttamente nel garage (3 auto, scelta definitiva, denaro e reputazione), minimappa in gara, caricamento con la serranda del garage che si apre | ramo `claude/project-thread-v3cjse` |
-| v0.18 | 07/11/2026 | Pagina d'attesa con START, denaro e reputazione che si guadagnano in gara, asfalto 10 cm sopra il terreno, traiettoria semitrasparente | ramo `claude/project-thread-v3cjse` |
-| v0.19 | 08/11/2026 | Dealer con 14 auto, colore RGB ed elaborazioni a 5 livelli; nuova combo delle derapate; dopo la Costa la Città | ramo `claude/project-thread-v3cjse` |
-| v0.21 | 08/11/2026 | Ambienti più ricchi: 51 modelli nuovi (boschi, rocce, case americane, arredo urbano, pali della luce, cartelli americani), neon della città ridotti a un terzo | ramo `claude/project-thread-u6ha4a` |
-| v0.22 | 08/11/2026 | Profilo grafico leggero per il telefono; freno, freno a mano e nitro sistemati, auto più pesanti, rientro in pista nel verso giusto | ramo `claude/project-thread-u6ha4a` |
+| v0.13.1 | 04/11/2026 | Il telefono si bloccava: auto e texture alleggerite, addio fumetto 2.5D (grafica realistica di base), via i guardrail, nuova polizia | [#21](https://github.com/stefanopaglierani/nitro-underground/pull/21) |
+| v0.14 | 05/11/2026 | OpenGL sul telefono, nuovo garage di 5 auto guidato anche dai rivali, traffico con 9 auto dettagliate, auto "pre-cotte" per un menù più veloce, via tutte le auto low poly | [#21](https://github.com/stefanopaglierani/nitro-underground/pull/21) |
+| v0.15 | 06/11/2026 | Solo auto "vendibili" (CC BY): 14 nel garage e per i rivali, 4 volanti, 13 mezzi nel traffico; nomi inventati e loghi tolti alle auto di marchi reali | [#21](https://github.com/stefanopaglierani/nitro-underground/pull/21) |
+| v0.16 | 06/11/2026 | Auto lontane in versione leggera contro gli scatti, asfalto a filo del terreno, avviso rosso di contromano, Petalo Roadster non più sospesa | [#21](https://github.com/stefanopaglierani/nitro-underground/pull/21) |
+| v0.17 | 07/11/2026 | Si entra direttamente nel garage (3 auto, scelta definitiva, denaro e reputazione), minimappa in gara, caricamento con la serranda del garage che si apre | [#21](https://github.com/stefanopaglierani/nitro-underground/pull/21) |
+| v0.18 | 07/11/2026 | Pagina d'attesa con START, denaro e reputazione che si guadagnano in gara, asfalto 10 cm sopra il terreno, traiettoria semitrasparente | [#21](https://github.com/stefanopaglierani/nitro-underground/pull/21) |
+| v0.19 | 08/11/2026 | Dealer con 14 auto, colore RGB ed elaborazioni a 5 livelli; nuova combo delle derapate; dopo la Costa la Città | [#21](https://github.com/stefanopaglierani/nitro-underground/pull/21) |
+| v0.20-v0.20.4 | 08/11/2026 | Dealer rifatto: auto grande sul piatto girevole, sezioni, vendita, 15 colori, tuning a schede, pulsanti a icone; showroom con pavimento 3D, ombre e riflesso | [#21](https://github.com/stefanopaglierani/nitro-underground/pull/21) |
+| v0.21 | 08/11/2026 | Ambienti più ricchi: 51 modelli nuovi (boschi, rocce, case americane, arredo urbano, pali della luce, cartelli americani), neon della città ridotti a un terzo | [#21](https://github.com/stefanopaglierani/nitro-underground/pull/21) |
+| v0.22 | 08/11/2026 | Profilo grafico leggero per il telefono; freno, freno a mano e nitro sistemati, auto più pesanti, rientro in pista nel verso giusto | [#21](https://github.com/stefanopaglierani/nitro-underground/pull/21) |
+| v0.22.1-v0.22.2 | 08/11/2026 | Garage e dealer con le icone del foglio di icone racing scelto da Stefano | ramo `prova-pc` |
 
 ## Le svolte principali
 
@@ -64,6 +66,10 @@ di Stefano sul telefono:
    inventati; i modelli non commerciali sono usciti anche dal repository.
 8. **Dal menu al garage** (v0.17-v0.18): il gioco si apre con una pagina START e un garage con
    denaro e reputazione che si guadagnano in gara, le prime fondamenta di una carriera.
+9. **Dal garage al dealer** (v0.19-v0.20.4): si comprano e vendono auto, si verniciano e si
+   elaborano; le gare diventano una campagna (Costa, Città, Deserto, Montagna).
+10. **Un profilo apposta per il telefono** (v0.22): la v0.21, con ambienti molto più ricchi,
+   sull'A51 scattava; il gioco ora riconosce il telefono e alleggerisce la grafica da solo.
 
 ---
 

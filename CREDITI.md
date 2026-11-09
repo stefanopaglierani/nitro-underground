@@ -10,7 +10,7 @@ l'elenco completo, file per file, con autore, link, licenza e modifiche, è in
 - **Codice, shader, strumenti e build:** scritti da Claude (Anthropic) su richiesta di Stefano
 - **Suoni del motore:** sintetizzati da zero con `tools/audio/make_engine_sounds.py` (CC0)
 - **Illustrazione del menu Route 66:** originale, disegnata in SVG (`tools/art/route66.svg`), usata nel menu fino alla v0.16
-- **Immagini della pagina START, del garage e del caricamento (v0.17-v0.18):** fornite da Stefano Paglierani (vedi sotto)
+- **Immagini della pagina START, del garage, del caricamento e del dealer, icone di garage e dealer (v0.17-v0.22.2):** fornite da Stefano Paglierani (vedi sotto)
 
 ## Fonti degli asset
 
@@ -48,9 +48,10 @@ pubblicazione sugli store**. Stefano ha deciso così il 29 ottobre 2026.
    nel 2020 con licenza CC0. Dal 28 agosto 2026 i nuovi pacchetti Quaternius non sono più CC0:
    non vanno aggiunti al repository senza ricontrollare la licenza.
 
-6. **Immagini fornite da Stefano (v0.17-v0.18).** La pagina d'attesa (`assets/ui/title.jpg`) e il
+6. **Immagini fornite da Stefano (v0.17-v0.22.2).** La pagina d'attesa (`assets/ui/title.jpg`), il
    garage visto dal cofano (`loading_garage.jpg`, da cui sono ricavati `loading_door.png` e
-   `garage_bg.jpg`) sono immagini date da Stefano per il gioco: **origine e diritti vanno
+   `garage_bg.jpg`), lo showroom del dealer (`dealer_bg.jpg`) e le 18 icone di `assets/ui/icons/`
+   (dal foglio "Glossy Racing Garage UI Icon Sheet") sono immagini date da Stefano per il gioco: **origine e diritti vanno
    confermati prima della pubblicazione**.
 
 Tutto il resto (CC0 e CC BY) si può usare anche in un gioco in vendita. Per i CC BY i crediti
