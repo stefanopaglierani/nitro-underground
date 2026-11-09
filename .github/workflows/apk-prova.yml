@@ -1,7 +1,8 @@
 name: APK di prova
 
 # Builds a test APK in the cloud, for free, so that nothing has to be installed on the PC.
-# In this build the first race of the campaign is the generated island.
+# In this build the first race of the campaign is the generated island, and the app installs
+# next to the real game.
 
 on:
   workflow_dispatch:
