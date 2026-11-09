@@ -14,6 +14,7 @@ const ROAD_MARGIN := 24
 const SIDE_GRIP := 16.0  # m/s2, used to work out how fast the corners can be taken
 const DECEL := 14.0
 const LANE_POINT_STRIDE := 4
+const NEAREST_STRIDE := 12
 
 var pts := PackedVector3Array()
 var tangents := PackedVector3Array()
@@ -21,10 +22,17 @@ var limits := PackedFloat32Array()
 var half_width := 4.0
 var spacing := 2.0
 var sea_level := 0.0
+var world_path := WORLD_PATH
+## The data stored in the world file.
+var world_data: Dictionary
+var sea_size := 5000.0
+## Slowest frame since the race started, in milliseconds.
+var worst_frame_ms := 0.0
 var _lane_curve: Curve3D
 var _stats: Label
 var _stats_wait := 0.0
 var _lowest_fps := 1000.0
+var _race_time := 0.0
 
 
 func _init() -> void:
@@ -37,9 +45,10 @@ func build_steps() -> Array:
 
 
 func _load_world() -> void:
-	var world := (load(WORLD_PATH) as PackedScene).instantiate() as Node3D
+	var world := (load(world_path) as PackedScene).instantiate() as Node3D
 	add_child(world)
 	var data: Dictionary = world.get_meta("terrain_data")
+	world_data = data
 	sea_level = data.sea_level
 	var road: Dictionary = (data.roads as Array)[0]
 	half_width = road.width * 0.5
@@ -78,17 +87,28 @@ func _process(delta: float) -> void:
 	if _stats == null:
 		return
 	var fps := Performance.get_monitor(Performance.TIME_FPS)
+	# The loading screen would spoil the numbers: they count from the start of the race.
+	var racing := get_parent() is Main and (get_parent() as Main).state == "race"
+	if racing:
+		_race_time += delta
+		if _race_time > 2.0:
+			worst_frame_ms = maxf(worst_frame_ms, delta * 1000.0)
 	_stats_wait -= delta
 	if _stats_wait > 0.0:
 		return
 	_stats_wait = 0.5
-	if Time.get_ticks_msec() > 15000:
+	if racing and _race_time > 2.0:
 		_lowest_fps = minf(_lowest_fps, fps)
-	_stats.text = "FPS %d  min %d\nRAM %d MB  video %d MB\n%d mila triangoli  %d draw" % [fps, _lowest_fps,
+	_stats.text = "FPS %d  min %d\nRAM %d MB  video %d MB\n%d mila triangoli  %d draw\n%s" % [fps, _lowest_fps,
 		Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0,
 		Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0,
 		Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME) / 1000.0,
-		Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)]
+		Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME), stats_extra()]
+
+
+## One more line for the numbers on the screen.
+func stats_extra() -> String:
+	return "Peggior frame %d ms" % worst_frame_ms
 
 
 ## Radius of the circle through three points, on the ground plane.
@@ -104,7 +124,7 @@ static func _radius(a: Vector3, b: Vector3, c: Vector3) -> float:
 
 func _build_sea() -> void:
 	var plane := PlaneMesh.new()
-	plane.size = Vector2(5000, 5000)
+	plane.size = Vector2(sea_size, sea_size)
 	var material := StandardMaterial3D.new()
 	material.albedo_color = Color(0.12, 0.42, 0.62)
 	material.roughness = 0.25
@@ -120,12 +140,12 @@ func _build_sea() -> void:
 func nearest(pos: Vector3) -> int:
 	var best := 0
 	var best_d := INF
-	for i in range(0, pts.size(), 6):
+	for i in range(0, pts.size(), NEAREST_STRIDE):
 		var d := Vector2(pos.x - pts[i].x, pos.z - pts[i].z).length_squared()
 		if d < best_d:
 			best_d = d
 			best = i
-	for i in range(maxi(best - 6, 0), mini(best + 7, pts.size())):
+	for i in range(maxi(best - NEAREST_STRIDE, 0), mini(best + NEAREST_STRIDE + 1, pts.size())):
 		var d := Vector2(pos.x - pts[i].x, pos.z - pts[i].z).length_squared()
 		if d < best_d:
 			best_d = d
