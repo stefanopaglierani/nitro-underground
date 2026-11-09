@@ -22,6 +22,9 @@ var half_width := 4.0
 var spacing := 2.0
 var sea_level := 0.0
 var _lane_curve: Curve3D
+var _stats: Label
+var _stats_wait := 0.0
+var _lowest_fps := 1000.0
 
 
 func _init() -> void:
@@ -48,6 +51,8 @@ func _load_world() -> void:
 		pts[i] = Vector3(path[i].x, heights[i], path[i].y)
 	tangents.resize(pts.size())
 	limits.resize(pts.size())
+	if Perf.mobile:
+		_add_stats()
 	var last := pts.size() - 1
 	for i in pts.size():
 		var a := pts[maxi(i - 5, 0)]
@@ -55,6 +60,35 @@ func _load_world() -> void:
 		var c := pts[mini(i + 5, last)]
 		tangents[i] = (c - a).normalized()
 		limits[i] = sqrt(SIDE_GRIP * _radius(a, b, c))
+
+
+## Numbers on the screen for the phone test: how fast it runs and how much it uses.
+func _add_stats() -> void:
+	var layer := CanvasLayer.new()
+	_stats = Label.new()
+	_stats.position = Vector2(232, 72)
+	_stats.add_theme_font_size_override("font_size", 18)
+	_stats.add_theme_color_override("font_outline_color", Color.BLACK)
+	_stats.add_theme_constant_override("outline_size", 4)
+	layer.add_child(_stats)
+	add_child(layer)
+
+
+func _process(delta: float) -> void:
+	if _stats == null:
+		return
+	var fps := Performance.get_monitor(Performance.TIME_FPS)
+	_stats_wait -= delta
+	if _stats_wait > 0.0:
+		return
+	_stats_wait = 0.5
+	if Time.get_ticks_msec() > 15000:
+		_lowest_fps = minf(_lowest_fps, fps)
+	_stats.text = "FPS %d  min %d\nRAM %d MB  video %d MB\n%d mila triangoli  %d draw" % [fps, _lowest_fps,
+		Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0,
+		Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0,
+		Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME) / 1000.0,
+		Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)]
 
 
 ## Radius of the circle through three points, on the ground plane.
