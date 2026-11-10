@@ -93,6 +93,9 @@ func _process(delta: float) -> void:
 		_wait = CHECK_EVERY
 		_stream()
 	if OS.get_cmdline_user_args().has("--autotest"):
+		if delta > 0.05 and get_parent() is Main:
+			var main := get_parent() as Main
+			print("[slow] %d ms at race %.1f s, state %s, police %d, tiles %d, pending %d" % [delta * 1000.0, main.race_time, main.state, main.police.size(), _tiles.size(), _pending.size()])
 		_print_wait -= delta
 		if _print_wait <= 0.0:
 			_print_wait = 5.0
