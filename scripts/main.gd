@@ -35,6 +35,8 @@ static func make_level(id: String) -> Track:
 			return BakedWorld.new()
 		"x5":
 			return TiledWorld.new()
+		"x5costa":
+			return TiledWorld.new(1)
 	return Mountain.new()
 
 

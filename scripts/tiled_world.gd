@@ -25,8 +25,9 @@ var _slowest_add_ms := 0.0
 var _print_wait := 5.0
 
 
-func _init() -> void:
+func _init(road_index := 0) -> void:
 	super()
+	race_road = road_index
 	world_path = FOLDER + "world.scn"
 	extent = 2500.0
 	view_distance = 1200.0

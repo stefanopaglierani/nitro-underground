@@ -54,7 +54,7 @@ jobs:
           sed -i 's/package\/name="Nitro Underground"/package\/name="Nitro Prova"/' export_presets.cfg
           grep -n "package/unique_name\|package/name" export_presets.cfg
       - name: Put the generated islands first in the campaign (this build only)
-        run: sed -i 's/^const CAMPAIGN := \[/const CAMPAIGN := [["x5", "ISOLA X5"], ["isola", "ISOLA"], /' scripts/main.gd
+        run: sed -i 's/^const CAMPAIGN := \[/const CAMPAIGN := [["x5costa", "COSTA X5"], ["x5", "ISOLA X5"], /' scripts/main.gd
       - name: Build
         run: |
           mkdir -p build

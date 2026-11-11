@@ -46,6 +46,7 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.23 | 09/11/2026 | Prima gara su un mondo generato dagli strumenti: isola con strada, villaggi e collisioni in un solo file | ramo `claude/mondo-generato-isola` |
 | v0.24 | 10/11/2026 | Isola x5 caricata a tessere; auto della polizia preparate durante il caricamento | ramo `claude/mondo-x5` |
 | v0.25 | 11/11/2026 | Isola x5 con texture, mare, due villaggi, alberi e modelli leggeri da lontano | ramo `claude/mondo-x5-aspetto` |
+| v0.26 | 11/11/2026 | Circuito Costa nel mondo unico, a giro chiuso, con villaggio e strada di collegamento | ramo `claude/mondo-x5-costa` |
 
 ## Le svolte principali
 
@@ -973,12 +974,31 @@ fumo, fiamma del nitro e anello del checkpoint, per preparare la loro grafica pr
 **Verifica ed esito:** gara completa sul PC con il profilo telefono, 240-470 mila triangoli e
 300-490 chiamate di disegno, sotto i picchi di Costa. Il telefono non è ancora stato provato.
 
+## v0.26 — Costa entra nel mondo unico (11 novembre)
+
+![Costa sull'isola grande](immagini/v0.26-costa-x5.jpg)
+
+**Richiesta:** tappa 3 del mondo unico, la prima zona completa. Stefano ha scelto di partire da Costa.
+
+**Come è stato costruito:** il percorso è quello del circuito Costa, letto dalla sua mappa di testo
+(`tracks/costa.txt`) e portato sulla costa ovest dell'isola grande, con il mare dal lato giusto.
+Gli strumenti ora sanno fare strade ad anello chiuso: la gara è un giro, e il traguardo è la
+partenza. Una strada con due incroci collega Costa all'anello principale, e accanto c'è un villaggio
+con le sue vie. Nel gioco, `scripts/tiled_world.gd` sceglie quale strada del mondo è la gara (la
+gara si chiama COSTA X5), e il cronometro calcola i tempi dalle curve, con 5 secondi in più per la
+partenza da fermi.
+
+**Verifica ed esito:** tre gare complete con il pilota automatico (1:07-1:26) e due sull'anello
+principale. Con il profilo telefono il PC disegna 200-490 mila triangoli. Il telefono non è ancora
+stato provato.
+
 ---
 
 ## Prossimi passi
 
-- Provare la v0.25 sul Galaxy A51, soprattutto i primi secondi della prima partita.
-- Tappa 3 del mondo unico: la prima zona completa, Costa, con il suo circuito e i suoi villaggi.
+- Provare Costa sull'isola grande sul Galaxy A51, e i primi secondi della prima partita.
+- Costa più fedele all'originale: palme, faro e lungomare.
+- Tappa 4 del mondo unico: Città, Deserto e Montagna.
 
 - Prova sul telefono della v0.22: se scatta ancora, il passo dopo è ridurre ancora la risoluzione 3D o togliere le ombre del tutto.
 - Pezzi di strada (incrocio, strada con parcheggio) dentro i circuiti, se approvato; ponte ad arco con la mappa 3D completa.
