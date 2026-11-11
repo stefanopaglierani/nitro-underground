@@ -223,6 +223,8 @@ volta, e se ne aggiunge una per fotogramma. Sul telefono sono 5×5, sul PC 7×7.
 Dalla v0.25 le tessere usano `shaders/terrain.gdshader` come i circuiti fatti a mano: il colore
 rosso dei vertici dice quanto il terreno è vicino alla strada (ghiaia). Gli oggetti del mondo hanno
 versioni leggere preparate dagli strumenti (LOD), scelte dal motore in base alla distanza.
+Dalla v0.26 una strada del mondo può essere un anello chiuso: la gara allora è un giro, con il
+traguardo sulla partenza, e il cronometro stima i tempi dalle curve (`BakedWorld.drive_time`).
 
 ## 6. Grafica: lo stile a fumetto 2.5D (spento dalla v0.13)
 

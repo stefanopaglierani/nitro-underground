@@ -15,6 +15,8 @@ const SIDE_GRIP := 16.0  # m/s2, used to work out how fast the corners can be ta
 const DECEL := 14.0
 const LANE_POINT_STRIDE := 4
 const NEAREST_STRIDE := 12
+## Seconds added to the first stretch of the clock, for the standing start.
+const START_TIME := 5.0
 
 var pts := PackedVector3Array()
 var tangents := PackedVector3Array()
@@ -23,6 +25,10 @@ var half_width := 4.0
 var spacing := 2.0
 var sea_level := 0.0
 var world_path := WORLD_PATH
+## Which road of the world is the race.
+var race_road := 0
+## The race road is a ring: the race is one lap, and the finish is the start.
+var closed := false
 ## The data stored in the world file.
 var world_data: Dictionary
 var sea_size := 5000.0
@@ -50,7 +56,8 @@ func _load_world() -> void:
 	var data: Dictionary = world.get_meta("terrain_data")
 	world_data = data
 	sea_level = data.sea_level
-	var road: Dictionary = (data.roads as Array)[0]
+	var road: Dictionary = (data.roads as Array)[race_road]
+	closed = road.get("closed", false)
 	half_width = road.width * 0.5
 	spacing = road.sample_spacing
 	var path: PackedVector2Array = road.path
@@ -64,9 +71,9 @@ func _load_world() -> void:
 		_add_stats()
 	var last := pts.size() - 1
 	for i in pts.size():
-		var a := pts[maxi(i - 5, 0)]
+		var a := pts[posmod(i - 5, last)] if closed else pts[maxi(i - 5, 0)]
 		var b := pts[i]
-		var c := pts[mini(i + 5, last)]
+		var c := pts[(i + 5) % last] if closed else pts[mini(i + 5, last)]
 		tangents[i] = (c - a).normalized()
 		limits[i] = sqrt(SIDE_GRIP * _radius(a, b, c))
 
@@ -215,14 +222,43 @@ func advised_speed(pos: Vector3, fwd: Vector3) -> float:
 	var best := INF
 	for j in range(1, 80):
 		var k := i + dir * j
-		if k < 0 or k >= pts.size():
+		if closed:
+			k = posmod(k, pts.size() - 1)
+		elif k < 0 or k >= pts.size():
 			break
 		best = minf(best, sqrt(limits[k] * limits[k] + 2.0 * DECEL * j * spacing))
 	return best
 
 
+## Seconds a fast driver needs from a to b along the race road, from how tight the corners are.
+func drive_time(a: Vector3, b: Vector3) -> float:
+	var i := nearest(a)
+	var j := nearest(b)
+	var ring := pts.size() - 1
+	var steps := posmod(j - i, ring) if closed else j - i
+	if steps <= 0:
+		return -1.0
+	var t := 0.0
+	for s in steps:
+		var k := (i + s) % ring if closed else i + s
+		t += spacing / clampf(limits[k], 12.0, 45.0)
+	# From the start line the cars set off standing still.
+	if absi(i - ROAD_MARGIN) < 3:
+		t += START_TIME
+	return t
+
+
 func race_path() -> Array[Vector3]:
 	var out: Array[Vector3] = []
+	if closed:
+		# One lap, from the start line back to it.
+		var ring := pts.size() - 1
+		var k := 0
+		while k < ring:
+			out.append(pts[(ROAD_MARGIN + k) % ring])
+			k += PATH_STRIDE
+		out.append(pts[ROAD_MARGIN])
+		return out
 	var last := pts.size() - 1 - ROAD_MARGIN
 	var k := ROAD_MARGIN
 	while k < last:
@@ -290,4 +326,4 @@ func traffic_lane(rng: RandomNumberGenerator) -> Dictionary:
 		for k in range(0, pts.size(), LANE_POINT_STRIDE):
 			_lane_curve.add_point(pts[k])
 		_lane_curve.add_point(pts[pts.size() - 1])
-	return {"curve": _lane_curve, "offset": LANE, "dir": 1.0 if rng.randf() < 0.5 else -1.0, "loop": false}
+	return {"curve": _lane_curve, "offset": LANE, "dir": 1.0 if rng.randf() < 0.5 else -1.0, "loop": closed}
