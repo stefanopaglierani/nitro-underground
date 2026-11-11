@@ -307,3 +307,9 @@ Scaricati l'8/11/2026 (libreria nei file di progetto: `libreria-3d/ambientazione
 
 Le icone al neon della v0.20 (garage, bomboletta, chiave e cacciavite, pezzi del tuning) sono
 disegnate nel codice (`scripts/neon.gd`): nostre, nessun file.
+
+## Icone dell'interfaccia — `assets/ui/icons/`
+
+| File | Cosa è | Fonte | Licenza | Modifiche |
+|---|---|---|---|---|
+| 18 file `*.png` (garage, dealer, race_start, map, my_cars, for_sale, tuning, paint, shop, switch_car, wallet, confirm, reset, garage_upgrade, previous, next, currency, star_currency) | Icone di garage e dealer (v0.22.2; sostituiscono gli SVG della v0.22.1, ritirati) | Foglio "Glossy Racing Garage UI Icon Sheet" (50 icone), fornito da Stefano Paglierani l'08/11/2026 | Fornite da Stefano per il gioco (origine e diritti da confermare prima della pubblicazione) | Ritagliate dal foglio, sfondo reso trasparente, 256×256; `wallet.png` è una copia di `currency.png` |

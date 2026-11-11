@@ -28,11 +28,11 @@ game designer) e vuole capire cosa c'è dietro gli screenshot.
 
 | | |
 |---|---|
-| Durata | 5 giorni, dal 27 al 31 ottobre 2026 (concept → v0.11.1) |
-| Versioni provate su telefono o PC | 12 (v0.1 → v0.11.1), più varianti di prova |
-| Codice | ~7.500 righe di GDScript nel gioco, ~500 di shader, ~1.000 di strumenti e test |
+| Durata | 13 giorni, dal 27 ottobre all'8 novembre 2026 (concept → v0.22.2) |
+| Versioni provate su telefono o PC | 29 (v0.1 → v0.22.2), più varianti di prova |
+| Codice | ~10.600 righe di GDScript nel gioco, ~500 di shader, ~800 di strumenti e test |
 | Circuiti | 4 (Montagna, Costa, Città di notte, Deserto), da 1,7 a 2,8 km |
-| Auto nel garage | 7, ognuna con velocità massima e trazione proprie |
+| Auto | 14 nel catalogo (tutte CC BY, nomi inventati), 3 da scegliere nel garage iniziale, tutte in vendita al dealer; 4 volanti e 13 mezzi nel traffico |
 | Asset di terze parti | oltre 120 voci nel registro licenze (modelli, texture, suoni), CC0 e CC BY più le eccezioni dichiarate |
 | Budget | 0 €: solo strumenti e asset gratuiti |
 
@@ -40,13 +40,16 @@ game designer) e vuole capire cosa c'è dietro gli screenshot.
 
 Il gioco è fatto con **Godot 4.7** in **GDScript**, renderer **Mobile (Vulkan)** sul PC e **Compatibility (OpenGL)** sul telefono (v0.14: con Vulkan la gara sull'A51 di Stefano andava a scatti), fisica **Jolt**.
 Una scelta presa al primo giorno: quasi tutto viene **costruito dal codice**. Le scene `.tscn`
-sono due file quasi vuoti (menu e gara); strade, terreno, guardrail, alberi, auto, interfaccia e
+sono tre file quasi vuoti (pagina START, garage e gara); strade, terreno, guardrail, alberi, auto, interfaccia e
 materiali nascono dagli script. Così ogni cosa è testo leggibile, versionabile e modificabile senza
 aprire l'editor, che era fondamentale per un progetto sviluppato in sessioni remote.
 
 ```mermaid
 flowchart LR
-    Menu["menu.gd<br/>Route 66: circuito → auto → VIA!"] --> Main["main.gd<br/>regole di gara, checkpoint,<br/>tempo, polizia, telecamera"]
+    Title["title.gd<br/>pagina d'attesa: START"] --> Menu["menu.gd<br/>garage: auto, denaro,<br/>reputazione → GARA"]
+    Menu <--> Dealer["dealer.gd + Tuning<br/>compra, vendi, colore,<br/>6 elaborazioni"]
+    Save["SaveGame<br/>user://partita.cfg"] -.-> Menu
+    Menu --> Main["main.gd<br/>regole di gara, checkpoint,<br/>tempo, polizia, telecamera"]
     Main --> Track["Track (track.gd)<br/>interfaccia comune dei circuiti"]
     Track --> Mountain["Mountain<br/>strada, terreno, guardrail,<br/>traiettoria ideale"]
     Mountain --> Coast & Night["NightCity"] & Desert
@@ -56,7 +59,8 @@ flowchart LR
     Car --> CarAudio["CarAudio"]
     Car --> CarModel["CarModel / CarCatalog"]
     Main --> Traffic["TrafficCar<br/>traffico urtabile"]
-    Main --> Hud["Hud + Dashboard<br/>comandi touch, cruscotto"]
+    Main --> Hud["Hud + Dashboard + Minimap<br/>comandi touch, cruscotto,<br/>minimappa, caricamento"]
+    Main -.-> Save
     Comic["ComicStyle<br/>materiali toon + passata a schermo"] -.-> Main
 ```
 
@@ -69,6 +73,44 @@ flowchart LR
   ingressi (`in_throttle`, `in_steer`...) e la fisica fa il resto. Le auto del computer guidano
   quindi con le stesse regole del giocatore, senza scorciatoie.
 - **`CarCatalog`** descrive ogni auto (modello, velocità massima, trazione, nome) e il garage.
+
+### Dalla pagina START alla gara, e i progressi (v0.17-v0.22)
+
+- **Pagina d'attesa** (`scenes/title.tscn`, `scripts/title.gd`): è la prima scena del gioco,
+  con l'immagine scelta da Stefano e un solo pulsante START, in basso al centro, che apre il garage.
+- **Garage iniziale** (`scripts/menu.gd`): l'auto in 3D al centro, frecce per sfogliare tre auto
+  di partenza (provvisorie, scelte da Stefano fra quelle del catalogo), SELEZIONA con conferma in
+  due tocchi perché **la scelta è definitiva**, pannelli di denaro e reputazione, DEALER in basso a
+  sinistra e INIZIO GARA in basso a destra, che apre la prossima gara della campagna. Si leggono dal disco solo le auto in offerta.
+- **Salvataggio** (`scripts/save_game.gd`): auto possedute e quella guidata, colore ed
+  elaborazioni di ognuna, denaro, reputazione e prossima gara della campagna stanno in un file
+  `ConfigFile` (`user://partita.cfg`) sul telefono; il file ha un numero di versione, e un
+  salvataggio della v0.17 (che partiva da 0) viene portato ai 2.000 di partenza della v0.18.
+- **Economia** (`scripts/main.gd`, regole decise da Stefano): 2.000 di denaro all'inizio,
+  5.000 per ogni gara portata al traguardo (non a tempo scaduto né con l'arresto); reputazione
+  +1.000 per la vittoria, +100 per ogni inseguimento della polizia seminato, +20 per una derapata
+  di almeno mezzo secondo, che raddoppia se la successiva comincia entro 3 secondi (fino a 16 volte,
+  320). Il denaro va solo a chi arriva al traguardo; la reputazione guadagnata resta anche se si
+  ricomincia la gara o si torna al garage prima della fine.
+- **Campagna** (v0.19, `Main.CAMPAIGN`): le gare si susseguono in un ordine deciso da Stefano,
+  Costa, Città, Deserto, Montagna; finita l'ultima si ricomincia.
+- **Dealer** (v0.19, rifatto nella v0.20, `scripts/dealer.gd`): l'auto gira sul piatto della foto
+  dello showroom, sempre centrata qualunque sia la forma dello schermo. Tre sezioni: LE MIE AUTO
+  (guidare, verniciare, vendere se non è l'ultima), IN VENDITA (14 auto; le tre di partenza
+  valgono 9.000, le altre hanno un prezzo provvisorio legato alla velocità massima) e TUNING.
+- **Tuning** (`scripts/tuning.gd`): sei pezzi (motore, centralina, scarico, nitro, freni,
+  sospensioni) a cinque livelli; portarli tutti al massimo costa circa due volte l'auto, e ogni
+  livello costa più del precedente. Gli effetti si applicano all'auto del giocatore quando parte
+  la gara: per esempio ogni livello di motore dà +12% di forza, ogni livello di freni +18% di
+  frenata, ogni livello di sospensioni +7,5% di aderenza. Un'auto venduta rende circa metà del prezzo.
+- **Pulsanti e icone** (`scripts/ui_kit.gd`, `scripts/neon.gd`): pezzi comuni a garage e
+  dealer; dalla v0.22.2 le icone sono ritagliate da un foglio di icone fornito da Stefano.
+- **Minimappa** (`scripts/minimap.gd`): il percorso visto dall'alto, nord in alto, freccia nera
+  per il giocatore e rosse per i rivali. La pista si disegna una volta sola; ogni fotogramma si
+  ridisegnano solo le frecce, quindi sul telefono non costa quasi nulla.
+- **Caricamento con la serranda** (`scripts/hud.gd`): sopra l'immagine del garage vista dal cofano
+  la serranda sale con la percentuale. Il caricamento aspetta al massimo 0,12 s per passo che la
+  serranda arrivi (`Main.DOOR_WAIT`), quindi l'animazione aggiunge al più un paio di secondi.
 
 ## 3. Fisica dell'auto
 
@@ -234,8 +276,9 @@ Dopo aver provato uno stile realistico, uno anime e uno a fumetto, Stefano ha sc
   realistici (CC BY) che passano dentro lo stile, così il risultato è ricco ma coerente.
 - **Città di notte luminosa**: finestre accese da uno shader di facciata, pozze di luce sull'asfalto,
   neon e 8 luci vere che seguono la telecamera (la prima città notturna era stata scartata perché troppo buia).
-- **Menu Route 66**: illustrazione originale disegnata in SVG (`tools/art/route66.svg`) e
-  trasformata in immagine con Chromium.
+- **Menu Route 66** (fino alla v0.16): illustrazione originale disegnata in SVG (`tools/art/route66.svg`) e
+  trasformata in immagine con Chromium. Dalla v0.17 il garage e il caricamento usano un'immagine
+  fornita da Stefano.
 
 ## 7. Audio
 

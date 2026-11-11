@@ -181,7 +181,7 @@ func _build_header() -> void:
 	tabs.offset_bottom = 152
 	tabs.add_theme_constant_override("separation", 14)
 	add_child(tabs)
-	for t in [["mine", "LE MIE AUTO", Neon.CYAN, "car"], ["shop", "IN VENDITA", Neon.YELLOW, "tag"], ["tune", "TUNING", Neon.LIME, "tuning"]]:
+	for t in [["mine", "LE MIE AUTO", Neon.CYAN, "my_cars"], ["shop", "IN VENDITA", Neon.YELLOW, "for_sale"], ["tune", "TUNING", Neon.LIME, "tuning"]]:
 		var b := Neon.NeonButton.new().setup(t[1], t[3], t[2], false, 22)
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.pressed.connect(_on_tab.bind(t[0]))
@@ -230,7 +230,7 @@ func _build_header() -> void:
 ## VERNICIATURA bottom left, the main button (drive / buy / buy a new one) in the middle with
 ## VENDI beside it, TUNING bottom right.
 func _build_bottom() -> void:
-	_paint_button = Neon.NeonButton.new().setup("VERNICIATURA", "spray", Neon.PINK, true, 21)
+	_paint_button = Neon.NeonButton.new().setup("VERNICIATURA", "paint", Neon.PINK, true, 21)
 	_paint_button.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	_paint_button.offset_left = 18
 	_paint_button.offset_right = 178
@@ -257,7 +257,7 @@ func _build_bottom() -> void:
 	_action.pressed.connect(_on_action)
 	add_child(_action)
 
-	_sell = Neon.NeonButton.new().setup("VENDI", "cash", Neon.RED, false, 22)
+	_sell = Neon.NeonButton.new().setup("VENDI", "wallet", Neon.RED, false, 22)
 	_sell.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	_sell.offset_left = 214
 	_sell.offset_right = 444
@@ -299,12 +299,12 @@ func _build_color_panel() -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 12)
 	box.add_child(row)
-	var reset := Neon.NeonButton.new().setup("ORIGINALE", "undo", Neon.CYAN, false, 20)
+	var reset := Neon.NeonButton.new().setup("ORIGINALE", "reset", Neon.CYAN, false, 20)
 	reset.custom_minimum_size = Vector2(0, 52)
 	reset.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	reset.pressed.connect(_reset_color)
 	row.add_child(reset)
-	var ok := Neon.NeonButton.new().setup("OK", "check", Neon.GREEN, false, 22)
+	var ok := Neon.NeonButton.new().setup("OK", "confirm", Neon.GREEN, false, 22)
 	ok.custom_minimum_size = Vector2(110, 52)
 	ok.pressed.connect(_close_colors)
 	row.add_child(ok)
@@ -364,7 +364,7 @@ func _build_tune_card() -> void:
 	var spacer := Control.new()
 	spacer.custom_minimum_size = Vector2(0, 6)
 	box.add_child(spacer)
-	_tune_buy = Neon.NeonButton.new().setup("", "cash", Color.WHITE, false, 21)
+	_tune_buy = Neon.NeonButton.new().setup("", "garage_upgrade", Color.WHITE, false, 21)
 	_tune_buy.custom_minimum_size = Vector2(0, 54)
 	_tune_buy.pressed.connect(func(): _buy_part(_part))
 	box.add_child(_tune_buy)
@@ -494,15 +494,15 @@ func _refresh() -> void:
 	_action.disabled = false
 	if _mode == "shop" and id != "":
 		var price := CarCatalog.price(id)
-		_action.icon_kind = "tag"
+		_action.icon_kind = "shop"
 		_action.set_caption("COMPRA  %s $" % UiKit.thousands(price), Neon.YELLOW)
 		_action.disabled = SaveGame.money < price
 	elif id == SaveGame.car:
 		# Stefano: on the car in use the button becomes "buy a new one".
-		_action.icon_kind = "tag"
+		_action.icon_kind = "for_sale"
 		_action.set_caption("ACQUISTA NUOVA", Neon.YELLOW)
 	else:
-		_action.icon_kind = "key"
+		_action.icon_kind = "switch_car"
 		_action.set_caption("GUIDA QUESTA", Neon.GREEN)
 	if tune and id != "":
 		var lv := SaveGame.levels_of(id)

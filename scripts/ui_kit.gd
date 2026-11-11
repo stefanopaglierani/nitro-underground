@@ -91,9 +91,20 @@ static func stat_panel(parent: Control, kind: String) -> Label:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	panel.add_child(row)
-	var icon := Icon.new()
-	icon.kind = kind
-	icon.custom_minimum_size = Vector2(34, 34)
+	# Icons of Stefano's set (v0.20.5) where there is one, else the drawn coin and star.
+	var tex := Neon.icon_texture({"money": "currency", "rep": "star_currency"}.get(kind, ""))
+	var icon: Control
+	if tex:
+		var tr := TextureRect.new()
+		tr.texture = tex
+		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon = tr
+	else:
+		icon = Icon.new()
+		(icon as Icon).kind = kind
+	icon.custom_minimum_size = Vector2(38, 38)
 	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(icon)
 	var value := Label.new()
@@ -176,6 +187,14 @@ class ArrowButton:
 		focus_mode = Control.FOCUS_NONE
 
 	func _draw() -> void:
+		# Stefano's icon set (v0.20.5): its "previous" / "next" chevrons.
+		var tex := Neon.icon_texture("previous" if dir < 0 else "next")
+		if tex:
+			var side := minf(size.x, size.y)
+			var k := 0.92 if button_pressed else 1.0
+			var r := Rect2(size * 0.5 - Vector2(side, side) * 0.5 * k, Vector2(side, side) * k)
+			draw_texture_rect(tex, r, false, Color(1, 1, 1, 1.0 if is_hovered() else 0.92))
+			return
 		var c := size * 0.5
 		var w := size.x * 0.32
 		var h := size.y * 0.42

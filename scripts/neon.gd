@@ -1,6 +1,6 @@
 class_name Neon
 extends RefCounted
-## Look of the buttons of the dealer and the garage (v0.20, Stefano: "più moderni, leggermente
+## Look of the buttons of the dealer and the garage (icons: see ICON_DIR) (v0.20, Stefano: "più moderni, leggermente
 ## graffitari"): a small coloured picture and a caption in a marker font (Permanent Marker, Apache
 ## 2.0, assets/fonts), nothing else. History: neon tubes on dark plates (v0.20), pastel (v0.20.1),
 ## strong colours (v0.20.3); since v0.20.4 no plate and no border, and the pictures are flat and
@@ -8,13 +8,13 @@ extends RefCounted
 ## they stay sharp at any size and add nothing to download.
 
 const FONT := "res://assets/fonts/PermanentMarker-Regular.ttf"
-const CYAN := Color(0.15, 0.45, 1.0)
-const PINK := Color(1.0, 0.1, 0.12)
-const LIME := Color(0.15, 0.95, 0.2)
-const GREEN := Color(0.15, 0.95, 0.2)
+const CYAN := Color("35a8ff")
+const PINK := Color("ffc247")
+const LIME := Color("35a8ff")
+const GREEN := Color("65e58b")
 const ORANGE := Color(1.0, 0.5, 0.0)
-const RED := Color(1.0, 0.1, 0.12)
-const YELLOW := Color(1.0, 0.95, 0.0)
+const RED := Color("ff454f")
+const YELLOW := Color("ffc247")
 const INK := Color(0.03, 0.02, 0.06)
 
 
@@ -105,8 +105,27 @@ static func _ring(c: Vector2, r0: float, r1: float, a0: float, a1: float, n := 1
 	return out
 
 
-## Draws picture `kind` in `rect` of canvas item `ci`; every picture has its own colours.
+## Stefano's icon set (v0.20.5, "Nitro UI Icon Pack", assets/ui/icons): metallic line icons with
+## a blue, amber, red or green accent. An icon of the set is used when there is one with that
+## name; the tuning parts, which the set doesn't have, keep the drawn pictures below.
+const ICON_DIR := "res://assets/ui/icons/%s.png"
+static var _textures := {}
+
+
+static func icon_texture(kind: String) -> Texture2D:
+	if not _textures.has(kind):
+		var path := ICON_DIR % kind
+		_textures[kind] = load(path) if kind != "" and ResourceLoader.exists(path) else null
+	return _textures[kind]
+
+
+## Draws icon `kind` in `rect` of canvas item `ci`: from the icon set, or drawn in code.
 static func draw_icon(ci: CanvasItem, kind: String, rect: Rect2) -> void:
+	var tex := icon_texture(kind)
+	if tex:
+		var side := minf(rect.size.x, rect.size.y)
+		ci.draw_texture_rect(tex, Rect2(rect.position + (rect.size - Vector2(side, side)) * 0.5, Vector2(side, side)), false)
+		return
 	var p := _Pen.new(ci, rect)
 	match kind:
 		"garage":
