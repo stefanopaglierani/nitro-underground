@@ -216,6 +216,11 @@ flowchart LR
 contiene anche i dati `terrain_data`, tra cui il percorso e le altezze delle strade: la prima è la
 gara. Il gioco non usa il codice degli strumenti che lo hanno creato.
 
+Dalla v0.24 un mondo troppo grande per stare tutto in memoria arriva a tessere
+(`scripts/tiled_world.gd`): ogni tessera da 320 m ha una mesh dettagliata, una leggera oltre 480 m
+e la sua collisione. Le tessere attorno alla telecamera si leggono in sottofondo, al massimo tre per
+volta, e se ne aggiunge una per fotogramma. Sul telefono sono 5×5, sul PC 7×7.
+
 ## 6. Grafica: lo stile a fumetto 2.5D (spento dalla v0.13)
 
 `scripts/comic_style.gd` · `shaders/stylize.gdshader` e altri 12 shader

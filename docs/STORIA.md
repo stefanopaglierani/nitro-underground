@@ -44,6 +44,7 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.21 | 08/11/2026 | Ambienti più ricchi: 51 modelli nuovi (boschi, rocce, case americane, arredo urbano, pali della luce, cartelli americani), neon della città ridotti a un terzo | ramo `claude/project-thread-u6ha4a` |
 | v0.22 | 08/11/2026 | Profilo grafico leggero per il telefono; freno, freno a mano e nitro sistemati, auto più pesanti, rientro in pista nel verso giusto | ramo `claude/project-thread-u6ha4a` |
 | v0.23 | 09/11/2026 | Prima gara su un mondo generato dagli strumenti: isola con strada, villaggi e collisioni in un solo file | ramo `claude/mondo-generato-isola` |
+| v0.24 | 10/11/2026 | Isola x5 caricata a tessere; auto della polizia preparate durante il caricamento | ramo `claude/mondo-x5` |
 
 ## Le svolte principali
 
@@ -932,12 +933,33 @@ soddisfatto. Il telefono vero non è stato provato: con il profilo telefono il P
 milione di triangoli, quasi il doppio di Costa, e il file aggiunge 45 MB. I modelli sono elencati
 in [`assets/LICENSES.md`](../assets/LICENSES.md).
 
+## v0.24 — Un mondo cinque volte più grande, a tessere (10 novembre)
+
+![L'isola x5](immagini/v0.24-isola-x5.jpg)
+
+**Richiesta:** il progetto è un unico grande mondo con quattro zone, e l'isola deve essere almeno
+cinque volte più grande. Prima di costruire i contenuti, Stefano ha voluto sapere se il telefono regge.
+
+**Come è stato costruito:** gli strumenti tagliano il terreno in 80 tessere da 320 m, ognuna con
+una versione dettagliata, una leggera per la distanza e la sua collisione
+(`assets/worlds/isola_x5/`). `scripts/tiled_world.gd` le legge in sottofondo attorno alla
+telecamera: 25 sul telefono, 49 sul PC. La strada di gara è di 5,4 km e, su richiesta di Stefano
+dopo la prima prova, sale e scende meno: pendenza massima 5%. Le tre auto della polizia ora si
+preparano durante il caricamento (`scripts/main.gd`): crearne una in piena gara costava 50 ms sul PC,
+e sul telefono diventava un lag di qualche istante dopo uno scontro o un salto, cioè quando sale
+l'allerta.
+
+**Verifica ed esito:** sul Galaxy A51 Stefano ha misurato 37-42 FPS, minimo 26-33 e 200-230 mila
+triangoli, contro i 910 mila dell'isola piccola. Ha giudicato la prova superata a pieni voti, a
+parte il lag dopo scontri e salti, ora corretto ma non ancora riprovato sul telefono. Sul PC, con
+il profilo telefono, non restano frame lenti quando arriva la polizia.
+
 ---
 
 ## Prossimi passi
 
-- Il mondo 3D completo per Nitro, generato con gli stessi strumenti.
-- Provare l'isola sul Galaxy A51 e misurarne il peso prima di metterla nella campagna.
+- Tappa 2 del mondo unico: texture del terreno e versioni leggere dei modelli per la distanza.
+- Riprovare sul Galaxy A51 il lag dopo scontri e salti.
 
 - Prova sul telefono della v0.22: se scatta ancora, il passo dopo è ridurre ancora la risoluzione 3D o togliere le ombre del tutto.
 - Pezzi di strada (incrocio, strada con parcheggio) dentro i circuiti, se approvato; ponte ad arco con la mappa 3D completa.

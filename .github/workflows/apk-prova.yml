@@ -7,7 +7,7 @@ name: APK di prova
 on:
   workflow_dispatch:
   push:
-    branches: [prova-pc, claude/apk-prova]
+    branches: [prova-pc, "claude/mondo-*"]
     paths-ignore: ["docs/**", "**.md"]
 
 jobs:
@@ -53,8 +53,8 @@ jobs:
           sed -i 's/com.stefanopaglierani.nitrounderground/com.stefanopaglierani.nitrounderground.prova/' export_presets.cfg
           sed -i 's/package\/name="Nitro Underground"/package\/name="Nitro Prova"/' export_presets.cfg
           grep -n "package/unique_name\|package/name" export_presets.cfg
-      - name: Put the island first in the campaign (this build only)
-        run: sed -i 's/^const CAMPAIGN := \[/const CAMPAIGN := [["isola", "ISOLA"], /' scripts/main.gd
+      - name: Put the generated islands first in the campaign (this build only)
+        run: sed -i 's/^const CAMPAIGN := \[/const CAMPAIGN := [["x5", "ISOLA X5"], ["isola", "ISOLA"], /' scripts/main.gd
       - name: Build
         run: |
           mkdir -p build

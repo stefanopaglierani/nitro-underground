@@ -33,6 +33,8 @@ static func make_level(id: String) -> Track:
 			return Desert.new()
 		"isola":
 			return BakedWorld.new()
+		"x5":
+			return TiledWorld.new()
 	return Mountain.new()
 
 
@@ -91,6 +93,10 @@ var camera: Camera3D
 var player: Car
 var racers: Array[Car] = []
 var police: Array[Car] = []
+## Police cars made during the loading and kept aside: making one in the middle of the race took
+## a good part of a second on the phone (v0.24, Stefano: "LAG importante dopo uno scontro").
+var _police_pool: Array[Car] = []
+const POLICE_POOL := 3
 var checkpoints: Array[Vector3] = []
 var race_path: Array[Vector3] = []
 var cp_marker: Node3D
@@ -239,6 +245,8 @@ func _ready() -> void:
 	get_viewport().disable_3d = false
 	for i in 4:
 		await get_tree().process_frame
+	for p in _police_pool:
+		_park_police(p)
 	await _loading("Pronto", 1.0)
 	hud.hide_loading()
 	hud.show_race_hud()
@@ -449,6 +457,7 @@ func _start() -> void:
 	cam_yaw = player.heading()
 	_snap_camera()
 	hud.set_heat(heat)
+	_prepare_police_pool()
 
 
 func _process(delta: float) -> void:
@@ -705,7 +714,8 @@ func _police_logic(delta: float) -> void:
 			escape_t = 0.0
 			heat = 0.0
 			for p in police:
-				p.queue_free()
+				_park_police(p)
+				_police_pool.append(p)
 			police.clear()
 			hud.set_heat(heat)
 			hud.flash("Polizia seminata!", 2.5)
@@ -729,8 +739,32 @@ func _first_met(p: Car) -> Car:
 	return best
 
 
+## The police cars are made while the loading page is still up, and stand in front of the camera
+## for the first frames, so their models, lights and materials are ready before the race.
+func _prepare_police_pool() -> void:
+	var fwd := -player.global_transform.basis.z
+	var side := player.global_transform.basis.x
+	for i in POLICE_POOL:
+		var p := _make_car(Car.Driver.POLICE, Color.WHITE)
+		p.place(player.global_position + fwd * 45.0 + side * (i - 1) * 6.0, fwd)
+		_police_pool.append(p)
+
+
+func _park_police(p: Car) -> void:
+	p.frozen = true
+	p.visible = false
+	p.process_mode = Node.PROCESS_MODE_DISABLED
+	p.global_position = Vector3(0, -2000, 0)
+
+
 func _spawn_police(behind: bool) -> void:
-	var p := _make_car(Car.Driver.POLICE, Color.WHITE)
+	var p: Car
+	if _police_pool.is_empty():
+		p = _make_car(Car.Driver.POLICE, Color.WHITE)
+	else:
+		p = _police_pool.pop_back()
+		p.process_mode = Node.PROCESS_MODE_INHERIT
+		p.visible = true
 	if behind:
 		_respawn_police(p, true, 35.0, 90.0)
 	else:
