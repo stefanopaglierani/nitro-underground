@@ -45,6 +45,7 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.22 | 08/11/2026 | Profilo grafico leggero per il telefono; freno, freno a mano e nitro sistemati, auto più pesanti, rientro in pista nel verso giusto | ramo `claude/project-thread-u6ha4a` |
 | v0.23 | 09/11/2026 | Prima gara su un mondo generato dagli strumenti: isola con strada, villaggi e collisioni in un solo file | ramo `claude/mondo-generato-isola` |
 | v0.24 | 10/11/2026 | Isola x5 caricata a tessere; auto della polizia preparate durante il caricamento | ramo `claude/mondo-x5` |
+| v0.25 | 11/11/2026 | Isola x5 con texture, mare, due villaggi, alberi e modelli leggeri da lontano | ramo `claude/mondo-x5-aspetto` |
 
 ## Le svolte principali
 
@@ -954,12 +955,30 @@ triangoli, contro i 910 mila dell'isola piccola. Ha giudicato la prova superata 
 parte il lag dopo scontri e salti, ora corretto ma non ancora riprovato sul telefono. Sul PC, con
 il profilo telefono, non restano frame lenti quando arriva la polizia.
 
+## v0.25 — L'isola grande prende colore (11 novembre)
+
+![L'isola x5 con alberi e asfalto](immagini/v0.25-isola-x5.jpg)
+
+**Richiesta:** dopo la prova della v0.24 sull'A51, "superata magnificamente", Stefano ha dato il
+via alla tappa 2: texture, case, alberi e oggetti nel mondo grande.
+
+**Come è stato costruito:** il terreno delle tessere usa lo stesso shader dei circuiti fatti a mano
+(`shaders/terrain.gdshader`): erba, roccia sui pendii, sabbia sulle spiagge e ghiaia a bordo
+strada, che gli strumenti segnano nel colore rosso dei vertici. Il mare è quello di Costa e la strada
+ha l'asfalto di Città. Due villaggi con le loro vie e circa 6.100 tra alberi, cespugli, rocce e
+arredi arrivano dagli strumenti, che ora preparano anche fino a sei versioni leggere di ogni modello:
+il gioco usa da sola quella giusta per la distanza. Durante il caricamento compaiono per un attimo
+fumo, fiamma del nitro e anello del checkpoint, per preparare la loro grafica prima della gara.
+
+**Verifica ed esito:** gara completa sul PC con il profilo telefono, 240-470 mila triangoli e
+300-490 chiamate di disegno, sotto i picchi di Costa. Il telefono non è ancora stato provato.
+
 ---
 
 ## Prossimi passi
 
-- Tappa 2 del mondo unico: texture del terreno e versioni leggere dei modelli per la distanza.
-- Riprovare sul Galaxy A51 il lag dopo scontri e salti.
+- Provare la v0.25 sul Galaxy A51, soprattutto i primi secondi della prima partita.
+- Tappa 3 del mondo unico: la prima zona completa, Costa, con il suo circuito e i suoi villaggi.
 
 - Prova sul telefono della v0.22: se scatta ancora, il passo dopo è ridurre ancora la risoluzione 3D o togliere le ombre del tutto.
 - Pezzi di strada (incrocio, strada con parcheggio) dentro i circuiti, se approvato; ponte ad arco con la mappa 3D completa.

@@ -220,6 +220,9 @@ Dalla v0.24 un mondo troppo grande per stare tutto in memoria arriva a tessere
 (`scripts/tiled_world.gd`): ogni tessera da 320 m ha una mesh dettagliata, una leggera oltre 480 m
 e la sua collisione. Le tessere attorno alla telecamera si leggono in sottofondo, al massimo tre per
 volta, e se ne aggiunge una per fotogramma. Sul telefono sono 5×5, sul PC 7×7.
+Dalla v0.25 le tessere usano `shaders/terrain.gdshader` come i circuiti fatti a mano: il colore
+rosso dei vertici dice quanto il terreno è vicino alla strada (ghiaia). Gli oggetti del mondo hanno
+versioni leggere preparate dagli strumenti (LOD), scelte dal motore in base alla distanza.
 
 ## 6. Grafica: lo stile a fumetto 2.5D (spento dalla v0.13)
 
