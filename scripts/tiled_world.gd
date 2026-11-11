@@ -10,6 +10,8 @@ const RINGS_PHONE := 2
 const MAX_PENDING := 3
 const CHECK_EVERY := 0.2
 const SEA_SIZE := 14000.0
+const TEX := "res://assets/materials/%s/%s_%s_1k.jpg"
+const ASPHALT := "res://assets/materials/road_asphalt.tres"
 
 var tile_size := 320.0
 var tile_origin := Vector2.ZERO
@@ -42,12 +44,49 @@ func _load_start_tiles() -> void:
 	tile_origin = tiles.origin
 	for at: Vector2i in tiles.list:
 		_available[at] = true
-	_terrain_material = world_data.terrain_material
+	_terrain_material = _ground_material()
+	# The asphalt of the hand-made circuits on every road of the world.
+	var asphalt := load(ASPHALT) as Material
+	for road in find_children("Road*", "MeshInstance3D", true, false):
+		(road as MeshInstance3D).material_override = asphalt
 	var center := _tile_at(pts[ROAD_MARGIN])
 	for at in _wanted(center):
 		var scene := load(_path(at)) as PackedScene
 		_place(at, scene)
 	_slowest_add_ms = 0.0
+
+
+## The same ground as the hand-made circuits: grass, rock on steep slopes, sand on the beaches and
+## gravel beside the road. The tiles carry the closeness to the road in their red vertex color.
+func _ground_material() -> ShaderMaterial:
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://shaders/terrain.gdshader")
+	mat.set_shader_parameter("grass_albedo", _tex("aerial_grass_rock"))
+	mat.set_shader_parameter("rock_albedo", _tex("rock_face"))
+	mat.set_shader_parameter("gravel_albedo", _tex("rocky_terrain_02"))
+	mat.set_shader_parameter("sand_albedo", _tex("aerial_beach_01"))
+	mat.set_shader_parameter("sand_top", sea_level + 2.2)
+	mat.set_shader_parameter("sea_level", sea_level)
+	mat.set_shader_parameter("grass_tint", Vector3(0.8, 0.92, 0.55))
+	return mat
+
+
+func _tex(folder: String) -> Texture2D:
+	return load(TEX % [folder, folder, "diff"]) as Texture2D
+
+
+func _build_sea() -> void:
+	var plane := PlaneMesh.new()
+	plane.size = Vector2(sea_size, sea_size)
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://shaders/sea.gdshader")
+	var sea := MeshInstance3D.new()
+	sea.name = "Sea"
+	sea.mesh = plane
+	sea.material_override = mat
+	sea.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	sea.position.y = sea_level
+	add_child(sea)
 
 
 func _tile_at(pos: Vector3) -> Vector2i:

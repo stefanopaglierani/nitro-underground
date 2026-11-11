@@ -243,8 +243,11 @@ func _ready() -> void:
 	# shaders, lights and shadows here instead of stuttering at the start of the race.
 	await _loading("Luci e ombre", (steps.size() + 5) / total)
 	get_viewport().disable_3d = false
+	var warm := _warm_effects()
 	for i in 4:
 		await get_tree().process_frame
+	for node in warm:
+		node.queue_free()
 	for p in _police_pool:
 		_park_police(p)
 	await _loading("Pronto", 1.0)
@@ -748,6 +751,27 @@ func _prepare_police_pool() -> void:
 		var p := _make_car(Car.Driver.POLICE, Color.WHITE)
 		p.place(player.global_position + fwd * 45.0 + side * (i - 1) * 6.0, fwd)
 		_police_pool.append(p)
+
+
+## Copies of the effects that first appear during the race (tyre smoke, nitro flame, checkpoint
+## ring), shown in front of the camera under the loading page: the phone prepares their drawing
+## here instead of stopping for a second or two in the first race (v0.25).
+func _warm_effects() -> Array[Node3D]:
+	var out: Array[Node3D] = []
+	var ahead := camera.global_position - camera.global_transform.basis.z * 8.0
+	for source: Node in [player.get("_smoke"), player.get("_flame")]:
+		if source is CPUParticles3D:
+			var copy := (source as CPUParticles3D).duplicate() as CPUParticles3D
+			add_child(copy)
+			copy.global_position = ahead
+			copy.emitting = true
+			out.append(copy)
+	var ring := cp_marker.duplicate() as Node3D
+	add_child(ring)
+	ring.global_position = ahead + Vector3.DOWN * 2.0
+	ring.visible = true
+	out.append(ring)
+	return out
 
 
 func _park_police(p: Car) -> void:
