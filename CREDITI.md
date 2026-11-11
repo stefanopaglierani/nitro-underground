@@ -92,6 +92,9 @@ CC BY 4.0 e CC0: i CC BY dovranno comparire nei titoli di coda come gli altri.
 | Propane Tank | Slinc | Poly Haven | CC0 | https://polyhaven.com/a/propane_tank |
 | Old Tyre | MP | Poly Haven | CC0 | https://polyhaven.com/a/old_tyre |
 
+L'isola grande (`assets/worlds/isola_x5/`) ha il suo elenco in
+[`assets/worlds/isola_x5/credits.md`](assets/worlds/isola_x5/credits.md).
+
 ## Regole per i nuovi asset
 
 - Ogni nuovo file in `assets/` va registrato in `assets/LICENSES.md` nello stesso commit:

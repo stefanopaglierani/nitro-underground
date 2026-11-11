@@ -6,9 +6,9 @@ Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come
 ![Nitro Underground: gara sul passo di montagna](docs/immagini/gara-montagna.jpg)
 
 [![Godot 4.7](https://img.shields.io/badge/Godot-4.7-478CBF?logo=godotengine&logoColor=white)](https://godotengine.org)
-![GDScript](https://img.shields.io/badge/GDScript-~10.900_righe-355570)
+![GDScript](https://img.shields.io/badge/GDScript-~11.200_righe-355570)
 ![Android](https://img.shields.io/badge/Android-arm64-3DDC84?logo=android&logoColor=white)
-![Versione](https://img.shields.io/badge/versione-0.23-ff3d8b)
+![Versione](https://img.shields.io/badge/versione-0.26-ff3d8b)
 ![Stato](https://img.shields.io/badge/stato-prototipo_giocabile-f5a623)
 
 📖 [Storia dello sviluppo](docs/STORIA.md) · 🛠️ [Come è costruito](docs/TECNICO.md) · 🎨 [Crediti e licenze](CREDITI.md) · 🇬🇧 [English](#english)
@@ -23,13 +23,13 @@ Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come
 - **Chi l'ha fatto:** **Stefano Paglierani** ha ideato e diretto il gioco: concept, stile,
   circuiti, auto, comandi e ogni scelta di prodotto, provando ogni build sul suo telefono Android.
   Il codice è stato scritto da **Claude** (l'assistente AI di Anthropic) sulle sue indicazioni.
-- **In quanto tempo:** 14 giorni, dal 27 ottobre al 9 novembre 2026: **30 versioni** dal primo prototipo
-  alla v0.23, ognuna provata su telefono o PC e migliorata in base alle prove.
+- **In quanto tempo:** 16 giorni, dal 27 ottobre all'11 novembre 2026: **33 versioni** dal primo prototipo
+  alla v0.26, ognuna provata su telefono o PC e migliorata in base alle prove.
 - **Cosa dimostra:** direzione di prodotto e game design su un progetto reale, ciclo rapido
   prova → feedback → nuova versione, uso dell'intelligenza artificiale come squadra di sviluppo,
   attenzione alle licenze degli asset e alle prestazioni su telefono.
 
-## Screenshot (v0.17-v0.23, grafica realistica)
+## Screenshot (v0.17-v0.26, grafica realistica)
 
 | | |
 |---|---|
@@ -41,8 +41,10 @@ Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come
 | *Pagina d'attesa: l'immagine scelta da Stefano e il pulsante START* | *Garage: 3 auto, scelta definitiva, denaro e reputazione* |
 | ![Caricamento con la serranda del garage](docs/immagini/v0.17-caricamento.jpg) | ![Gara sulla costa con la minimappa](docs/immagini/v0.17-minimappa.jpg) |
 | *Caricamento: la serranda del garage si alza con la percentuale* | *Gara sulla costa: minimappa con le frecce delle auto* |
-| ![Gara sull'isola generata](docs/immagini/v0.23-isola.jpg) | |
-| *Isola: la prima gara su un mondo generato dagli strumenti (v0.23)* | |
+| ![Costa sull'isola grande](docs/immagini/v0.26-costa-x5.jpg) | ![L'isola x5 con alberi e asfalto](docs/immagini/v0.25-isola-x5.jpg) |
+| *Costa sull'isola grande, a giro chiuso (v0.26)* | *Isola x5 con texture, villaggi e alberi (v0.25)* |
+| ![L'isola x5 a tessere](docs/immagini/v0.24-isola-x5.jpg) | ![Gara sull'isola generata](docs/immagini/v0.23-isola.jpg) |
+| *Isola cinque volte più grande, caricata a tessere (v0.24)* | *Isola: la prima gara su un mondo generato dagli strumenti (v0.23)* |
 
 ### Com'era nella v0.11.1 (stile a fumetto 2.5D, abbandonato nella v0.13)
 
@@ -94,6 +96,10 @@ Il dettaglio completo, con diagrammi e numeri, è in **[docs/TECNICO.md](docs/TE
 - **Mondi già pronti** (v0.23, `scripts/baked_world.gd`): l'isola arriva da un solo file con
   terreno, strade, villaggi e collisioni; dal percorso della strada il gioco ricava partenza,
   checkpoint, rivali, traffico e polizia.
+- **Mondo grande a tessere** (v0.24-v0.26, `scripts/tiled_world.gd`): l'isola cinque volte più
+  grande è divisa in 80 tessere da 320 m lette in sottofondo attorno all'auto (5×5 sul telefono),
+  con versioni leggere per la distanza; sul Galaxy A51 ha misurato 37-42 FPS. Ospita la gara sull'anello
+  principale e Costa a giro chiuso.
 - **APK di prova costruito nel cloud** (`.github/workflows/apk-prova.yml`): GitHub Actions crea a
   ogni aggiornamento di `prova-pc` un'app "Nitro Prova" che si installa accanto al gioco, con FPS,
   memoria e chiamate di disegno a schermo per misurare il telefono.
@@ -140,6 +146,9 @@ cosa è stato chiesto e come è stato costruito.
 | v0.22.1 | Garage e dealer con il set di icone disegnato per il gioco (Nitro UI Icon Pack) |
 | v0.22.2 | Le icone giuste: ritagliate dal foglio di icone racing di Stefano |
 | v0.23 | Prima gara su un mondo generato dagli strumenti: isola con strada, villaggi, alberi e collisioni in un solo file |
+| v0.24 | Isola cinque volte più grande caricata a tessere mentre si guida; niente più scatti quando arriva la polizia |
+| v0.25 | Isola x5 vestita: erba, sabbia, mare e asfalto dei circuiti, due villaggi e 6.100 tra alberi, rocce e arredi |
+| v0.26 | Il circuito Costa sull'isola grande: un giro chiuso sul mare, collegato al resto del mondo |
 
 ## Provarlo
 
@@ -184,7 +193,7 @@ diritti sono riservati all'autore.
 ## Roadmap
 
 1. ~~Documento di concept~~ ✔
-2. **Prototipo giocabile su telefono** ← siamo qui (v0.1 → v0.23, fase di stabilizzazione)
+2. **Prototipo giocabile su telefono** ← siamo qui (v0.1 → v0.26, fase di stabilizzazione)
 3. Vertical slice: un circuito e un'auto rifiniti al livello del gioco finale
 4. Produzione e pubblicazione, con sostituzione degli asset non commerciali
 
@@ -194,12 +203,12 @@ diritti sono riservati all'autore.
 
 **Nitro Underground** is a 3D arcade street-racing game for Android with realistic graphics (the 2.5D comic look was dropped in v0.13),
 built with **Godot 4.7** (GDScript, Compatibility/OpenGL renderer on Android, Jolt physics). Current version:
-**v0.23**, a playable prototype (stabilisation phase).
+**v0.26**, a playable prototype (stabilisation phase).
 
 **Who made it.** **Stefano Paglierani** conceived and directed the game: concept, art direction,
 circuits, cars, controls and every product decision, testing each build on his Android phone.
-The code was written by **Claude** (Anthropic's AI assistant) from his direction. 30 versions were
-designed, built and play-tested in 14 days (27 October - 9 November 2026).
+The code was written by **Claude** (Anthropic's AI assistant) from his direction. 33 versions were
+designed, built and play-tested in 16 days (27 October - 11 November 2026).
 
 **Highlights**
 - **Custom vehicle physics** on a `RigidBody3D`: shape-cast wheels that climb kerbs,
@@ -222,6 +231,9 @@ designed, built and play-tested in 14 days (27 October - 9 November 2026).
   props, collisions) made by external tools loads from one scene file, and the race start,
   checkpoints, AI path, traffic and police are derived from its road data. A GitHub Actions
   workflow builds a side-by-side test APK in the cloud with an on-screen FPS/memory/draw-call readout.
+- **A streamed tiled world** (v0.24-v0.26, `scripts/tiled_world.gd`): an island five times larger,
+  cut into 80 tiles of 320 m streamed in the background around the car, with distance LODs;
+  37-42 FPS measured on the Galaxy A51. The Coast circuit now runs on it as a closed loop.
 - **Synthesized V8 engine audio**, crossfaded and pitched to RPM in real time.
 - **Mobile-minded**: staged, threaded loading; models merged into one mesh per material
   (a 123-part model went from 1,000+ draw calls to a handful); GPU-compressed textures.

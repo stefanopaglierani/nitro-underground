@@ -33,6 +33,10 @@ static func make_level(id: String) -> Track:
 			return Desert.new()
 		"isola":
 			return BakedWorld.new()
+		"x5":
+			return TiledWorld.new()
+		"x5costa":
+			return TiledWorld.new(1)
 	return Mountain.new()
 
 
@@ -91,6 +95,10 @@ var camera: Camera3D
 var player: Car
 var racers: Array[Car] = []
 var police: Array[Car] = []
+## Police cars made during the loading and kept aside: making one in the middle of the race took
+## a good part of a second on the phone (v0.24, Stefano: "LAG importante dopo uno scontro").
+var _police_pool: Array[Car] = []
+const POLICE_POOL := 3
 var checkpoints: Array[Vector3] = []
 var race_path: Array[Vector3] = []
 var cp_marker: Node3D
@@ -237,8 +245,13 @@ func _ready() -> void:
 	# shaders, lights and shadows here instead of stuttering at the start of the race.
 	await _loading("Luci e ombre", (steps.size() + 5) / total)
 	get_viewport().disable_3d = false
+	var warm := _warm_effects()
 	for i in 4:
 		await get_tree().process_frame
+	for node in warm:
+		node.queue_free()
+	for p in _police_pool:
+		_park_police(p)
 	await _loading("Pronto", 1.0)
 	hud.hide_loading()
 	hud.show_race_hud()
@@ -449,6 +462,7 @@ func _start() -> void:
 	cam_yaw = player.heading()
 	_snap_camera()
 	hud.set_heat(heat)
+	_prepare_police_pool()
 
 
 func _process(delta: float) -> void:
@@ -705,7 +719,8 @@ func _police_logic(delta: float) -> void:
 			escape_t = 0.0
 			heat = 0.0
 			for p in police:
-				p.queue_free()
+				_park_police(p)
+				_police_pool.append(p)
 			police.clear()
 			hud.set_heat(heat)
 			hud.flash("Polizia seminata!", 2.5)
@@ -729,8 +744,53 @@ func _first_met(p: Car) -> Car:
 	return best
 
 
+## The police cars are made while the loading page is still up, and stand in front of the camera
+## for the first frames, so their models, lights and materials are ready before the race.
+func _prepare_police_pool() -> void:
+	var fwd := -player.global_transform.basis.z
+	var side := player.global_transform.basis.x
+	for i in POLICE_POOL:
+		var p := _make_car(Car.Driver.POLICE, Color.WHITE)
+		p.place(player.global_position + fwd * 45.0 + side * (i - 1) * 6.0, fwd)
+		_police_pool.append(p)
+
+
+## Copies of the effects that first appear during the race (tyre smoke, nitro flame, checkpoint
+## ring), shown in front of the camera under the loading page: the phone prepares their drawing
+## here instead of stopping for a second or two in the first race (v0.25).
+func _warm_effects() -> Array[Node3D]:
+	var out: Array[Node3D] = []
+	var ahead := camera.global_position - camera.global_transform.basis.z * 8.0
+	for source: Node in [player.get("_smoke"), player.get("_flame")]:
+		if source is CPUParticles3D:
+			var copy := (source as CPUParticles3D).duplicate() as CPUParticles3D
+			add_child(copy)
+			copy.global_position = ahead
+			copy.emitting = true
+			out.append(copy)
+	var ring := cp_marker.duplicate() as Node3D
+	add_child(ring)
+	ring.global_position = ahead + Vector3.DOWN * 2.0
+	ring.visible = true
+	out.append(ring)
+	return out
+
+
+func _park_police(p: Car) -> void:
+	p.frozen = true
+	p.visible = false
+	p.process_mode = Node.PROCESS_MODE_DISABLED
+	p.global_position = Vector3(0, -2000, 0)
+
+
 func _spawn_police(behind: bool) -> void:
-	var p := _make_car(Car.Driver.POLICE, Color.WHITE)
+	var p: Car
+	if _police_pool.is_empty():
+		p = _make_car(Car.Driver.POLICE, Color.WHITE)
+	else:
+		p = _police_pool.pop_back()
+		p.process_mode = Node.PROCESS_MODE_INHERIT
+		p.visible = true
 	if behind:
 		_respawn_police(p, true, 35.0, 90.0)
 	else:

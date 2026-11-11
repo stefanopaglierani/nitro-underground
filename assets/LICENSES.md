@@ -350,3 +350,7 @@ normal map tolte. Terreno, strade e villaggi sono generati.
 | Post Apocalytpic style Container | sousinho | Sketchfab | CC BY 4.0 | https://sketchfab.com/3d-models/none-363b36fdbae940a7bee619e17da4803a |
 | Propane Tank | Slinc | Poly Haven | CC0 | https://polyhaven.com/a/propane_tank |
 | Old Tyre | MP | Poly Haven | CC0 | https://polyhaven.com/a/old_tyre |
+
+`isola_x5/` è l'isola grande a tessere, fatta con gli stessi strumenti e con modelli dalla stessa
+libreria. L'elenco dei modelli che usa, con autori e licenze, è in
+[`assets/worlds/isola_x5/credits.md`](worlds/isola_x5/credits.md).

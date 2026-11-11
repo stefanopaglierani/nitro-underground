@@ -14,6 +14,9 @@ const ROAD_MARGIN := 24
 const SIDE_GRIP := 16.0  # m/s2, used to work out how fast the corners can be taken
 const DECEL := 14.0
 const LANE_POINT_STRIDE := 4
+const NEAREST_STRIDE := 12
+## Seconds added to the first stretch of the clock, for the standing start.
+const START_TIME := 5.0
 
 var pts := PackedVector3Array()
 var tangents := PackedVector3Array()
@@ -21,10 +24,21 @@ var limits := PackedFloat32Array()
 var half_width := 4.0
 var spacing := 2.0
 var sea_level := 0.0
+var world_path := WORLD_PATH
+## Which road of the world is the race.
+var race_road := 0
+## The race road is a ring: the race is one lap, and the finish is the start.
+var closed := false
+## The data stored in the world file.
+var world_data: Dictionary
+var sea_size := 5000.0
+## Slowest frame since the race started, in milliseconds.
+var worst_frame_ms := 0.0
 var _lane_curve: Curve3D
 var _stats: Label
 var _stats_wait := 0.0
 var _lowest_fps := 1000.0
+var _race_time := 0.0
 
 
 func _init() -> void:
@@ -37,11 +51,13 @@ func build_steps() -> Array:
 
 
 func _load_world() -> void:
-	var world := (load(WORLD_PATH) as PackedScene).instantiate() as Node3D
+	var world := (load(world_path) as PackedScene).instantiate() as Node3D
 	add_child(world)
 	var data: Dictionary = world.get_meta("terrain_data")
+	world_data = data
 	sea_level = data.sea_level
-	var road: Dictionary = (data.roads as Array)[0]
+	var road: Dictionary = (data.roads as Array)[race_road]
+	closed = road.get("closed", false)
 	half_width = road.width * 0.5
 	spacing = road.sample_spacing
 	var path: PackedVector2Array = road.path
@@ -55,9 +71,9 @@ func _load_world() -> void:
 		_add_stats()
 	var last := pts.size() - 1
 	for i in pts.size():
-		var a := pts[maxi(i - 5, 0)]
+		var a := pts[posmod(i - 5, last)] if closed else pts[maxi(i - 5, 0)]
 		var b := pts[i]
-		var c := pts[mini(i + 5, last)]
+		var c := pts[(i + 5) % last] if closed else pts[mini(i + 5, last)]
 		tangents[i] = (c - a).normalized()
 		limits[i] = sqrt(SIDE_GRIP * _radius(a, b, c))
 
@@ -78,17 +94,28 @@ func _process(delta: float) -> void:
 	if _stats == null:
 		return
 	var fps := Performance.get_monitor(Performance.TIME_FPS)
+	# The loading screen would spoil the numbers: they count from the start of the race.
+	var racing := get_parent() is Main and (get_parent() as Main).state == "race"
+	if racing:
+		_race_time += delta
+		if _race_time > 2.0:
+			worst_frame_ms = maxf(worst_frame_ms, delta * 1000.0)
 	_stats_wait -= delta
 	if _stats_wait > 0.0:
 		return
 	_stats_wait = 0.5
-	if Time.get_ticks_msec() > 15000:
+	if racing and _race_time > 2.0:
 		_lowest_fps = minf(_lowest_fps, fps)
-	_stats.text = "FPS %d  min %d\nRAM %d MB  video %d MB\n%d mila triangoli  %d draw" % [fps, _lowest_fps,
+	_stats.text = "FPS %d  min %d\nRAM %d MB  video %d MB\n%d mila triangoli  %d draw\n%s" % [fps, _lowest_fps,
 		Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0,
 		Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0,
 		Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME) / 1000.0,
-		Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)]
+		Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME), stats_extra()]
+
+
+## One more line for the numbers on the screen.
+func stats_extra() -> String:
+	return "Peggior frame %d ms" % worst_frame_ms
 
 
 ## Radius of the circle through three points, on the ground plane.
@@ -104,7 +131,7 @@ static func _radius(a: Vector3, b: Vector3, c: Vector3) -> float:
 
 func _build_sea() -> void:
 	var plane := PlaneMesh.new()
-	plane.size = Vector2(5000, 5000)
+	plane.size = Vector2(sea_size, sea_size)
 	var material := StandardMaterial3D.new()
 	material.albedo_color = Color(0.12, 0.42, 0.62)
 	material.roughness = 0.25
@@ -120,12 +147,12 @@ func _build_sea() -> void:
 func nearest(pos: Vector3) -> int:
 	var best := 0
 	var best_d := INF
-	for i in range(0, pts.size(), 6):
+	for i in range(0, pts.size(), NEAREST_STRIDE):
 		var d := Vector2(pos.x - pts[i].x, pos.z - pts[i].z).length_squared()
 		if d < best_d:
 			best_d = d
 			best = i
-	for i in range(maxi(best - 6, 0), mini(best + 7, pts.size())):
+	for i in range(maxi(best - NEAREST_STRIDE, 0), mini(best + NEAREST_STRIDE + 1, pts.size())):
 		var d := Vector2(pos.x - pts[i].x, pos.z - pts[i].z).length_squared()
 		if d < best_d:
 			best_d = d
@@ -195,14 +222,43 @@ func advised_speed(pos: Vector3, fwd: Vector3) -> float:
 	var best := INF
 	for j in range(1, 80):
 		var k := i + dir * j
-		if k < 0 or k >= pts.size():
+		if closed:
+			k = posmod(k, pts.size() - 1)
+		elif k < 0 or k >= pts.size():
 			break
 		best = minf(best, sqrt(limits[k] * limits[k] + 2.0 * DECEL * j * spacing))
 	return best
 
 
+## Seconds a fast driver needs from a to b along the race road, from how tight the corners are.
+func drive_time(a: Vector3, b: Vector3) -> float:
+	var i := nearest(a)
+	var j := nearest(b)
+	var ring := pts.size() - 1
+	var steps := posmod(j - i, ring) if closed else j - i
+	if steps <= 0:
+		return -1.0
+	var t := 0.0
+	for s in steps:
+		var k := (i + s) % ring if closed else i + s
+		t += spacing / clampf(limits[k], 12.0, 45.0)
+	# From the start line the cars set off standing still.
+	if absi(i - ROAD_MARGIN) < 3:
+		t += START_TIME
+	return t
+
+
 func race_path() -> Array[Vector3]:
 	var out: Array[Vector3] = []
+	if closed:
+		# One lap, from the start line back to it.
+		var ring := pts.size() - 1
+		var k := 0
+		while k < ring:
+			out.append(pts[(ROAD_MARGIN + k) % ring])
+			k += PATH_STRIDE
+		out.append(pts[ROAD_MARGIN])
+		return out
 	var last := pts.size() - 1 - ROAD_MARGIN
 	var k := ROAD_MARGIN
 	while k < last:
@@ -270,4 +326,4 @@ func traffic_lane(rng: RandomNumberGenerator) -> Dictionary:
 		for k in range(0, pts.size(), LANE_POINT_STRIDE):
 			_lane_curve.add_point(pts[k])
 		_lane_curve.add_point(pts[pts.size() - 1])
-	return {"curve": _lane_curve, "offset": LANE, "dir": 1.0 if rng.randf() < 0.5 else -1.0, "loop": false}
+	return {"curve": _lane_curve, "offset": LANE, "dir": 1.0 if rng.randf() < 0.5 else -1.0, "loop": closed}
