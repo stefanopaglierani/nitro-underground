@@ -1,6 +1,6 @@
 # Storia dello sviluppo
 
-Il diario di bordo di Nitro Underground, dalla prima idea alla v0.22.2, in 13 giorni e 29 versioni.
+Il diario di bordo di Nitro Underground, dalla prima idea alla v0.23, in 14 giorni e 30 versioni.
 
 Ogni versione segue lo stesso ciclo: **Stefano prova la build** sul telefono Android o sul PC,
 scrive cosa non va e cosa vuole, **Claude la costruisce** e la verifica con le prove automatiche,
@@ -45,6 +45,10 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.21 | 08/11/2026 | Ambienti più ricchi: 51 modelli nuovi (boschi, rocce, case americane, arredo urbano, pali della luce, cartelli americani), neon della città ridotti a un terzo | [#21](https://github.com/stefanopaglierani/nitro-underground/pull/21) |
 | v0.22 | 08/11/2026 | Profilo grafico leggero per il telefono; freno, freno a mano e nitro sistemati, auto più pesanti, rientro in pista nel verso giusto | [#21](https://github.com/stefanopaglierani/nitro-underground/pull/21) |
 | v0.22.1-v0.22.2 | 08/11/2026 | Garage e dealer con le icone del foglio di icone racing scelto da Stefano | ramo `prova-pc` |
+| v0.23 | 09/11/2026 | Prima gara su un mondo generato dagli strumenti: isola con strada, villaggi e collisioni in un solo file; APK di prova costruito nel cloud con i numeri delle prestazioni a schermo | [#22](https://github.com/stefanopaglierani/nitro-underground/pull/22), [#23](https://github.com/stefanopaglierani/nitro-underground/pull/23) |
+| v0.24 | 10/11/2026 | Isola x5 caricata a tessere; auto della polizia preparate durante il caricamento | [#25](https://github.com/stefanopaglierani/nitro-underground/pull/25) |
+| v0.25 | 11/11/2026 | Isola x5 con texture, mare, due villaggi, alberi e modelli leggeri da lontano | [#26](https://github.com/stefanopaglierani/nitro-underground/pull/26) |
+| v0.26 | 11/11/2026 | Circuito Costa nel mondo unico, a giro chiuso, con villaggio e strada di collegamento | [#27](https://github.com/stefanopaglierani/nitro-underground/pull/27) |
 
 ## Le svolte principali
 
@@ -923,11 +927,103 @@ e dealer.
 
 **Verifica ed esito:** screenshot di garage, dealer e tuning. Da provare su PC e telefono.
 
+## v0.23 — La prima gara su un mondo generato (9 novembre)
+
+![La gara sull'isola generata](immagini/v0.23-isola.jpg)
+
+**Richiesta:** provare il mondo 3D fatto con gli strumenti in "una gara vera di Nitro". Stefano l'ha
+provata sul PC e si è detto soddisfatto, e ha chiesto di pubblicare tutto.
+
+**Come è stato costruito:** terreno, strada, due villaggi con le loro vie, alberi, rocce, arredi e
+collisioni arrivano da un unico file, `assets/worlds/isola_gara.scn`, creato fuori dal gioco con
+gli strumenti privati UPTG e UPRG: dentro il gioco non c'è il loro codice. `scripts/baked_world.gd`
+è un circuito come gli altri (`Track`): apre il file, legge il percorso della strada e da lì ricava
+partenza, checkpoint, percorso dei rivali, traffico, polizia e rientro in pista. Il mondo non è
+ancora nella campagna: si avvia con `--level=isola`.
+
+Subito dopo (PR #23) è arrivato un **APK di prova costruito nel cloud**, gratis, senza installare
+niente sul PC: `.github/workflows/apk-prova.yml` è un flusso di GitHub Actions che a ogni
+aggiornamento di `prova-pc` scarica Godot 4.7.2 e i template Android, crea una chiave di firma usa
+e getta e costruisce l'APK. In questa build l'app si chiama "Nitro Prova" e si installa accanto al
+gioco vero, e l'isola diventa la prima gara della campagna (solo qui). Con il profilo telefono
+`scripts/baked_world.gd` mostra a schermo FPS (anche il minimo), memoria, triangoli e chiamate di
+disegno, per misurare l'isola direttamente sul Galaxy A51.
+
+**Verifica ed esito:** gare complete con il pilota automatico, rivali, traffico e polizia, in
+headless, in Vulkan e in OpenGL con il profilo del telefono. Stefano l'ha guidata sul PC e ne è
+soddisfatto. Il telefono vero non è stato provato: con il profilo telefono il PC disegna circa un
+milione di triangoli, quasi il doppio di Costa, e il file aggiunge 45 MB. I modelli sono elencati
+in [`assets/LICENSES.md`](../assets/LICENSES.md).
+
+Per l'APK di prova: build riuscita su GitHub in circa due minuti e mezzo (APK da 480 MB con l'app
+"prova" e l'isola dentro) e gara completa sul PC con il profilo telefono e i numeri a schermo.
+L'installazione e la gara su un telefono vero non sono ancora state provate; la chiave di firma
+cambia a ogni build, quindi per aggiornare va prima disinstallata "Nitro Prova".
+
+## v0.24 — Un mondo cinque volte più grande, a tessere (10 novembre)
+
+![L'isola x5](immagini/v0.24-isola-x5.jpg)
+
+**Richiesta:** il progetto è un unico grande mondo con quattro zone, e l'isola deve essere almeno
+cinque volte più grande. Prima di costruire i contenuti, Stefano ha voluto sapere se il telefono regge.
+
+**Come è stato costruito:** gli strumenti tagliano il terreno in 80 tessere da 320 m, ognuna con
+una versione dettagliata, una leggera per la distanza e la sua collisione
+(`assets/worlds/isola_x5/`). `scripts/tiled_world.gd` le legge in sottofondo attorno alla
+telecamera: 25 sul telefono, 49 sul PC. La strada di gara è di 5,4 km e, su richiesta di Stefano
+dopo la prima prova, sale e scende meno: pendenza massima 5%. Le tre auto della polizia ora si
+preparano durante il caricamento (`scripts/main.gd`): crearne una in piena gara costava 50 ms sul PC,
+e sul telefono diventava un lag di qualche istante dopo uno scontro o un salto, cioè quando sale
+l'allerta.
+
+**Verifica ed esito:** sul Galaxy A51 Stefano ha misurato 37-42 FPS, minimo 26-33 e 200-230 mila
+triangoli, contro i 910 mila dell'isola piccola. Ha giudicato la prova superata a pieni voti, a
+parte il lag dopo scontri e salti, ora corretto ma non ancora riprovato sul telefono. Sul PC, con
+il profilo telefono, non restano frame lenti quando arriva la polizia.
+
+## v0.25 — L'isola grande prende colore (11 novembre)
+
+![L'isola x5 con alberi e asfalto](immagini/v0.25-isola-x5.jpg)
+
+**Richiesta:** dopo la prova della v0.24 sull'A51, "superata magnificamente", Stefano ha dato il
+via alla tappa 2: texture, case, alberi e oggetti nel mondo grande.
+
+**Come è stato costruito:** il terreno delle tessere usa lo stesso shader dei circuiti fatti a mano
+(`shaders/terrain.gdshader`): erba, roccia sui pendii, sabbia sulle spiagge e ghiaia a bordo
+strada, che gli strumenti segnano nel colore rosso dei vertici. Il mare è quello di Costa e la strada
+ha l'asfalto di Città. Due villaggi con le loro vie e circa 6.100 tra alberi, cespugli, rocce e
+arredi arrivano dagli strumenti, che ora preparano anche fino a sei versioni leggere di ogni modello:
+il gioco usa da sola quella giusta per la distanza. Durante il caricamento compaiono per un attimo
+fumo, fiamma del nitro e anello del checkpoint, per preparare la loro grafica prima della gara.
+
+**Verifica ed esito:** gara completa sul PC con il profilo telefono, 240-470 mila triangoli e
+300-490 chiamate di disegno, sotto i picchi di Costa. Il telefono non è ancora stato provato.
+
+## v0.26 — Costa entra nel mondo unico (11 novembre)
+
+![Costa sull'isola grande](immagini/v0.26-costa-x5.jpg)
+
+**Richiesta:** tappa 3 del mondo unico, la prima zona completa. Stefano ha scelto di partire da Costa.
+
+**Come è stato costruito:** il percorso è quello del circuito Costa, letto dalla sua mappa di testo
+(`tracks/costa.txt`) e portato sulla costa ovest dell'isola grande, con il mare dal lato giusto.
+Gli strumenti ora sanno fare strade ad anello chiuso: la gara è un giro, e il traguardo è la
+partenza. Una strada con due incroci collega Costa all'anello principale, e accanto c'è un villaggio
+con le sue vie. Nel gioco, `scripts/tiled_world.gd` sceglie quale strada del mondo è la gara (la
+gara si chiama COSTA X5), e il cronometro calcola i tempi dalle curve, con 5 secondi in più per la
+partenza da fermi.
+
+**Verifica ed esito:** tre gare complete con il pilota automatico (1:07-1:26) e due sull'anello
+principale. Con il profilo telefono il PC disegna 200-490 mila triangoli. Il telefono non è ancora
+stato provato.
+
 ---
 
 ## Prossimi passi
 
-- Prova sul telefono della v0.22: se scatta ancora, il passo dopo è ridurre ancora la risoluzione 3D o togliere le ombre del tutto.
+- Provare Costa sull'isola grande sul Galaxy A51, e i primi secondi della prima partita.
+- Costa più fedele all'originale: palme, faro e lungomare.
+- Tappa 4 del mondo unico: Città, Deserto e Montagna.
 - Pezzi di strada (incrocio, strada con parcheggio) dentro i circuiti, se approvato; ponte ad arco con la mappa 3D completa.
 - Gli altri pulsanti (garage, menù) nello stesso stile neon; gare che pagano in modo diverso, cosa mostra la mappa.
 - Togliere i loghi dipinti nelle texture delle auto di marchi reali; aggiungere i mezzi della seconda ricerca (fuoristrada, pick-up, buggy, traffico di città).

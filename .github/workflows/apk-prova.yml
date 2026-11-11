@@ -1,0 +1,83 @@
+name: APK di prova
+
+# Builds a test APK in the cloud, for free, so that nothing has to be installed on the PC.
+# In this build the first race of the campaign is the generated island, and the app installs
+# next to the real game.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [prova-pc, "claude/mondo-*"]
+    paths-ignore: ["docs/**", "**.md"]
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Install Godot and the Android templates
+        run: |
+          V=4.7.2-stable
+          B="https://github.com/godotengine/godot-builds/releases/download/$V"
+          curl -fsSLO "$B/Godot_v${V}_linux.x86_64.zip"
+          unzip -q "Godot_v${V}_linux.x86_64.zip" -d "$HOME/godot"
+          echo "GODOT=$HOME/godot/Godot_v${V}_linux.x86_64" >> "$GITHUB_ENV"
+          curl -fsSLO "$B/Godot_v${V}_export_templates.tpz"
+          T="$HOME/.local/share/godot/export_templates/4.7.2.stable"
+          mkdir -p "$T"
+          unzip -q -j "Godot_v${V}_export_templates.tpz" templates/android_debug.apk templates/android_release.apk templates/version.txt -d "$T"
+          rm -f ./*.zip ./*.tpz
+          mkdir -p "$HOME/.config/godot"
+          cat > "$HOME/.config/godot/editor_settings-4.7.tres" <<EOF
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/android_sdk_path = "$ANDROID_HOME"
+          export/android/java_sdk_path = "$JAVA_HOME"
+          EOF
+          sed -i 's/^ *//' "$HOME/.config/godot/editor_settings-4.7.tres"
+      - name: Make a throwaway signing key
+        run: |
+          keytool -genkeypair -noprompt -keystore "$RUNNER_TEMP/debug.keystore" -storepass android -keypass android \
+            -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 3650 -dname "CN=Android Debug,O=Android,C=US"
+          echo "GODOT_ANDROID_KEYSTORE_DEBUG_PATH=$RUNNER_TEMP/debug.keystore" >> "$GITHUB_ENV"
+          echo "GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey" >> "$GITHUB_ENV"
+          echo "GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android" >> "$GITHUB_ENV"
+      - name: Install next to the real game, as a separate app
+        run: |
+          sed -i 's/com.stefanopaglierani.nitrounderground/com.stefanopaglierani.nitrounderground.prova/' export_presets.cfg
+          sed -i 's/package\/name="Nitro Underground"/package\/name="Nitro Prova"/' export_presets.cfg
+          grep -n "package/unique_name\|package/name" export_presets.cfg
+      - name: Put the generated islands first in the campaign (this build only)
+        run: sed -i 's/^const CAMPAIGN := \[/const CAMPAIGN := [["x5costa", "COSTA X5"], ["x5", "ISOLA X5"], /' scripts/main.gd
+      - name: Build
+        run: |
+          mkdir -p build
+          "$GODOT" --headless --import
+          "$GODOT" --headless --export-debug "Android" build/NitroUnderground.apk
+          test -s build/NitroUnderground.apk
+          ls -la build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NitroUnderground-prova
+          path: build/NitroUnderground.apk
+          retention-days: 30
+          compression-level: 0
+      - name: Publish the APK on the apk-prova release (direct link for the phone)
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp build/NitroUnderground.apk NitroProva.apk
+          if ! gh release view apk-prova > /dev/null 2>&1; then
+            gh release create apk-prova --prerelease --target "$GITHUB_SHA" --title "APK di prova"               --notes "Versione di prova di Nitro Underground. Si installa accanto al gioco come Nitro Prova. Prima di installarne una nuova, disinstalla quella vecchia."
+          fi
+          gh release upload apk-prova NitroProva.apk --clobber
+          gh release edit apk-prova --notes "Versione di prova di Nitro Underground, dal ramo ${GITHUB_REF_NAME} (${GITHUB_SHA::7}). Si installa accanto al gioco come Nitro Prova. Prima di installarne una nuova, disinstalla quella vecchia."

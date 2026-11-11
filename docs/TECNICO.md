@@ -28,9 +28,9 @@ game designer) e vuole capire cosa c'è dietro gli screenshot.
 
 | | |
 |---|---|
-| Durata | 13 giorni, dal 27 ottobre all'8 novembre 2026 (concept → v0.22.2) |
-| Versioni provate su telefono o PC | 29 (v0.1 → v0.22.2), più varianti di prova |
-| Codice | ~10.600 righe di GDScript nel gioco, ~500 di shader, ~800 di strumenti e test |
+| Durata | 14 giorni, dal 27 ottobre al 9 novembre 2026 (concept → v0.23) |
+| Versioni provate su telefono o PC | 30 (v0.1 → v0.23), più varianti di prova |
+| Codice | ~11.200 righe di GDScript nel gioco, ~500 di shader, ~800 di strumenti e test |
 | Circuiti | 4 (Montagna, Costa, Città di notte, Deserto), da 1,7 a 2,8 km |
 | Auto | 14 nel catalogo (tutte CC BY, nomi inventati), 3 da scegliere nel garage iniziale, tutte in vendita al dealer; 4 volanti e 13 mezzi nel traffico |
 | Asset di terze parti | oltre 120 voci nel registro licenze (modelli, texture, suoni), CC0 e CC BY più le eccezioni dichiarate |
@@ -251,6 +251,29 @@ flowchart LR
   minima tra tratti di strada diversi (sotto ~33 m si sovrapporrebbero), così un errore si vede
   prima di avviare il gioco.
 
+### Mondi generati (v0.23)
+
+`scripts/baked_world.gd` è un circuito che non costruisce nulla: apre un file già pronto
+(`assets/worlds/isola_gara.scn`) con terreno, strade, villaggi, oggetti e collisioni. Il file
+contiene anche i dati `terrain_data`, tra cui il percorso e le altezze delle strade: la prima è la
+gara. Il gioco non usa il codice degli strumenti che lo hanno creato.
+
+Dal percorso della strada il circuito ricava partenza, checkpoint, percorso dei rivali, traffico,
+polizia e rientro in pista, come fanno gli altri `Track`. Si avvia con `--level=isola`
+(isola piccola), `--level=x5` (isola grande) o `--level=x5costa` (Costa sull'isola grande); nel
+gioco normale non è ancora in campagna, solo nell'APK di prova. Con il profilo telefono mostra a schermo FPS (attuale e minimo), memoria, memoria
+video, triangoli e chiamate di disegno, letti dai monitor `Performance` di Godot.
+
+Dalla v0.24 un mondo troppo grande per stare tutto in memoria arriva a tessere
+(`scripts/tiled_world.gd`): ogni tessera da 320 m ha una mesh dettagliata, una leggera oltre 480 m
+e la sua collisione. Le tessere attorno alla telecamera si leggono in sottofondo, al massimo tre per
+volta, e se ne aggiunge una per fotogramma. Sul telefono sono 5×5, sul PC 7×7.
+Dalla v0.25 le tessere usano `shaders/terrain.gdshader` come i circuiti fatti a mano: il colore
+rosso dei vertici dice quanto il terreno è vicino alla strada (ghiaia). Gli oggetti del mondo hanno
+versioni leggere preparate dagli strumenti (LOD), scelte dal motore in base alla distanza.
+Dalla v0.26 una strada del mondo può essere un anello chiuso: la gara allora è un giro, con il
+traguardo sulla partenza, e il cronometro stima i tempi dalle curve (`BakedWorld.drive_time`).
+
 ## 6. Grafica: lo stile a fumetto 2.5D (spento dalla v0.13)
 
 `scripts/comic_style.gd` · `shaders/stylize.gdshader` e altri 12 shader
@@ -353,6 +376,8 @@ segnalati da Stefano:
   traffico è di 12 auto, il faro del giocatore è acceso solo di notte e i lampioni accesi in
   città sono 3 invece di 8 (nel renderer Compatibility ogni luce ridisegna ciò che illumina).
   Nelle stesse inquadrature i triangoli calano del 25-39% e le chiamate di disegno del 21-32%.
+- **Isola generata (v0.23)**: con il profilo telefono il PC disegna circa un milione di triangoli,
+  quasi il doppio della Costa, e il file del mondo pesa 45 MB. Non ancora provata sul telefono.
 - **Misure**: lo strumento di screenshot stampa triangoli e chiamate di disegno per inquadratura,
   per controllare il costo di ogni ambientazione prima della prova sul telefono.
 
@@ -378,4 +403,9 @@ da Stefano sul telefono: le sue impressioni sono la base della versione successi
 - **Prova su PC senza installare niente**: `tools/windows/Gioca-Nitro.bat` scarica Godot e
   l'ultima build dal ramo `prova-pc`, la importa e la avvia; riscarica solo quando il ramo cambia.
   È nato perché spostare ogni volta un APK di 300 MB sul telefono era la parte più scomoda delle prove.
+- **APK di prova nel cloud (v0.23, `.github/workflows/apk-prova.yml`)**: a ogni aggiornamento di
+  `prova-pc` GitHub Actions scarica Godot 4.7.2 e i template Android, crea una chiave di firma usa e
+  getta e costruisce l'APK (circa 2 minuti e mezzo). L'app si chiama "Nitro Prova", si installa
+  accanto al gioco vero e ha l'isola come prima gara: queste modifiche valgono solo per questa build.
+  Visto che la chiave cambia ogni volta, per aggiornarla va prima disinstallata.
 - **Pull request per ogni versione**, con descrizione in italiano di cosa cambia e come è stato verificato.
