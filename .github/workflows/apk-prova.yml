@@ -13,6 +13,8 @@ on:
 jobs:
   apk:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
@@ -68,3 +70,14 @@ jobs:
           path: build/NitroUnderground.apk
           retention-days: 30
           compression-level: 0
+      - name: Publish the APK on the apk-prova release (direct link for the phone)
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp build/NitroUnderground.apk NitroProva.apk
+          if ! gh release view apk-prova > /dev/null 2>&1; then
+            gh release create apk-prova --prerelease --target "$GITHUB_SHA" --title "APK di prova"               --notes "Versione di prova di Nitro Underground. Si installa accanto al gioco come Nitro Prova. Prima di installarne una nuova, disinstalla quella vecchia."
+          fi
+          gh release upload apk-prova NitroProva.apk --clobber
+          gh release edit apk-prova --notes "Versione di prova di Nitro Underground, dal ramo ${GITHUB_REF_NAME} (${GITHUB_SHA::7}). Si installa accanto al gioco come Nitro Prova. Prima di installarne una nuova, disinstalla quella vecchia."
