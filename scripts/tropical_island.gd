@@ -13,7 +13,8 @@ const ISLAND_RINGS_LIGHT := 1
 ## Share of each kind of plant drawn (the tiles hold all 250,000, in shuffled order; measured on
 ## Stefano's PC: all of them ran at 14 FPS, none at 27, these at 21.6 like the Isola X5; see
 ## docs/TECNICO.md). The light profile (--mobile) halves them again.
-const VEG_SHARE := {"palma": 0.35, "albero": 0.2, "pino": 0.35, "erba": 0.25, "roccia": 0.35}
+const VEG_SHARE := {"palma": 0.35, "cocco": 0.5, "albero": 0.2, "pino": 0.35, "erba": 0.25,
+		"felce": 0.3, "cespuglio": 0.35, "roccia": 0.35, "roccia_muschio": 0.5}
 const DIRT := "res://assets/materials/rocky_terrain_02/rocky_terrain_02_diff_1k.jpg"
 
 var _road_mats := {}

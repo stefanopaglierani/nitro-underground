@@ -34,6 +34,11 @@ const VEG := {
 	"pino": {"model": "res://assets/scenery/env/pine_tree.glb", "height": 13.0, "tris": 1500, "end": 700.0, "shadow": true},
 	"erba": {"model": "res://assets/scenery/env/grass_patches.glb", "height": 0.7, "tris": 300, "end": 110.0, "shadow": false},
 	"roccia": {"model": "res://assets/scenery/env/boulders.glb", "height": 1.6, "tris": 500, "end": 260.0, "shadow": false},
+	# v0.32 (zone, boschi e radure): "node" prende un solo oggetto da un file che ne contiene diversi
+	"cocco": {"model": "res://assets/scenery/coast_coconut_palm.glb", "height": 11.0, "tris": 2500, "end": 700.0, "shadow": true},
+	"felce": {"model": "res://assets/scenery/env/vegetation_pack.glb", "node": "3_paporotnik", "height": 0.9, "tris": 120, "end": 120.0, "shadow": false},
+	"cespuglio": {"model": "res://assets/scenery/env/bush.glb", "node": "Medium_bush_1", "height": 1.5, "tris": 100, "end": 260.0, "shadow": false},
+	"roccia_muschio": {"model": "res://assets/scenery/env/rock_moss.glb", "node": "rock_moss_set_01_rock05", "height": 1.3, "tris": 600, "end": 260.0, "shadow": false},
 }
 
 var src := DEFAULT_SRC
@@ -209,7 +214,7 @@ func _veg_meshes() -> Dictionary:
 	for kind: String in VEG:
 		var spec: Dictionary = VEG[kind]
 		var model := (load(spec.model) as PackedScene).instantiate() as Node3D
-		var welded := _weld(model)
+		var welded := _weld(model, spec.get("node", ""))
 		model.free()
 		var aabb := welded.get_aabb()
 		var k: float = spec.height / maxf(aabb.size.y, 0.001)
@@ -229,10 +234,12 @@ func _veg_meshes() -> Dictionary:
 	return out
 
 
-func _weld(root: Node3D) -> ArrayMesh:
+func _weld(root: Node3D, only := "") -> ArrayMesh:
 	var tools := {}
 	for mi: MeshInstance3D in root.find_children("*", "MeshInstance3D", true, false):
 		if not mi.visible or mi.mesh == null:
+			continue
+		if only != "" and not String(mi.name).begins_with(only.validate_node_name()) and not String(mi.get_parent().name).begins_with(only.validate_node_name()):
 			continue
 		var xf := _global_xf(mi)
 		for s in mi.mesh.get_surface_count():
