@@ -149,6 +149,11 @@ func _stream() -> void:
 	if camera == null:
 		return
 	var center := _tile_at(camera.global_position)
+	# While the race is still loading the camera waits at the centre of the world: the ground
+	# around the start must stay (v0.31: on the tropical island, 3 km from the centre, it was
+	# thrown away and the cars fell into the sea on a slow start).
+	if get_parent() is Main and (get_parent() as Main).state == "loading" and pts.size() > ROAD_MARGIN:
+		center = _tile_at(pts[ROAD_MARGIN])
 	for at in _wanted(center):
 		if _pending.size() >= MAX_PENDING:
 			break
@@ -159,6 +164,16 @@ func _stream() -> void:
 		if maxi(absi(at.x - center.x), absi(at.y - center.y)) > rings + 1:
 			(_tiles[at] as Node3D).queue_free()
 			_tiles.erase(at)
+
+
+## True once every tile around the start is in the scene (Main waits for it before the countdown).
+func ground_ready() -> bool:
+	if _available.is_empty() or pts.size() <= ROAD_MARGIN:
+		return true
+	for at in _wanted(_tile_at(pts[ROAD_MARGIN])):
+		if not _tiles.has(at):
+			return false
+	return true
 
 
 ## One new tile per frame goes into the scene, so that the cost is spread out.

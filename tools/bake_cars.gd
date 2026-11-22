@@ -71,10 +71,67 @@ func _run() -> void:
 		var far_before := _tris(far)
 		var lean := _lighten(far, minf(1.0, float(BUDGET_FAR) / maxf(far_before, 1.0)), MIN_TRIS_FAR)
 		baked.far.append(lean)
+		if CarCatalog.model_path(entry).begins_with(NEW_DIR):
+			_embed_textures(baked)
 		var err := ResourceSaver.save(baked, CarModel.baked_path(id), ResourceSaver.FLAG_COMPRESS)
 		print("%s: %d -> %d triangles, far %d, %d draws near / %d far (%s)" % [id, before, after, _tris(lean), _surfaces(baked), lean.get_surface_count(), error_string(err)])
 		CarModel.clear_cache()
 	quit()
+
+
+## The originals of the v0.28 dealer cars stay out of the repository and of the build, and so do
+## the pictures the importer takes out of them: their prepared version must carry its own.
+const NEW_DIR := "res://assets/cars_new/"
+## Side of the pictures kept inside those cars (pixels); only the colour and glow pictures are
+## kept, the relief and shine pictures are left out (v0.31: these are trial versions, to choose from).
+const NEW_TEX_SIZE := 512
+const KEEP_TEX := ["albedo_texture", "emission_texture"]
+const DROP_TEX := ["normal_texture", "orm_texture", "roughness_texture", "metallic_texture", "ao_texture",
+	"heightmap_texture", "clearcoat_texture", "rim_texture", "anisotropy_flowmap", "subsurf_scatter_texture",
+	"backlight_texture", "refraction_texture", "detail_albedo", "detail_normal", "detail_mask"]
+
+
+## v0.31: the build had none of the pictures of the new cars, so their prepared file could not be
+## read and the dealer closed the game. Now each picture is put inside the file, small and compressed.
+func _embed_textures(baked: BakedCar) -> void:
+	var meshes: Array[ArrayMesh] = []
+	meshes.append_array(baked.body)
+	meshes.append_array(baked.far)
+	for corner in baked.wheel_meshes:
+		for m in baked.wheel_meshes[corner]:
+			meshes.append(m)
+	var done := {}
+	for m in meshes:
+		for s in m.get_surface_count():
+			var mat := m.surface_get_material(s)
+			if not (mat is BaseMaterial3D):
+				continue
+			if not done.has(mat):
+				var copy := (mat as BaseMaterial3D).duplicate() as BaseMaterial3D
+				for prop in DROP_TEX:
+					var t = copy.get(prop)
+					if t is Texture2D and (t as Texture2D).resource_path.begins_with(NEW_DIR):
+						copy.set(prop, null)
+				copy.normal_enabled = copy.normal_texture != null
+				for prop in KEEP_TEX:
+					var t = copy.get(prop)
+					if t is Texture2D and (t as Texture2D).resource_path.begins_with(NEW_DIR):
+						copy.set(prop, _small_texture(t))
+				done[mat] = copy
+			m.surface_set_material(s, done[mat])
+
+
+static func _small_texture(t: Texture2D) -> ImageTexture:
+	var img := t.get_image()
+	if img.is_compressed():
+		img.decompress()
+	var side := maxi(img.get_width(), img.get_height())
+	if side > NEW_TEX_SIZE:
+		var k := float(NEW_TEX_SIZE) / side
+		img.resize(maxi(4, roundi(img.get_width() * k)), maxi(4, roundi(img.get_height() * k)), Image.INTERPOLATE_LANCZOS)
+	img.generate_mipmaps()
+	img.compress(Image.COMPRESS_S3TC)
+	return ImageTexture.create_from_image(img)
 
 
 static func _tris(m: ArrayMesh) -> int:

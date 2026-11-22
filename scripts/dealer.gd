@@ -131,6 +131,9 @@ func _ready() -> void:
 			_part = int(a.substr(7))  # test aid: tuning card shown
 	_set_mode(start_mode, show)
 
+	if args.has("--dealertour"):
+		# Test aid (v0.31): shows every car on sale one after the other and says which could be read.
+		_tour.call_deferred()
 	for a in args:
 		if a.begins_with("--dealershot="):
 			# Test aid: picture of the dealer (--panel=color opens the paints).
@@ -710,6 +713,23 @@ func _process(delta: float) -> void:
 		_sell_armed -= delta
 		if _sell_armed <= 0.0:
 			_refresh()
+
+
+func _tour() -> void:
+	_set_mode("shop")
+	var bad := []
+	for i in _list.size():
+		_index = i
+		_show_car()
+		var t0 := Time.get_ticks_msec()
+		while _status.visible and Time.get_ticks_msec() - t0 < 15000:
+			await get_tree().process_frame
+		var ok := _preview != null and _preview.visible and not _status.visible
+		if not ok:
+			bad.append(_id())
+		print("[dealertour] %d/%d %s %s (%d ms)" % [i + 1, _list.size(), _id(), "OK" if ok else "NON CARICATA", Time.get_ticks_msec() - t0])
+	print("[dealertour] END %d auto, non caricate: %s" % [_list.size(), bad])
+	get_tree().quit()
 
 
 func _say(text: String, seconds := 2.5) -> void:

@@ -51,6 +51,7 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.28 | 22/11/2026 | ABS e TCS (tasti R e T) con spia di intervento, pulsante EXIT, partita azzerata, tutte le 51 auto al Dealer | ramo `claude/abs-tcs-exit-dealer` |
 | v0.29 | 22/11/2026 | Avversari più bravi: niente più spinta al giocatore in partenza, spazio a chi è affiancato, frenate dosate, traffico che si sposta, 25% di traffico in meno | ramo `claude/project-thread-vhvw0q` |
 | v0.30 | 22/11/2026 | L'isola tropicale del periodo Unreal a tessere, prima gara della campagna; poi Isola X5 e tutti gli altri circuiti | ramo `claude/isola-tropicale` |
+| v0.31 | 22/11/2026 | Correzioni dopo la prova di Stefano: partenza dell'isola senza cadute in mare, tutte le auto del Dealer si aprono | ramo `claude/isola-tropicale` |
 
 ## Le svolte principali
 
@@ -1162,6 +1163,16 @@ piante, fa 21,6 FPS come l'Isola X5 (tabella in [TECNICO.md](TECNICO.md#mondi-ge
 Gare complete anche su Costa X5 e Isola piccola, e con l'eseguibile Windows. Problemi noti dei dati
 dell'isola: alcune strade di collina sono scavi profondi e qualche pendio è una parete a picco.
 Stefano non l'ha ancora provata.
+
+## v0.31 — Correzioni dopo la prima prova (22 novembre)
+
+**Richiesta:** Stefano ha provato la v0.30: sull'isola le auto partivano sospese sopra il mare e ci cadevano dentro, una dopo l'altra; al Dealer l'auto numero 14 e la numero 34 chiudevano il gioco.
+
+**Cause e correzioni:**
+- **Partenza**: mentre la gara si carica la telecamera sta al centro del mondo, e il sistema a tessere buttava via il terreno attorno alla partenza (a 3 km dal centro) per poi ricaricarlo solo a gara iniziata. Ora durante il caricamento il terreno della partenza resta, e la gara aspetta che tutte le tessere attorno siano pronte (`scripts/tiled_world.gd`, `scripts/main.gd`). Vale anche per l'Isola X5.
+- **Dealer**: le 20 auto nuove avevano le texture in una cartella esclusa dalla build, quindi nell'eseguibile il loro file non si apriva. La 14 era la prima di queste; con la 34 il gioco leggeva in anticipo la 33, un'altra auto nuova. Ora `tools/bake_cars.gd` mette le texture dentro il file dell'auto (512 pixel, compresse; solo colore e luci, per queste versioni di prova). Nessuna auto è stata tolta.
+
+**Verifica:** nell'eseguibile tutte le 50 auto del Dealer si aprono una dopo l'altra, senza errori (prova automatica `--dealertour`). La gara sull'isola, avviata dal garage con l'eseguibile, è completa: 1° posto in 2:08.9. Senza pilota automatico tutte le 25 tessere sono già pronte prima del via. Stefano non l'ha ancora riprovata.
 
 ---
 

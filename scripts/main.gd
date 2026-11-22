@@ -275,6 +275,10 @@ func _ready() -> void:
 	for path in car_paths:
 		ResourceLoader.load_threaded_get(path)
 	await _loading("Griglia di partenza", (steps.size() + 4) / total)
+	# A world in tiles: the ground around the start must be there before the cars are (v0.31).
+	var wait_t0 := Time.get_ticks_msec()
+	while city.has_method("ground_ready") and not city.ground_ready() and Time.get_ticks_msec() - wait_t0 < 15000:
+		await get_tree().process_frame
 	_start()
 	# First frames of the finished level, still under the loading page: the phone prepares the
 	# shaders, lights and shadows here instead of stuttering at the start of the race.
