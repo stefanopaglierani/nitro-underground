@@ -185,6 +185,9 @@ var _tail_mat: StandardMaterial3D
 var _siren_red: StandardMaterial3D
 var _siren_blue: StandardMaterial3D
 var _siren_light: OmniLight3D
+## Player only: the coloured glow under the car. Off in the driver's seat view, where it would
+## light up the inside of the car (Main._update_inside_camera).
+var underglow: OmniLight3D
 var _hit_cooldown := 0.0
 ## AI only: seconds left with the driver thrown by a hit from another car. Meanwhile the tyres
 ## grip less and the yaw assist is off, so the car is pushed, slides and spins like a real one.
@@ -293,6 +296,7 @@ func setup(kind: Driver, paint: Color, the_city: Track) -> void:
 				glow.light_energy = 3.0
 				glow.light_color = paint.lightened(0.3)
 				add_child(glow)
+				underglow = glow
 		Driver.RACER:
 			max_speed = 57.0
 		Driver.POLICE:

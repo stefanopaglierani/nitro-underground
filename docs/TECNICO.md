@@ -56,7 +56,7 @@ flowchart LR
     Car --> CarAudio["CarAudio"]
     Car --> CarModel["CarModel / CarCatalog"]
     Main --> Traffic["TrafficCar<br/>traffico urtabile"]
-    Main --> Hud["Hud + Dashboard<br/>comandi touch, cruscotto"]
+    Main --> Hud["Hud + Dashboard<br/>cruscotto, minimappa"]
     Comic["ComicStyle<br/>materiali toon + passata a schermo"] -.-> Main
 ```
 

@@ -148,6 +148,22 @@ const CAM_LOOK_AHEAD := 8.0
 const TRAFFIC_CARS := 24
 const CAM_FOV := 70.0
 const CAM_FOV_NITRO := 76.0
+## Camera views (v0.27, Stefano 22/11/2026), from the furthest to the closest: the usual chase
+## camera, a closer chase camera, on the bonnet and in the driver's seat. Up/down arrows.
+enum CamView { CHASE, CLOSE, HOOD, COCKPIT }
+const CAM_VIEW_NAMES := ["CAMERA BASE", "CAMERA RAVVICINATA", "CAMERA COFANO", "CAMERA ABITACOLO"]
+const CAM_CLOSE_DIST := 5.4
+const CAM_CLOSE_HEIGHT := 2.2
+## Left/right arrows held: the camera turns this far to look at the side (radians, about 80°),
+## and swings back when the key is let go.
+const CAM_LOOK_SIDE := 1.4
+## Field of view from the bonnet and from the seat: a little wider, to feel the speed.
+const CAM_FOV_INSIDE := 75.0
+var cam_view: int = CamView.CHASE
+var _cam_look := 0.0
+## The player's car body, in its own space (from the model's meshes): where the bonnet and the
+## driver's seat are for that car.
+var _car_box := AABB(Vector3(-0.95, 0.4, -2.1), Vector3(1.9, 1.15, 4.2))
 
 var autotest := false
 var screenshot_dir := ""
@@ -172,6 +188,9 @@ func _ready() -> void:
 			level = a.substr(8)
 		if a.begins_with("--car="):
 			Car.player_body = a.substr(6)
+		if a.begins_with("--camview="):
+			# Test aid: start the race with this camera view (0 base ... 3 seat).
+			cam_view = clampi(int(a.substr(10)), CamView.CHASE, CamView.COCKPIT)
 
 	SaveGame.load_game()
 	_setup_input()
@@ -358,14 +377,21 @@ func _to_menu() -> void:
 	get_tree().change_scene_to_file(MENU_SCENE)
 
 
+## PC keyboard (v0.27, Stefano 22/11/2026): WASD drives, Space is the handbrake, left Shift the
+## nitro; the four arrows move the camera (see _update_camera). Physical keys, so WASD stays in
+## the same place on any keyboard layout.
 func _setup_input() -> void:
 	var keys := {
-		"steer_left": [KEY_LEFT, KEY_A],
-		"steer_right": [KEY_RIGHT, KEY_D],
-		"throttle": [KEY_UP, KEY_W],
-		"brake": [KEY_DOWN, KEY_S],
+		"steer_left": [KEY_A],
+		"steer_right": [KEY_D],
+		"throttle": [KEY_W],
+		"brake": [KEY_S],
 		"handbrake": [KEY_SPACE],
-		"nitro": [KEY_SHIFT, KEY_N],
+		"nitro": [KEY_SHIFT],
+		"cam_look_left": [KEY_LEFT],
+		"cam_look_right": [KEY_RIGHT],
+		"cam_closer": [KEY_UP],
+		"cam_farther": [KEY_DOWN],
 	}
 	for action in keys:
 		if not InputMap.has_action(action):
@@ -373,7 +399,27 @@ func _setup_input() -> void:
 			for k in keys[action]:
 				var ev := InputEventKey.new()
 				ev.physical_keycode = k
+				if k == KEY_SHIFT:
+					ev.location = KEY_LOCATION_LEFT  # only the left Shift
 				InputMap.action_add_event(action, ev)
+
+
+## Up arrow: the next view closer to the car, down arrow: the next one further away.
+func _unhandled_input(event: InputEvent) -> void:
+	if player == null or event.is_echo():
+		return
+	var step := 0
+	if event.is_action_pressed("cam_closer"):
+		step = 1
+	elif event.is_action_pressed("cam_farther"):
+		step = -1
+	if step == 0:
+		return
+	var view := clampi(cam_view + step, CamView.CHASE, CamView.COCKPIT)
+	if view != cam_view:
+		cam_view = view
+		hud.flash(CAM_VIEW_NAMES[cam_view], 1.2)
+	get_viewport().set_input_as_handled()
 
 
 func _build_markers() -> void:
@@ -448,10 +494,25 @@ func _start() -> void:
 		cp_beam.visible = false
 	else:
 		arrow.visible = true
+	_car_box = _measure_car(player)
 	cam_yaw = player.heading()
 	_snap_camera()
 	hud.set_heat(heat)
 	_prepare_police_pool()
+
+
+## The car's size from its meshes, in the car's own space (the bonnet and seat views use it).
+func _measure_car(car: Car) -> AABB:
+	var inv := car.global_transform.affine_inverse()
+	var box := AABB()
+	var first := true
+	for mi: MeshInstance3D in car.find_children("*", "MeshInstance3D", true, false):
+		if mi.mesh == null:
+			continue
+		var bb: AABB = inv * mi.global_transform * mi.get_aabb()
+		box = bb if first else box.merge(bb)
+		first = false
+	return _car_box if first else box
 
 
 func _process(delta: float) -> void:
@@ -862,6 +923,18 @@ func _snap_camera() -> void:
 
 
 func _update_camera(delta: float) -> void:
+	# Left/right arrows held: turn the view to that side; let go and it swings back behind.
+	var look_in := Input.get_action_strength("cam_look_left") - Input.get_action_strength("cam_look_right")
+	var k := 1.0 if delta >= 1.0 else clampf(8.0 * delta, 0.0, 1.0)
+	_cam_look = lerpf(_cam_look, look_in * CAM_LOOK_SIDE, k)
+	if player.underglow:
+		player.underglow.visible = cam_view != CamView.COCKPIT
+	if cam_view == CamView.HOOD or cam_view == CamView.COCKPIT:
+		_update_inside_camera(delta)
+		return
+	camera.near = 0.1
+	var dist := CAM_DIST if cam_view == CamView.CHASE else CAM_CLOSE_DIST
+	var height := CAM_HEIGHT if cam_view == CamView.CHASE else CAM_CLOSE_HEIGHT
 	var car_pos := player.global_position
 	var flat_v := Vector3(player.velocity.x, 0, player.velocity.z)
 	# Follow the nose, leaning towards the direction of travel in a drift; hold still when the car
@@ -871,11 +944,11 @@ func _update_camera(delta: float) -> void:
 		want = lerp_angle(want, atan2(-flat_v.x, -flat_v.z), 0.35)
 	if player.wheels_on_ground > 0 and player.speed > -2.0:
 		cam_yaw = lerp_angle(cam_yaw, want, clampf(5.0 * delta, 0.0, 1.0))
-	var back := Basis(Vector3.UP, cam_yaw) * Vector3(0, 0, 1)
+	var back := Basis(Vector3.UP, cam_yaw + _cam_look) * Vector3(0, 0, 1)
 	# Only the height is smoothed, so bumps in the road don't shake the picture.
 	_cam_y = car_pos.y if delta >= 1.0 else lerpf(_cam_y, car_pos.y, clampf(10.0 * delta, 0.0, 1.0))
 	var pivot := Vector3(car_pos.x, _cam_y + 1.2, car_pos.z)
-	var desired := pivot + back * CAM_DIST + Vector3(0, CAM_HEIGHT - 1.2, 0)
+	var desired := pivot + back * dist + Vector3(0, height - 1.2, 0)
 	# Keep the camera out of buildings: stop it short of anything between it and the car.
 	_cam_ray.from = pivot
 	_cam_ray.to = desired
@@ -895,6 +968,26 @@ func _update_camera(delta: float) -> void:
 	camera.look_at(look, Vector3.UP)
 	var fov := CAM_FOV_NITRO if player.using_nitro else CAM_FOV
 	camera.fov = lerpf(camera.fov, fov, clampf(3.0 * delta, 0.0, 1.0))
+
+
+## Bonnet and driver's seat views: fixed to the car (they tilt and roll with it), placed from the
+## size of the car model, so a pickup and a sports car both put the eye in a sensible spot.
+func _update_inside_camera(delta: float) -> void:
+	var b := _car_box
+	var eye: Vector3
+	if cam_view == CamView.HOOD:
+		# Over the middle of the bonnet, a little above it, so the road starts right past the nose.
+		eye = Vector3(b.get_center().x, b.position.y + b.size.y * 0.74, b.position.z + b.size.z * 0.2)
+	else:
+		# Left seat (American cars), at eye height, just behind the middle of the car.
+		eye = Vector3(b.get_center().x - b.size.x * 0.2, b.position.y + b.size.y * 0.72, b.get_center().z + b.size.z * 0.04)
+	camera.near = 0.05
+	camera.global_transform = player.global_transform * Transform3D(Basis(Vector3.UP, _cam_look), eye)
+	var fov := CAM_FOV_INSIDE + (CAM_FOV_NITRO - CAM_FOV if player.using_nitro else 0.0)
+	camera.fov = lerpf(camera.fov, fov, 1.0 if delta >= 1.0 else clampf(3.0 * delta, 0.0, 1.0))
+	# The chase camera starts from here if the player goes back to it.
+	cam_yaw = player.heading()
+	_cam_y = player.global_position.y
 
 
 func _update_hud() -> void:
@@ -976,6 +1069,12 @@ func _autotest_tick(delta: float) -> void:
 		_shots_taken += 1
 	if int(_test_t * 2.0) != int((_test_t - delta) * 2.0):
 		print("[autotest] t=%.1f state=%s speed=%.1f cp=%d clock=%.1f heat=%.1f police=%d pos=%s wheels=%d up=%.2f in=(%.1f,%.1f,%.1f,%s)" % [_test_t, state, player.speed, player_cp, time_left, heat, police.size(), player.global_position.round(), player.wheels_on_ground, player.global_transform.basis.y.y, player.in_throttle, player.in_brake, player.in_steer, player.in_handbrake])
+	if OS.get_cmdline_user_args().has("--camlook"):
+		# Test aid: hold the right arrow around the second picture (t = 7 s), then let it go.
+		if _test_t > 5.5 and _test_t < 7.5:
+			Input.action_press("cam_look_right")
+		else:
+			Input.action_release("cam_look_right")
 	if OS.get_cmdline_user_args().has("--ram") and int(_test_t / 4.0) != int((_test_t - delta) / 4.0):
 		_ram_traffic()
 	if int(_test_t / 5.0) != int((_test_t - delta) / 5.0):

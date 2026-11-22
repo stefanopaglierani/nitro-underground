@@ -47,6 +47,7 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.24 | 10/11/2026 | Isola x5 caricata a tessere; auto della polizia preparate durante il caricamento | ramo `claude/mondo-x5` |
 | v0.25 | 11/11/2026 | Isola x5 con texture, mare, due villaggi, alberi e modelli leggeri da lontano | ramo `claude/mondo-x5-aspetto` |
 | v0.26 | 11/11/2026 | Circuito Costa nel mondo unico, a giro chiuso, con villaggio e strada di collegamento | ramo `claude/mondo-x5-costa` |
+| v0.27 | 22/11/2026 | Comandi da PC: WASD, telecamera con le frecce in 4 viste, schermo intero, primo eseguibile Windows | ramo `claude/controlli-pc-fullscreen` |
 
 ## Le svolte principali
 
@@ -1014,9 +1015,39 @@ template di esportazione di Godot.
 
 ---
 
+## v0.27 — Comandi da PC e quattro telecamere (22 novembre)
+
+![La vista dall'abitacolo](immagini/v0.27-abitacolo.jpg)
+
+**Richiesta:** ora che il gioco è solo per PC, Stefano ha chiesto di togliere subito i pulsanti
+touch, di guidare con **WASD** (Spazio freno a mano, **Shift sinistro** nitro) e di usare le
+**quattro frecce per la telecamera**: destra e sinistra per guardare di lato, con la camera che torna
+dietro al rilascio; su e giù per avvicinarla all'auto in più passi, fino al cofano e, se possibile,
+al posto di guida. Il gioco deve partire **a schermo intero**.
+
+**Come è stato costruito:**
+- Via i sei pulsanti a esagono disegnati in SVG (`scripts/hud.gd`): durante la gara resta il
+  cruscotto. Il pulsante MENU resta, cliccabile col mouse.
+- I tasti sono letti per posizione fisica (`scripts/main.gd`, `_setup_input`), così WASD resta al
+  suo posto anche con tastiere non italiane. Shift vale solo quello di sinistra.
+- **Quattro viste** con ↑ e ↓, annunciate a schermo: base (quella di sempre), ravvicinata, cofano e
+  abitacolo. Cofano e abitacolo sono agganciate all'auto e si piazzano misurando il modello
+  dell'auto del giocatore, quindi l'occhio cade nel punto giusto su ogni modello. Dal posto di guida
+  si spegne la luce colorata sotto l'auto, che altrimenti illuminava di rosa l'interno.
+- ← e → tenute premute girano la vista di circa 80° verso quel lato, con un movimento morbido; al
+  rilascio torna dietro.
+- Schermo intero di default (`project.godot`, `window/size/mode`).
+
+**Verifica ed esito:** gara completa col pilota automatico in Godot 4.7.2 a schermo intero
+(1920×1080): 1° posto in 1:58.6, nessun errore. Foto di tutte e quattro le viste e dello sguardo
+laterale. Primo eseguibile Windows esportato (template ufficiali di Godot 4.7.2) e provato con una
+gara automatica completa. Stefano non l'ha ancora provato con la tastiera.
+
+---
+
 ## Prossimi passi
 
-- Esportare e provare l'eseguibile Windows.
+- Provare a mano i nuovi comandi e le quattro telecamere.
 - Costa più fedele all'originale: palme, faro e lungomare.
 - Tappa 4 del mondo unico: Città, Deserto e Montagna.
 
