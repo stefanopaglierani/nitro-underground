@@ -27,6 +27,7 @@ func _run() -> void:
 		ids.append_array(CarCatalog.GARAGE)
 		ids.append_array(Car.POLICE_BODIES)
 		ids.append_array(CarCatalog.TRAFFIC)
+		ids.append_array(CarCatalog.NEW)  # needs the originals copied to assets/cars_new
 	else:
 		ids.append_array(args)
 	DirAccess.make_dir_recursive_absolute(CarModel.BAKED_DIR)

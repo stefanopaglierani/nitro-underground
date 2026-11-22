@@ -48,6 +48,7 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.25 | 11/11/2026 | Isola x5 con texture, mare, due villaggi, alberi e modelli leggeri da lontano | ramo `claude/mondo-x5-aspetto` |
 | v0.26 | 11/11/2026 | Circuito Costa nel mondo unico, a giro chiuso, con villaggio e strada di collegamento | ramo `claude/mondo-x5-costa` |
 | v0.27 | 22/11/2026 | Comandi da PC: WASD, telecamera con le frecce in 4 viste, schermo intero, primo eseguibile Windows | ramo `claude/controlli-pc-fullscreen` |
+| v0.28 | 22/11/2026 | ABS e TCS (tasti R e T) con spia di intervento, pulsante EXIT, partita azzerata, tutte le 51 auto al Dealer | ramo `claude/abs-tcs-exit-dealer` |
 | v0.29 | 22/11/2026 | Avversari più bravi: niente più spinta al giocatore in partenza, spazio a chi è affiancato, frenate dosate, traffico che si sposta, 25% di traffico in meno | ramo `claude/project-thread-vhvw0q` |
 
 ## Le svolte principali
@@ -1044,6 +1045,53 @@ al posto di guida. Il gioco deve partire **a schermo intero**.
 laterale. Primo eseguibile Windows esportato (template ufficiali di Godot 4.7.2) e provato con una
 gara automatica completa. Stefano non l'ha ancora provato con la tastiera.
 
+Stefano l'ha provata: "le prove hanno dato buoni risultati", mancava un pulsante per uscire.
+
+## v0.28 — ABS e TCS, EXIT, partita nuova e tutte le auto al Dealer (22 novembre)
+
+![ABS e TCS al lavoro](immagini/v0.28-abs-tcs.jpg)
+
+**Richiesta:** un pulsante **EXIT**; sistemare la tenuta di strada con **ABS e TCS** "per aiutare il
+giocatore a mantenere l'auto in strada e a non sbandare, cosa che succede abbastanza spesso ad alte
+velocità", con un piccolo menù in basso a destra ("R - ABS", "T - TCS": rosso se inseriti, nero
+trasparente se no) e, per le prime prove, le correzioni dei due sistemi ben visibili **mentre**
+intervengono. Poi azzerare tutti i risultati e ripartire da capo, e trovare al Dealer **tutte** le
+auto del progetto, per fare una cernita.
+
+**Come è stato costruito:**
+- **EXIT** sulla pagina iniziale, nel garage (accanto alla mappa) e nel pannello di pausa della
+  gara, che prima salva quanto guadagnato.
+- **Prima la misura**: nuove manovre nel banco prova (`tests/physics_bench.gd --handling`): a 180 km/h
+  un colpo di sterzo da tastiera faceva scivolare il retrotreno di 20-26° su tutte e cinque le auto
+  provate. La causa: l'aiuto alla rotazione chiedeva all'auto di girare molto più in fretta di quanto
+  le gomme permettano a quella velocità.
+- **TCS e ABS** (`scripts/car.gd`): il TCS limita la rotazione a quella che l'aderenza può dare,
+  toglie gas e raddrizza il muso se l'auto scivola, e non dà alle ruote motrici più spinta di quella
+  che resta dopo la curva; l'ABS fa lo stesso in frenata e lascia alla gomma la presa per sterzare.
+  Il freno a mano spegne la stabilità per un attimo: la derapata voluta (e la sua reputazione) resta.
+  Con gli aiuti spenti l'auto guida esattamente come nella v0.27. Dettagli e numeri in
+  [TECNICO.md](TECNICO.md#3-fisica-dellauto).
+- **Spia di intervento** (`scripts/aid_panel.gd`): i due tasti in basso a destra; quando un aiuto
+  corregge, il suo tasto lampeggia in ambra come una spia del cruscotto, la barra sotto mostra quanto
+  sta lavorando, un contatore conta gli interventi della gara e accanto al cruscotto si accende una
+  scritta ambra "ABS" / "TCS". La scelta R/T resta salvata.
+- **Partita nuova** (`scripts/save_game.gd`): al primo avvio della v0.28 il vecchio salvataggio viene
+  copiato a parte (`partita-prima-del-riavvio-1.cfg`, niente viene cancellato) e si riparte dal garage
+  con 2.000 $ e reputazione 0.
+- **Dealer con 51 auto** (`scripts/car_catalog.gd`, `scripts/dealer.gd`): le 14 del garage, 20 nuove
+  dalla cartella delle auto scaricate da Stefano, 13 del traffico e 4 della polizia. Le 20 nuove sono
+  preparate da `tools/bake_cars.gd` (girate, riscalate, comprese quelle salvate in centimetri, e
+  alleggerite) e nel repository c'è solo la versione leggera; al Dealer si caricano una alla volta,
+  quando sono in vetrina. Tutte CC BY 4.0; quelle di marchi reali hanno un nome inventato (elenco in
+  `assets/LICENSES.md`).
+
+**Verifica ed esito:** banco prova a 30, 60 e 120 tick con aiuti spenti e accesi (5 auto per le
+manovre nuove); quattro gare complete col pilota automatico in Godot 4.7.2 (Costa, Montagna, Città,
+Deserto, tutte al 1° posto, nessun errore, da 44 a 57 interventi degli aiuti nelle gare in cui li
+ho contati) e una gara
+completa con l'eseguibile Windows esportato; prova dei tre pulsanti EXIT; prova dell'azzeramento su
+una copia del salvataggio; foto al Dealer di tutte le 20 auto nuove. Stefano non l'ha ancora provata.
+
 ---
 
 ## v0.29 — Avversari più bravi e traffico più educato (22 novembre)
@@ -1098,7 +1146,8 @@ grafica). Stefano non l'ha ancora provata.
 
 ## Prossimi passi
 
-- Provare a mano i nuovi comandi e le quattro telecamere.
+- Provare a mano ABS e TCS, e fare la cernita delle auto al Dealer.
+- L'isola tropicale come prima gara della campagna, poi l'Isola X5 e gli altri circuiti.
 - Provare in gara gli avversari della v0.29: partenza pulita, sorpassi e traffico che si sposta.
 - Costa più fedele all'originale: palme, faro e lungomare.
 - Tappa 4 del mondo unico: Città, Deserto e Montagna.

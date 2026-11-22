@@ -41,14 +41,49 @@ const CARS := [
 	{"id": "t_defender_90", "name": "Ranger 90", "kind": "hd", "path": "res://assets/cars_traffic/defender_90.glb", "len": 4.0, "hide": ["Object_22", "Object_57"]},
 	{"id": "t_bmw_e46", "name": "Kraft Berlina '98", "kind": "hd", "path": "res://assets/cars_traffic/bmw_e46.glb", "len": 4.47},
 	{"id": "t_jeep", "name": "Trail 4x4", "kind": "hd", "path": "res://assets/cars_traffic/jeep/scene.gltf", "len": 4.2, "tris": 62000},
+	# v0.28 (Stefano 22/11/2026: "nel Dealer fammi trovare TUTTE le auto a disposizione, così posso
+	# fare una cernita"): the other CC BY cars of Asset-3D\Auto, on sale at the dealer to try them.
+	# Only their prepared light versions (assets/cars_baked) are in the repository; the originals
+	# stay in Asset-3D\Auto and are copied to assets/cars_new (ignored by git) to prepare them again.
+	# Real brands get invented names here; their logos are not removed yet (see assets/LICENSES.md).
+	{"id": "m10_86", "name": "Militare M10 '86", "kind": "hd", "path": "res://assets/cars_new/1986_chevrolet_m1009.glb", "len": 4.7},
+	{"id": "stella_c00", "name": "Stella C '00", "kind": "hd", "path": "res://assets/cars_new/2000_mercedes_c-class_w203.glb", "len": 4.53},
+	{"id": "corsaro_zl", "name": "Corsaro ZL '12", "kind": "hd", "path": "res://assets/cars_new/2012_chevrolet_camaro_zl1.glb", "len": 4.84},
+	{"id": "land_explorer", "name": "Land Explorer", "kind": "hd", "path": "res://assets/cars_new/a_land_explorer.glb", "len": 4.8},
+	{"id": "bokaroo_67", "name": "Bokaroo '67", "kind": "hd", "path": "res://assets/cars_new/bokaroo_67.glb", "len": 4.6},
+	{"id": "buggy_dune", "name": "Buggy Dune", "kind": "hd", "path": "res://assets/cars_new/buggy_2.glb", "len": 4.0},
+	{"id": "pickup_63", "name": "Pickup C10 '63", "kind": "hd", "path": "res://assets/cars_new/chevrolet_c10_pickup_1963.glb", "len": 4.9},
+	{"id": "jump_buggy", "name": "Jump Buggy", "kind": "hd", "path": "res://assets/cars_new/dune_buggy_jump.glb", "len": 3.9},
+	{"id": "el_alamo_78", "name": "El Alamo '78", "kind": "hd", "path": "res://assets/cars_new/el_alamo_78.glb", "len": 5.1},
+	{"id": "lightbody_lifted", "name": "Lightbody Lifted '85", "kind": "hd", "path": "res://assets/cars_new/lightbody_lifted_85.glb", "len": 4.9},
+	{"id": "rotore_fd", "name": "Rotore FD", "kind": "hd", "path": "res://assets/cars_new/mazda_rx_7_fd.glb", "len": 4.3},
+	{"id": "stella_190", "name": "Stella 190 Evo", "kind": "hd", "path": "res://assets/cars_new/mercedes_190e_evo_1982_3d_model_free.glb", "len": 4.49},
+	{"id": "stella_g", "name": "Stella G", "kind": "hd", "path": "res://assets/cars_new/mercedes_benz_g_class_w263.glb", "len": 4.82},
+	{"id": "muscle_concept", "name": "Muscle Concept", "kind": "hd", "path": "res://assets/cars_new/muscle_car_concept.glb", "len": 4.8},
+	{"id": "sakura_4x4", "name": "Sakura 4x4", "kind": "hd", "path": "res://assets/cars_new/nissan_4x4.glb", "len": 4.7},
+	{"id": "steppa_4x4", "name": "Steppa 4x4", "kind": "hd", "path": "res://assets/cars_new/no_budget_soviet_jeep.glb", "len": 4.0},
+	{"id": "offroad_racer", "name": "Off-Road Racer", "kind": "hd", "path": "res://assets/cars_new/off_road_4x4_racer_with_4_different_skins.glb", "len": 4.2},
+	{"id": "rancher_50", "name": "Rancher '50 Custom", "kind": "hd", "path": "res://assets/cars_new/rancher_50_custom.glb", "len": 4.95},
+	{"id": "rancher_80", "name": "Rancher '80 Lifted", "kind": "hd", "path": "res://assets/cars_new/rancher_80_lifted.glb", "len": 4.95},
+	{"id": "pickup_hilo", "name": "Pickup Hilo", "kind": "hd", "path": "res://assets/cars_new/toyota_pickup_truck.glb", "len": 4.4},
+]
+
+## The cars added in v0.28 (in CARS above), in the order the dealer shows them.
+const NEW := [
+	"corsaro_zl", "muscle_concept", "rotore_fd", "stella_190", "stella_c00", "bokaroo_67", "el_alamo_78",
+	"rancher_50", "pickup_63", "pickup_hilo", "rancher_80", "lightbody_lifted", "sakura_4x4", "stella_g",
+	"land_explorer", "m10_86", "steppa_4x4", "offroad_racer", "buggy_dune", "jump_buggy",
 ]
 
 
 ## Driven wheels for each car: "RWD" (rear), "FWD" (front) or "AWD" (all four).
 const RWD := ["phoenix_455", "tiara_gt83", "saba_v12", "goblin_v12", "nova_sx",
 	"shiro_13", "shiro_14", "petalo_roadster", "zenith_proto", "falco_turbo", "kraft_sport", "sakura_gt",
-	"police_illinois", "police_negotiator", "police_interceptor", "police_car"]
-const AWD := ["kaze_r34", "sterrato_evo", "t_defender_90", "t_jeep"]
+	"police_illinois", "police_negotiator", "police_interceptor", "police_car",
+	"corsaro_zl", "muscle_concept", "rotore_fd", "stella_190", "stella_c00", "bokaroo_67", "el_alamo_78",
+	"rancher_50", "pickup_63", "pickup_hilo", "buggy_dune", "jump_buggy", "t_monarch_71", "t_impala_1967"]
+const AWD := ["kaze_r34", "sterrato_evo", "t_defender_90", "t_jeep",
+	"rancher_80", "lightbody_lifted", "sakura_4x4", "stella_g", "land_explorer", "m10_86", "steppa_4x4", "offroad_racer"]
 
 
 ## Top speed in km/h without nitro. Cars not listed get DEFAULT_TOP_SPEED.
@@ -59,6 +94,13 @@ const TOP_SPEED := {
 	"petalo_roadster": 210.0, "zenith_proto": 250.0, "falco_turbo": 245.0, "kraft_sport": 230.0,
 	"sakura_gt": 220.0, "sterrato_evo": 230.0, "police_illinois": 235.0, "police_negotiator": 235.0,
 	"police_interceptor": 235.0, "police_car": 235.0,
+	# v0.28: first guesses by Claude from the kind of car, to be tuned with Stefano.
+	"corsaro_zl": 265.0, "muscle_concept": 260.0, "rotore_fd": 250.0, "stella_190": 235.0,
+	"stella_c00": 225.0, "bokaroo_67": 200.0, "el_alamo_78": 195.0, "rancher_50": 185.0,
+	"pickup_63": 175.0, "pickup_hilo": 175.0, "rancher_80": 170.0, "lightbody_lifted": 170.0,
+	"sakura_4x4": 170.0, "stella_g": 210.0, "land_explorer": 175.0, "m10_86": 160.0,
+	"steppa_4x4": 140.0, "offroad_racer": 195.0, "buggy_dune": 185.0, "jump_buggy": 185.0,
+	"t_town_bus": 120.0, "t_lightbody_tow": 150.0, "t_lct_3000": 150.0, "t_shvan_92": 170.0,
 }
 
 
@@ -108,6 +150,12 @@ const PRICE := {
 
 static func price(id: String) -> int:
 	return PRICE.get(id, 15000)
+
+
+## Every car the dealer sells (v0.28, Stefano: all the cars of the project, to pick from): the
+## garage cars first, then the new ones, the traffic and the police. Cars not in PRICE cost 15.000.
+static func shop() -> Array:
+	return GARAGE + NEW + TRAFFIC + Car.POLICE_BODIES
 
 
 ## The three cars offered in the starting garage (v0.17). Placeholders, kept by Stefano.

@@ -47,7 +47,7 @@ Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come
 | | |
 |---|---|
 | 🏠 **Garage** | Dopo la pagina START: scelta definitiva fra 3 auto, denaro (5.000 a gara) e reputazione (vittorie, derapate in combo, polizia seminata); le gare si susseguono: Costa, Città, Deserto, Montagna |
-| 🏪 **Dealer** | 14 auto in vendita su un piatto girevole, colore RGB, elaborazioni di motore, centralina, scarico, nitro, freni e sospensioni |
+| 🏪 **Dealer** | Tutte le 51 auto del progetto in vendita su un piatto girevole (v0.28, per la cernita di Stefano), colore RGB, elaborazioni di motore, centralina, scarico, nitro, freni e sospensioni |
 | 🏁 **4 circuiti** | Montagna (passo alpino con tornanti), Costa (riviera), Città di notte (downtown), Deserto (Route 66) |
 | 🚗 **14 auto** | Tutte con licenza commerciale (CC BY), con nomi inventati: le guidano anche i rivali; 4 volanti e 13 mezzi nel traffico, autobus compreso |
 | ⏱️ **Gara sprint** | 3 avversari guidati dal computer, checkpoint con tempo a scalare |
@@ -56,7 +56,7 @@ Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come
 | 🔊 **Audio** | Motore V8 sintetizzato che segue i giri, cambiate, turbo, gomme, urti, sirena |
 | 🎨 **Grafica realistica** | Modelli 3D realistici con le impostazioni grafiche di base (lo stile a fumetto 2.5D è stato abbandonato nella v0.13) |
 | 🗺️ **Circuiti in testo** | Ogni pista è un file che si legge come un navigatore: chiunque può disegnarne una |
-| 🎮 **Comandi** | Tastiera (WASD, Spazio, Shift sinistro), quattro viste della telecamera con le frecce, cruscotto digitale, minimappa con le frecce delle auto, traiettoria ideale colorata a terra |
+| 🎮 **Comandi** | Tastiera (WASD, Spazio, Shift sinistro), ABS e TCS inseribili con R e T con spia di intervento, quattro viste della telecamera con le frecce, cruscotto digitale, minimappa con le frecce delle auto, traiettoria ideale colorata a terra |
 
 ## Come è costruito, in breve
 
@@ -120,6 +120,7 @@ cosa è stato chiesto e come è stato costruito.
 | v0.26 | Il circuito Costa sull'isola grande: un giro chiuso sul mare, collegato al resto del mondo |
 | 22/11/2026 | Solo PC: tolta la versione Android (APK, preset di esportazione, script di build), aggiunta l'esportazione per Windows |
 | v0.27 | Comandi da PC: via i pulsanti touch, guida con WASD, telecamera con le frecce (4 viste e sguardo laterale), schermo intero |
+| v0.28 | ABS e TCS (tasti R e T) con spia di intervento, pulsante EXIT, partita azzerata, tutte le 51 auto al Dealer |
 | v0.29 | Avversari più bravi: partenza senza spinte al giocatore, spazio a chi è affiancato, frenate dosate; traffico che si sposta e 25% di auto in meno |
 
 ## Provarlo
