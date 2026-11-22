@@ -102,7 +102,7 @@ var max_steer_high := deg_to_rad(9)
 const PLAYER_STEER := 0.7
 ## Rivals take the corners at this share of the speed the level advises (fewer crashes).
 const RACER_CORNER_MARGIN := 0.92
-## v0.28 (Stefano: "il pilota in quarta posizione si butta contro l'auto del giocatore"):
+## v0.29 (Stefano: "il pilota in quarta posizione si butta contro l'auto del giocatore"):
 ## for this many seconds after the green light a rival keeps the lane it started in and only
 ## then eases over to its own line on the road, so it doesn't cut across the grid.
 const LAUNCH_TIME := 6.0
@@ -894,7 +894,7 @@ func _avoid_traffic(prev: Vector3, dir: Vector3, side: Vector3, lane: float) -> 
 	for tc: Node3D in others:
 		if tc == blocker:
 			continue
-		# Only something ahead of us, on the line we would pass on, takes the room away. (v0.28:
+		# Only something ahead of us, on the line we would pass on, takes the room away. (v0.29:
 		# it used to be anything within 12 m, so racers queued side by side behind a stopped car
 		# took each other's room and all three waited there for ever.)
 		var o_rel: Vector3 = tc.global_position - global_position

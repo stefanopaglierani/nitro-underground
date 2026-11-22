@@ -148,7 +148,7 @@ const CAM_MIN_DIST := 4.0
 const CAM_LOOK_AHEAD := 8.0
 ## Always the same distance and the same field of view: only nitro widens the view a little.
 ## Civilian cars on the road (they are real rigid bodies, so they can be shoved and wrecked).
-## v0.28 (Stefano): 25% less traffic, 24 -> 18 cars.
+## v0.29 (Stefano): 25% less traffic, 24 -> 18 cars.
 const TRAFFIC_CARS := 18
 const CAM_FOV := 70.0
 const CAM_FOV_NITRO := 76.0
@@ -174,7 +174,7 @@ var screenshot_dir := ""
 var _test_t := 0.0
 var _shots_taken := 0
 var _auto_wp := 1
-## Autotest contact count (v0.28): pairs touching now, and the totals at the start and in the race.
+## Autotest contact count (v0.29): pairs touching now, and the totals at the start and in the race.
 var _touching := {}
 var _contacts := {"start_car": 0, "race_car": 0, "player_car": 0, "traffic": 0, "police": 0}
 var _hold_lat := INF
@@ -488,7 +488,7 @@ func _start() -> void:
 		r.waypoints = race_path
 		r.wp_index = 1
 		# Close to the racing line, each a little to one side so they don't all queue on it, on the
-		# same side it starts on (v0.28: the rival beside the player used to aim across its lane).
+		# same side it starts on (v0.29: the rival beside the player used to aim across its lane).
 		r.lane_offset = RIVAL_LANES[i] + rng.randf_range(-0.4, 0.4)
 		r.max_speed = (57.0 + i * 1.5) * RIVAL_BOOST
 		r.engine_force *= RIVAL_BOOST

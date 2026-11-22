@@ -48,7 +48,7 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.25 | 11/11/2026 | Isola x5 con texture, mare, due villaggi, alberi e modelli leggeri da lontano | ramo `claude/mondo-x5-aspetto` |
 | v0.26 | 11/11/2026 | Circuito Costa nel mondo unico, a giro chiuso, con villaggio e strada di collegamento | ramo `claude/mondo-x5-costa` |
 | v0.27 | 22/11/2026 | Comandi da PC: WASD, telecamera con le frecce in 4 viste, schermo intero, primo eseguibile Windows | ramo `claude/controlli-pc-fullscreen` |
-| v0.28 | 22/11/2026 | Avversari più bravi: niente più spinta al giocatore in partenza, spazio a chi è affiancato, frenate dosate, traffico che si sposta, 25% di traffico in meno | ramo `claude/project-thread-vhvw0q` |
+| v0.29 | 22/11/2026 | Avversari più bravi: niente più spinta al giocatore in partenza, spazio a chi è affiancato, frenate dosate, traffico che si sposta, 25% di traffico in meno | ramo `claude/project-thread-vhvw0q` |
 
 ## Le svolte principali
 
@@ -1046,7 +1046,7 @@ gara automatica completa. Stefano non l'ha ancora provato con la tastiera.
 
 ---
 
-## v0.28 — Avversari più bravi e traffico più educato (22 novembre)
+## v0.29 — Avversari più bravi e traffico più educato (22 novembre)
 
 **Richiesta:** «il pilota della auto che parte in quarta posizione ogni singola gara alla partenza
 si butta contro l'auto del giocatore e la spinge verso destra [...] anche durante tutta la gara le
@@ -1099,7 +1099,7 @@ grafica). Stefano non l'ha ancora provata.
 ## Prossimi passi
 
 - Provare a mano i nuovi comandi e le quattro telecamere.
-- Provare in gara gli avversari della v0.28: partenza pulita, sorpassi e traffico che si sposta.
+- Provare in gara gli avversari della v0.29: partenza pulita, sorpassi e traffico che si sposta.
 - Costa più fedele all'originale: palme, faro e lungomare.
 - Tappa 4 del mondo unico: Città, Deserto e Montagna.
 

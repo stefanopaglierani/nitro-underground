@@ -22,7 +22,7 @@ const DODGE_STEP := 3.2
 const DODGE_RATE := 1.6
 ## How far ahead (m) a car looks for a racing car in its way.
 const DODGE_LOOK := 18.0
-## v0.28 (Stefano: il traffico "cercherà per quanto possibile di evitare scontri con le auto in
+## v0.29 (Stefano: il traffico "cercherà per quanto possibile di evitare scontri con le auto in
 ## gara"): a racing car that will pass within YIELD_NEAR metres of this one in the next
 ## YIELD_TIME seconds makes the driver move over by YIELD_SHIFT metres, away from its path (and
 ## slow down if it comes head-on), then go back to the lane once it has gone by.
