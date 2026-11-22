@@ -52,6 +52,7 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.29 | 22/11/2026 | Avversari più bravi: niente più spinta al giocatore in partenza, spazio a chi è affiancato, frenate dosate, traffico che si sposta, 25% di traffico in meno | ramo `claude/project-thread-vhvw0q` |
 | v0.30 | 22/11/2026 | L'isola tropicale del periodo Unreal a tessere, prima gara della campagna; poi Isola X5 e tutti gli altri circuiti | ramo `claude/isola-tropicale` |
 | v0.31 | 22/11/2026 | Telecamera col solo tasto V: via abitacolo e frecce, nuova vista a terra davanti al paraurti | ramo `claude/project-thread-2wp00z` |
+| v0.32 | 22/11/2026 | Isola tropicale: strade con spessore e incroci puliti, vie tagliate dove passano le strade principali, belvedere al posto delle matasse, vegetazione a zone (boschi, radure, spiagge) | ramo `claude/project-thread-2wp00z` (PR settimanale) |
 
 ## Le svolte principali
 
@@ -1192,11 +1193,55 @@ provata.
 
 ---
 
+## v0.32 — Strade vere e un'isola a zone (22 novembre)
+
+![La strada costiera con il bordo in discesa e le piante a gruppi](immagini/v0.32-isola.jpg)
+
+**Richiesta:** Stefano vuole tenere l'isola del periodo Unreal, ma le strade "sembrano oggetti
+bidimensionali" che agli incroci "formano delle cose incomprensibili", e il mondo è "spoglio o
+riempito di palme a casaccio". Le sue specifiche: tenere statali, secondarie, anello di montagna e
+sterrate; ricollegare quelle che finiscono nel nulla; togliere le vie di città e villaggi dove ci
+passa una strada principale e ricollegare il resto; strade spesse 6 cm con una "discesa laterale",
+senza spigoli a 90 gradi; incroci puliti. Per le due "matasse" dell'anello di montagna (la strada
+andava in fondo a una valle e tornava indietro sopra se stessa) ha scelto **una strada senza
+uscita con un belvedere in fondo**. Poi la vegetazione per zone: boschi, radure, più modelli.
+
+![Rete stradale prima e dopo](immagini/v0.32-strade-prima-dopo.jpg)
+
+**Come è stato costruito:** il generatore dell'isola (`tools/isola_gen/IsolaGen.cs`, C# lanciato da
+`genera.ps1`) ora è nel repository, e `genera.ps1 -Out dati-v2` scrive in un'altra cartella così i
+dati vecchi restano come copia di sicurezza.
+- **Spessore e bordo:** ogni strada sta 6 cm sopra il suo profilo e ai lati scende dolcemente nel
+  terreno per 60 cm (un "bordo" inclinato), invece di essere un nastro piatto. Il terreno sotto la
+  carreggiata resta 20 cm più basso solo lì, non più su tutta la banchina.
+- **Incroci puliti:** dove due strade si sovrappongono resta solo l'asfalto della più importante;
+  dentro l'incrocio non ci sono strisce, le linee di bordo si aprono dove entra la strada minore e
+  quella minore ha la linea di stop.
+- **Vie tagliate:** le vie della griglia di città e villaggi vengono tolte dove passa una strada
+  principale (157 tagli) e i pezzi che restano si attaccano alla strada con un incrocio a T (186).
+- **Strade che finivano nel nulla:** 7 sono ricollegate alla strada più vicina. Dove il
+  collegamento avrebbe girato più del doppio della distanza (scogliere, valli: sarebbero nate nuove
+  matasse) la strada finisce invece in una **piazzola belvedere** larga 20 m, come le due ex matasse.
+  In tutto 8 belvedere.
+- **Vegetazione a zone** (stesso totale di 250.000 elementi): palme da cocco a gruppi sulla
+  spiaggia, boschetti e radure in pianura, versante a nord-est (umido, prende il vento) più fitto,
+  pini in alto fino al limite degli alberi, rocce con il muschio dove è umido, cespugli lungo le
+  strade e palme lungo le vie della città. Quattro modelli in più, già nel repository e registrati
+  in `assets/LICENSES.md`: palma da cocco, felce, cespuglio e roccia col muschio
+  (`tools/import_isola_tropicale.gd` ora sa prendere un solo oggetto da un file che ne contiene
+  diversi; quote visibili in `scripts/tropical_island.gd`).
+
+**Verifica ed esito:** isola rigenerata e importata sul PC di Stefano, gara automatica completa con
+la vista base: 1° posto in 2:00.9, nessun errore, **20,7 FPS medi** con il portatile alla corrente
+(prima 21,6) e 328 chiamate di disegno (prima 317-319). Stefano non l'ha ancora provata.
+
+---
+
 ## Prossimi passi
 
 - Provare a mano ABS e TCS, e fare la cernita delle auto al Dealer.
 - Provare in gara gli avversari della v0.29: partenza pulita, sorpassi e traffico che si sposta.
-- Provare l'isola tropicale; sistemare le strade scavate in collina e le pareti a picco dei suoi dati; edifici e villaggi.
+- Provare l'isola tropicale v0.32 (strade, belvedere, vegetazione); poi edifici, villaggi e oggetti (grado 3 del piano).
 - Costa più fedele all'originale: palme, faro e lungomare.
 - Tappa 4 del mondo unico: Città, Deserto e Montagna.
 

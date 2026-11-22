@@ -373,6 +373,16 @@ public static class IsolaGen
     }
 
     public static int Belvederi = 0;
+    // piazzola belvedere larga 20 m e lunga 24 m lungo la direzione (dx, dy), finisce 4 m oltre (x, y)
+    static void AddPiazzola(double x, double y, double dx, double dy, string nm)
+    {
+        double dl = Math.Sqrt(dx * dx + dy * dy); if (dl < 1e-6) { dx = 1; dy = 0; dl = 1; }
+        dx /= dl; dy /= dl;
+        var pz = new List<double[]>();
+        for (int q = -10; q <= 2; q++) pz.Add(new double[] { x + dx * q * 2, y + dy * q * 2 });
+        AddRoad("Piazzola_" + nm, "piazzola", 20, 0.06, false, pz, 0);
+        Belvederi++;
+    }
     // trova i tratti "vai e torna" (andata e ritorno quasi sovrapposti, oltre 300 m): li toglie dalla strada e li
     // rimette come strada senza uscita + piazzola belvedere larga 20 m in fondo. I tornanti (tratti corti) restano.
     static void ExtractSpurs(Road r)
@@ -398,16 +408,10 @@ public static class IsolaGen
             // strada senza uscita: l'andata, fino al punto piu' lontano
             var spur = new List<double[]>();
             for (int k = i; k <= apex; k++) spur.Add(new double[] { P[k][0], P[k][1] });
-            Belvederi++;
-            string nm = "Belvedere_" + Belvederi;
+            string nm = "Belvedere_" + (Belvederi + 1);
             AddRoad(nm, "montagna", 6.5, r.MaxGrade, false, spur, 1);
-            // piazzola: 24 m lungo l'ultima direzione, finisce 4 m oltre la fine della strada
             int a0 = Math.Max(i, apex - 6);
-            double dx = P[apex][0] - P[a0][0], dy = P[apex][1] - P[a0][1], dl = Math.Sqrt(dx * dx + dy * dy); if (dl < 1e-6) dl = 1;
-            dx /= dl; dy /= dl;
-            var pz = new List<double[]>();
-            for (int q = -10; q <= 2; q++) pz.Add(new double[] { P[apex][0] + dx * q * 2, P[apex][1] + dy * q * 2 });
-            AddRoad("Piazzola_" + nm, "piazzola", 20, 0.06, false, pz, 0);
+            AddPiazzola(P[apex][0], P[apex][1], P[apex][0] - P[a0][0], P[apex][1] - P[a0][1], nm);
             Log.AppendLine(nm + ": tolto dall'anello un vai-e-torna di " + len.ToString("F0") + " m, belvedere a " + P[apex][0].ToString("F0") + "," + P[apex][1].ToString("F0"));
             // l'anello salta il tratto
             P.RemoveRange(i + 1, best - i);
@@ -609,7 +613,16 @@ public static class IsolaGen
                 }
                 if (q == null || best < (r.Width * 0.5 + 4) || best > 2500) continue;   // gia' collegata, o troppo lontana
                 var path = AStar(p[0], p[1], q[0], q[1], r.MaxGrade, extra);
-                if (path.Count < 2) { Log.AppendLine("raccordo impossibile per " + r.Name); continue; }
+                double plen = 0; for (int k = 0; k + 1 < path.Count; k++) plen += Dist(path[k][0], path[k][1], path[k + 1][0], path[k + 1][1]);
+                // un raccordo che gira il doppio della distanza in linea d'aria (scogliere, valli) farebbe una nuova
+                // matassa: la strada finisce invece in una piazzola belvedere, come le matasse dell'anello
+                if (path.Count < 2 || plen > Math.Max(best * 2.0, best + 70))
+                {
+                    var b = e == 0 ? r.P[Math.Min(6, r.P.Count - 1)] : r.P[Math.Max(0, r.P.Count - 7)];
+                    AddPiazzola(p[0], p[1], p[0] - b[0], p[1] - b[1], r.Name + "_" + e);
+                    Log.AppendLine("fine di " + r.Name + " (" + (e == 0 ? "inizio" : "fine") + "): raccordo troppo tortuoso (" + plen.ToString("F0") + " m per " + best.ToString("F0") + " m), belvedere");
+                    continue;
+                }
                 bool twisty = r.MaxGrade > 0.105;
                 SimpStep = 2; SimpWin = 1;
                 var simp = Simplify(path, false);
