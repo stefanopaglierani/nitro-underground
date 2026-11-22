@@ -13,6 +13,8 @@ const SEA_SIZE := 14000.0
 const TEX := "res://assets/materials/%s/%s_%s_1k.jpg"
 const ASPHALT := "res://assets/materials/road_asphalt.tres"
 
+## Folder of the world's files (another tiled world, like TropicalIsland, sets its own).
+var folder := FOLDER
 var tile_size := 320.0
 var tile_origin := Vector2.ZERO
 var rings := RINGS_PHONE
@@ -28,7 +30,7 @@ var _print_wait := 5.0
 func _init(road_index := 0) -> void:
 	super()
 	race_road = road_index
-	world_path = FOLDER + "world.scn"
+	world_path = folder + "world.scn"
 	extent = 2500.0
 	view_distance = 1200.0
 	sea_size = SEA_SIZE
@@ -72,8 +74,8 @@ func _ground_material() -> ShaderMaterial:
 	return mat
 
 
-func _tex(folder: String) -> Texture2D:
-	return load(TEX % [folder, folder, "diff"]) as Texture2D
+func _tex(name: String) -> Texture2D:
+	return load(TEX % [name, name, "diff"]) as Texture2D
 
 
 func _build_sea() -> void:
@@ -95,7 +97,7 @@ func _tile_at(pos: Vector3) -> Vector2i:
 
 
 func _path(at: Vector2i) -> String:
-	return FOLDER + "tile_%d_%d.scn" % [at.x, at.y]
+	return folder + "tile_%d_%d.scn" % [at.x, at.y]
 
 
 ## Existing tiles around `center`, the nearest first.

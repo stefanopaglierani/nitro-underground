@@ -15,9 +15,12 @@ const TRACKS := [
 	["night", "CITTÀ DI NOTTE", "Downtown: gomiti tra i palazzi"],
 	["desert", "DESERTO", "Route 66: canyon e motel"],
 ]
-## The races of the campaign, in order (v0.19, Stefano: the coast first, then the city): [circuit id,
-## name on the garage button]. Finishing a race moves on to the next; after the last it starts again.
-const CAMPAIGN := [["coast", "COSTA"], ["night", "CITTÀ"], ["desert", "DESERTO"], ["mountain", "MONTAGNA"]]
+## The races of the campaign, in order: [circuit id, name on the garage button]. Finishing a race
+## moves on to the next; after the last it starts again. v0.30 (Stefano 22/11/2026): the tropical
+## island first, then the Isola X5, then every other circuit made so far (the four hand-made ones in
+## the v0.19 order, the Costa ring on the big island and the first small island).
+const CAMPAIGN := [["tropicale", "ISOLA TROPICALE"], ["x5", "ISOLA X5"], ["coast", "COSTA"], ["night", "CITTÀ"],
+	["desert", "DESERTO"], ["mountain", "MONTAGNA"], ["x5costa", "COSTA X5"], ["isola", "ISOLA PICCOLA"]]
 ## Map file of each circuit (tracks/<name>.txt), drawn on its button in the menu.
 const TRACK_MAPS := {"mountain": "montagna", "coast": "costa", "night": "citta_notte", "desert": "deserto"}
 ## The level object for a circuit id (not built yet).
@@ -37,6 +40,8 @@ static func make_level(id: String) -> Track:
 			return TiledWorld.new()
 		"x5costa":
 			return TiledWorld.new(1)
+		"tropicale":
+			return TropicalIsland.new()
 	return Mountain.new()
 
 
@@ -1140,7 +1145,7 @@ func _test_limit() -> float:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--testtime="):
 			return float(a.substr(11))
-	return 150.0
+	return 220.0  # v0.30: the race on the tropical island lasts up to 2:25
 
 
 func _car_name(c: Car) -> String:
