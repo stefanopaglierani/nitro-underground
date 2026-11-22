@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://d1b7l200bo88n"
 path.s3tc="res://.godot/imported/mailbox_2.jpg-2c97bb7e072a3a031795044a9b7b4aff.s3tc.ctex"
-path.etc2="res://.godot/imported/mailbox_2.jpg-2c97bb7e072a3a031795044a9b7b4aff.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/mailbox_2.jpg"
-dest_files=["res://.godot/imported/mailbox_2.jpg-2c97bb7e072a3a031795044a9b7b4aff.s3tc.ctex", "res://.godot/imported/mailbox_2.jpg-2c97bb7e072a3a031795044a9b7b4aff.etc2.ctex"]
+dest_files=["res://.godot/imported/mailbox_2.jpg-2c97bb7e072a3a031795044a9b7b4aff.s3tc.ctex"]
 
 [params]
 

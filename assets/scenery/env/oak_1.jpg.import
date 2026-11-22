@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cxhyploowwdly"
 path.s3tc="res://.godot/imported/oak_1.jpg-2c0605effab4d5ae4df90f1a7f1af8dd.s3tc.ctex"
-path.etc2="res://.godot/imported/oak_1.jpg-2c0605effab4d5ae4df90f1a7f1af8dd.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/oak_1.jpg"
-dest_files=["res://.godot/imported/oak_1.jpg-2c0605effab4d5ae4df90f1a7f1af8dd.s3tc.ctex", "res://.godot/imported/oak_1.jpg-2c0605effab4d5ae4df90f1a7f1af8dd.etc2.ctex"]
+dest_files=["res://.godot/imported/oak_1.jpg-2c0605effab4d5ae4df90f1a7f1af8dd.s3tc.ctex"]
 
 [params]
 

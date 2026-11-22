@@ -4,16 +4,15 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://ctbisperl0n12"
 path.s3tc="res://.godot/imported/stick_metallicRoughness.png-e6657abd979cd57c5150eeb56b339006.s3tc.ctex"
-path.etc2="res://.godot/imported/stick_metallicRoughness.png-e6657abd979cd57c5150eeb56b339006.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/scenery/barriers/textures/stick_metallicRoughness.png"
-dest_files=["res://.godot/imported/stick_metallicRoughness.png-e6657abd979cd57c5150eeb56b339006.s3tc.ctex", "res://.godot/imported/stick_metallicRoughness.png-e6657abd979cd57c5150eeb56b339006.etc2.ctex"]
+dest_files=["res://.godot/imported/stick_metallicRoughness.png-e6657abd979cd57c5150eeb56b339006.s3tc.ctex"]
 
 [params]
 

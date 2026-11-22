@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dxs542fwqtn0x"
 path.s3tc="res://.godot/imported/nyc_dwellings_7.png-0d02af4434ef2550b02e772ba21e91b0.s3tc.ctex"
-path.etc2="res://.godot/imported/nyc_dwellings_7.png-0d02af4434ef2550b02e772ba21e91b0.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/nyc_dwellings_7.png"
-dest_files=["res://.godot/imported/nyc_dwellings_7.png-0d02af4434ef2550b02e772ba21e91b0.s3tc.ctex", "res://.godot/imported/nyc_dwellings_7.png-0d02af4434ef2550b02e772ba21e91b0.etc2.ctex"]
+dest_files=["res://.godot/imported/nyc_dwellings_7.png-0d02af4434ef2550b02e772ba21e91b0.s3tc.ctex"]
 
 [params]
 

@@ -994,13 +994,32 @@ stato provato.
 
 ---
 
+## Solo PC — addio alla versione Android (22 novembre)
+
+**Richiesta:** dopo alcuni giorni di prove con Unreal Engine (troppo pesante per il suo PC),
+Stefano ha deciso di restare su Godot e di fare il gioco **solo per PC**: il telefono era troppo
+limitante per il progetto. La versione Android va tolta del tutto.
+
+**Cosa è cambiato:** via il preset di esportazione Android (al suo posto "Windows Desktop", che crea
+`build/NitroUnderground.exe`), il workflow che pubblicava l'APK di prova e lo script
+`tools/build_android.sh`. Dalle impostazioni del progetto sono uscite le voci solo per il telefono
+(renderer OpenGL per Android, compressione texture ETC2/ASTC, orientamento dello schermo, tasto
+Indietro). Il gioco non gestisce più il tasto Indietro di Android; la gara va in pausa quando la
+finestra perde il fuoco. Il profilo leggero nato per il telefono resta, ma si accende solo a mano
+sul PC con `-- --mobile`. I comandi a schermo restano usabili col mouse, insieme alla tastiera.
+
+**Verifica ed esito:** il progetto è stato aperto con Godot 4.7.2 e la gara è partita in prova
+automatica (dettagli nella pull request). L'eseguibile Windows non è ancora stato esportato: servono i
+template di esportazione di Godot.
+
+---
+
 ## Prossimi passi
 
-- Provare Costa sull'isola grande sul Galaxy A51, e i primi secondi della prima partita.
+- Esportare e provare l'eseguibile Windows.
 - Costa più fedele all'originale: palme, faro e lungomare.
 - Tappa 4 del mondo unico: Città, Deserto e Montagna.
 
-- Prova sul telefono della v0.22: se scatta ancora, il passo dopo è ridurre ancora la risoluzione 3D o togliere le ombre del tutto.
 - Pezzi di strada (incrocio, strada con parcheggio) dentro i circuiti, se approvato; ponte ad arco con la mappa 3D completa.
 - Gli altri pulsanti (garage, menù) nello stesso stile neon; gare che pagano in modo diverso, cosa mostra la mappa.
 - Togliere i loghi dipinti nelle texture delle auto di marchi reali; aggiungere i mezzi della seconda ricerca (fuoristrada, pick-up, buggy, traffico di città).

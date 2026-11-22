@@ -78,11 +78,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		_go()
 
 
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_WM_GO_BACK_REQUEST and not _leaving:
-		get_tree().quit()
-
-
 func _go() -> void:
 	if _leaving:
 		return

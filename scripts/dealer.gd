@@ -826,16 +826,6 @@ func _unhandled_input(event: InputEvent) -> void:
 
 # ---------- Leaving ----------
 
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_WM_GO_BACK_REQUEST and not _leaving:
-		if _color_panel.visible:
-			_close_colors()
-		elif _mode != "mine":
-			_set_mode("mine")
-		else:
-			_back()
-
-
 func _back() -> void:
 	if _leaving:
 		return

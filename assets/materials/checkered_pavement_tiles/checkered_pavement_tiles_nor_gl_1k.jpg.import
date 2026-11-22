@@ -4,16 +4,15 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://5x0vrogm1563"
 path.s3tc="res://.godot/imported/checkered_pavement_tiles_nor_gl_1k.jpg-9f55a5ba091a1f4062112da57680f9ac.s3tc.ctex"
-path.etc2="res://.godot/imported/checkered_pavement_tiles_nor_gl_1k.jpg-9f55a5ba091a1f4062112da57680f9ac.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/materials/checkered_pavement_tiles/checkered_pavement_tiles_nor_gl_1k.jpg"
-dest_files=["res://.godot/imported/checkered_pavement_tiles_nor_gl_1k.jpg-9f55a5ba091a1f4062112da57680f9ac.s3tc.ctex", "res://.godot/imported/checkered_pavement_tiles_nor_gl_1k.jpg-9f55a5ba091a1f4062112da57680f9ac.etc2.ctex"]
+dest_files=["res://.godot/imported/checkered_pavement_tiles_nor_gl_1k.jpg-9f55a5ba091a1f4062112da57680f9ac.s3tc.ctex"]
 
 [params]
 

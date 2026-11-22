@@ -4,16 +4,15 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://0l6xg823u820"
 path.s3tc="res://.godot/imported/M_Branch.001_baseColor.png-640dba95b4b62d48ebec2bb0eb2f7d32.s3tc.ctex"
-path.etc2="res://.godot/imported/M_Branch.001_baseColor.png-640dba95b4b62d48ebec2bb0eb2f7d32.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/scenery/spruce/textures/M_Branch.001_baseColor.png"
-dest_files=["res://.godot/imported/M_Branch.001_baseColor.png-640dba95b4b62d48ebec2bb0eb2f7d32.s3tc.ctex", "res://.godot/imported/M_Branch.001_baseColor.png-640dba95b4b62d48ebec2bb0eb2f7d32.etc2.ctex"]
+dest_files=["res://.godot/imported/M_Branch.001_baseColor.png-640dba95b4b62d48ebec2bb0eb2f7d32.s3tc.ctex"]
 
 [params]
 

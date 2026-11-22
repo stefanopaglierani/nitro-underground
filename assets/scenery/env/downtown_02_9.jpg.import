@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://do743o41x2ghn"
 path.s3tc="res://.godot/imported/downtown_02_9.jpg-66ac59b5155d2b812d262ea032829bed.s3tc.ctex"
-path.etc2="res://.godot/imported/downtown_02_9.jpg-66ac59b5155d2b812d262ea032829bed.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/downtown_02_9.jpg"
-dest_files=["res://.godot/imported/downtown_02_9.jpg-66ac59b5155d2b812d262ea032829bed.s3tc.ctex", "res://.godot/imported/downtown_02_9.jpg-66ac59b5155d2b812d262ea032829bed.etc2.ctex"]
+dest_files=["res://.godot/imported/downtown_02_9.jpg-66ac59b5155d2b812d262ea032829bed.s3tc.ctex"]
 
 [params]
 

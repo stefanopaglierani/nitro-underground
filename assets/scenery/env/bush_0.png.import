@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bq75eoa0ctagb"
 path.s3tc="res://.godot/imported/bush_0.png-d42d0b9d0d5bdf930b84c3d6ecf5e0d2.s3tc.ctex"
-path.etc2="res://.godot/imported/bush_0.png-d42d0b9d0d5bdf930b84c3d6ecf5e0d2.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/bush_0.png"
-dest_files=["res://.godot/imported/bush_0.png-d42d0b9d0d5bdf930b84c3d6ecf5e0d2.s3tc.ctex", "res://.godot/imported/bush_0.png-d42d0b9d0d5bdf930b84c3d6ecf5e0d2.etc2.ctex"]
+dest_files=["res://.godot/imported/bush_0.png-d42d0b9d0d5bdf930b84c3d6ecf5e0d2.s3tc.ctex"]
 
 [params]
 

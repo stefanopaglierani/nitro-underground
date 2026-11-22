@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://d1tb5g7f2wkv2"
 path.s3tc="res://.godot/imported/bmw_m3_e30_17.png-ff60e738c71c044dfdef64379a1f7489.s3tc.ctex"
-path.etc2="res://.godot/imported/bmw_m3_e30_17.png-ff60e738c71c044dfdef64379a1f7489.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_cc/bmw_m3_e30_17.png"
-dest_files=["res://.godot/imported/bmw_m3_e30_17.png-ff60e738c71c044dfdef64379a1f7489.s3tc.ctex", "res://.godot/imported/bmw_m3_e30_17.png-ff60e738c71c044dfdef64379a1f7489.etc2.ctex"]
+dest_files=["res://.godot/imported/bmw_m3_e30_17.png-ff60e738c71c044dfdef64379a1f7489.s3tc.ctex"]
 
 [params]
 

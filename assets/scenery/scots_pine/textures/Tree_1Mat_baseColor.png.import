@@ -4,16 +4,15 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bo6di4k6vgamb"
 path.s3tc="res://.godot/imported/Tree_1Mat_baseColor.png-45f18038689316d60aaabacfae34e1d3.s3tc.ctex"
-path.etc2="res://.godot/imported/Tree_1Mat_baseColor.png-45f18038689316d60aaabacfae34e1d3.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/scenery/scots_pine/textures/Tree_1Mat_baseColor.png"
-dest_files=["res://.godot/imported/Tree_1Mat_baseColor.png-45f18038689316d60aaabacfae34e1d3.s3tc.ctex", "res://.godot/imported/Tree_1Mat_baseColor.png-45f18038689316d60aaabacfae34e1d3.etc2.ctex"]
+dest_files=["res://.godot/imported/Tree_1Mat_baseColor.png-45f18038689316d60aaabacfae34e1d3.s3tc.ctex"]
 
 [params]
 

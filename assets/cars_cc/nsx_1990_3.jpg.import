@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cuu8ffgfoj7b3"
 path.s3tc="res://.godot/imported/nsx_1990_3.jpg-0a018c9e9aca0864db616d49b11fc0ab.s3tc.ctex"
-path.etc2="res://.godot/imported/nsx_1990_3.jpg-0a018c9e9aca0864db616d49b11fc0ab.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_cc/nsx_1990_3.jpg"
-dest_files=["res://.godot/imported/nsx_1990_3.jpg-0a018c9e9aca0864db616d49b11fc0ab.s3tc.ctex", "res://.godot/imported/nsx_1990_3.jpg-0a018c9e9aca0864db616d49b11fc0ab.etc2.ctex"]
+dest_files=["res://.godot/imported/nsx_1990_3.jpg-0a018c9e9aca0864db616d49b11fc0ab.s3tc.ctex"]
 
 [params]
 

@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://buvxecrcxa63g"
 path.s3tc="res://.godot/imported/porsche_930_0.png-8898426e392fc2950dad64991853dbef.s3tc.ctex"
-path.etc2="res://.godot/imported/porsche_930_0.png-8898426e392fc2950dad64991853dbef.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_cc/porsche_930_0.png"
-dest_files=["res://.godot/imported/porsche_930_0.png-8898426e392fc2950dad64991853dbef.s3tc.ctex", "res://.godot/imported/porsche_930_0.png-8898426e392fc2950dad64991853dbef.etc2.ctex"]
+dest_files=["res://.godot/imported/porsche_930_0.png-8898426e392fc2950dad64991853dbef.s3tc.ctex"]
 
 [params]
 

@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://rvq26lrimno"
 path.s3tc="res://.godot/imported/coast_coconut_palm_8.png-61857fbdbef0b349434ef7ae4602fb7d.s3tc.ctex"
-path.etc2="res://.godot/imported/coast_coconut_palm_8.png-61857fbdbef0b349434ef7ae4602fb7d.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/coast_coconut_palm_8.png"
-dest_files=["res://.godot/imported/coast_coconut_palm_8.png-61857fbdbef0b349434ef7ae4602fb7d.s3tc.ctex", "res://.godot/imported/coast_coconut_palm_8.png-61857fbdbef0b349434ef7ae4602fb7d.etc2.ctex"]
+dest_files=["res://.godot/imported/coast_coconut_palm_8.png-61857fbdbef0b349434ef7ae4602fb7d.s3tc.ctex"]
 
 [params]
 

@@ -313,8 +313,7 @@ func _plan_clock() -> void:
 
 
 ## Freezes the race (countdown included) behind the "GARA IN PAUSA" panel. Called by the MENU
-## button, the Android back button and when the game goes to the background (a call, the home
-## button), so the clock never runs while the player can't drive.
+## button and when the game window loses focus, so the clock never runs while the player can't drive.
 func pause_race() -> void:
 	if state != "countdown" and state != "race":
 		return
@@ -332,18 +331,8 @@ func resume_race() -> void:
 
 
 func _notification(what: int) -> void:
-	match what:
-		NOTIFICATION_WM_GO_BACK_REQUEST:
-			# Android back button (the game no longer quits on it, see project settings).
-			if get_tree().paused:
-				resume_race()
-			elif state == "end":
-				_to_menu()
-			else:
-				pause_race()
-		NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT:
-			if not autotest:
-				pause_race()
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and not autotest:
+		pause_race()
 
 
 ## Same race again: the scene is built anew (with the loading page).

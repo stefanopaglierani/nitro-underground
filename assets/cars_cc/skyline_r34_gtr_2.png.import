@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://c5rewn3v5liqd"
 path.s3tc="res://.godot/imported/skyline_r34_gtr_2.png-35f4bb5097d8c48a2bc06f91d61b6c7d.s3tc.ctex"
-path.etc2="res://.godot/imported/skyline_r34_gtr_2.png-35f4bb5097d8c48a2bc06f91d61b6c7d.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_cc/skyline_r34_gtr_2.png"
-dest_files=["res://.godot/imported/skyline_r34_gtr_2.png-35f4bb5097d8c48a2bc06f91d61b6c7d.s3tc.ctex", "res://.godot/imported/skyline_r34_gtr_2.png-35f4bb5097d8c48a2bc06f91d61b6c7d.etc2.ctex"]
+dest_files=["res://.godot/imported/skyline_r34_gtr_2.png-35f4bb5097d8c48a2bc06f91d61b6c7d.s3tc.ctex"]
 
 [params]
 

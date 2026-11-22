@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bmw0gn0y7adiv"
 path.s3tc="res://.godot/imported/rural_set_14.png-610f8e8f96239cc35e3f0526bc49ce21.s3tc.ctex"
-path.etc2="res://.godot/imported/rural_set_14.png-610f8e8f96239cc35e3f0526bc49ce21.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/rural_set_14.png"
-dest_files=["res://.godot/imported/rural_set_14.png-610f8e8f96239cc35e3f0526bc49ce21.s3tc.ctex", "res://.godot/imported/rural_set_14.png-610f8e8f96239cc35e3f0526bc49ce21.etc2.ctex"]
+dest_files=["res://.godot/imported/rural_set_14.png-610f8e8f96239cc35e3f0526bc49ce21.s3tc.ctex"]
 
 [params]
 

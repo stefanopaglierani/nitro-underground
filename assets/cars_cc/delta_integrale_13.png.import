@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dphypp1temmb"
 path.s3tc="res://.godot/imported/delta_integrale_13.png-7cedda2afea6959853eaacecb1a1cc1b.s3tc.ctex"
-path.etc2="res://.godot/imported/delta_integrale_13.png-7cedda2afea6959853eaacecb1a1cc1b.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_cc/delta_integrale_13.png"
-dest_files=["res://.godot/imported/delta_integrale_13.png-7cedda2afea6959853eaacecb1a1cc1b.s3tc.ctex", "res://.godot/imported/delta_integrale_13.png-7cedda2afea6959853eaacecb1a1cc1b.etc2.ctex"]
+dest_files=["res://.godot/imported/delta_integrale_13.png-7cedda2afea6959853eaacecb1a1cc1b.s3tc.ctex"]
 
 [params]
 

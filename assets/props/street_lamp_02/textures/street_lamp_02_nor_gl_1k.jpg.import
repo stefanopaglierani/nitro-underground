@@ -4,16 +4,15 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cd1oe3ypkijpt"
 path.s3tc="res://.godot/imported/street_lamp_02_nor_gl_1k.jpg-db0e4866ae22229fa35d9225c7057538.s3tc.ctex"
-path.etc2="res://.godot/imported/street_lamp_02_nor_gl_1k.jpg-db0e4866ae22229fa35d9225c7057538.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/props/street_lamp_02/textures/street_lamp_02_nor_gl_1k.jpg"
-dest_files=["res://.godot/imported/street_lamp_02_nor_gl_1k.jpg-db0e4866ae22229fa35d9225c7057538.s3tc.ctex", "res://.godot/imported/street_lamp_02_nor_gl_1k.jpg-db0e4866ae22229fa35d9225c7057538.etc2.ctex"]
+dest_files=["res://.godot/imported/street_lamp_02_nor_gl_1k.jpg-db0e4866ae22229fa35d9225c7057538.s3tc.ctex"]
 
 [params]
 

@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://skjb2apg2rj8"
 path.s3tc="res://.godot/imported/stump_2.jpg-7d871d5a2a4f075213524bcaa8eaa81f.s3tc.ctex"
-path.etc2="res://.godot/imported/stump_2.jpg-7d871d5a2a4f075213524bcaa8eaa81f.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/stump_2.jpg"
-dest_files=["res://.godot/imported/stump_2.jpg-7d871d5a2a4f075213524bcaa8eaa81f.s3tc.ctex", "res://.godot/imported/stump_2.jpg-7d871d5a2a4f075213524bcaa8eaa81f.etc2.ctex"]
+dest_files=["res://.godot/imported/stump_2.jpg-7d871d5a2a4f075213524bcaa8eaa81f.s3tc.ctex"]
 
 [params]
 

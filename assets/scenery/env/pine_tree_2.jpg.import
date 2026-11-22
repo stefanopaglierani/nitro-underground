@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://ckkn0nq72r11d"
 path.s3tc="res://.godot/imported/pine_tree_2.jpg-e3c8f34d9f825c71ace60816be4d07e3.s3tc.ctex"
-path.etc2="res://.godot/imported/pine_tree_2.jpg-e3c8f34d9f825c71ace60816be4d07e3.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/pine_tree_2.jpg"
-dest_files=["res://.godot/imported/pine_tree_2.jpg-e3c8f34d9f825c71ace60816be4d07e3.s3tc.ctex", "res://.godot/imported/pine_tree_2.jpg-e3c8f34d9f825c71ace60816be4d07e3.etc2.ctex"]
+dest_files=["res://.godot/imported/pine_tree_2.jpg-e3c8f34d9f825c71ace60816be4d07e3.s3tc.ctex"]
 
 [params]
 

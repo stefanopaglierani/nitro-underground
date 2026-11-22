@@ -47,7 +47,7 @@ legge il file, costruisce la strada, i guardrail, il terreno e la traiettoria de
 
 Chiedimi semplicemente "controlla la mappa del deserto" (o mandami il file cambiato): lancio
 `tools/map_preview.gd`, che disegna il circuito visto dall'alto e dice quanto è lungo, la
-distanza minima fra due tratti e se c'è qualcosa che non va. Poi faccio un APK nuovo.
+distanza minima fra due tratti e se c'è qualcosa che non va. Poi preparo una versione nuova per il PC.
 
 Se vuoi provarlo da solo sul PC con Godot:
 

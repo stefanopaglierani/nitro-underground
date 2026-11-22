@@ -4,16 +4,15 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cyhc240rmxx34"
 path.s3tc="res://.godot/imported/short_barrier_metallicRoughness.png-94a4a69f7d4c300d4d474f5307011ed6.s3tc.ctex"
-path.etc2="res://.godot/imported/short_barrier_metallicRoughness.png-94a4a69f7d4c300d4d474f5307011ed6.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/scenery/barriers/textures/short_barrier_metallicRoughness.png"
-dest_files=["res://.godot/imported/short_barrier_metallicRoughness.png-94a4a69f7d4c300d4d474f5307011ed6.s3tc.ctex", "res://.godot/imported/short_barrier_metallicRoughness.png-94a4a69f7d4c300d4d474f5307011ed6.etc2.ctex"]
+dest_files=["res://.godot/imported/short_barrier_metallicRoughness.png-94a4a69f7d4c300d4d474f5307011ed6.s3tc.ctex"]
 
 [params]
 

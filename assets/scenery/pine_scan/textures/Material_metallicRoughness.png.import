@@ -4,16 +4,15 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dr7xsonabs1my"
 path.s3tc="res://.godot/imported/Material_metallicRoughness.png-298acfe21b29f73cfeace793ea2c3d05.s3tc.ctex"
-path.etc2="res://.godot/imported/Material_metallicRoughness.png-298acfe21b29f73cfeace793ea2c3d05.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/scenery/pine_scan/textures/Material_metallicRoughness.png"
-dest_files=["res://.godot/imported/Material_metallicRoughness.png-298acfe21b29f73cfeace793ea2c3d05.s3tc.ctex", "res://.godot/imported/Material_metallicRoughness.png-298acfe21b29f73cfeace793ea2c3d05.etc2.ctex"]
+dest_files=["res://.godot/imported/Material_metallicRoughness.png-298acfe21b29f73cfeace793ea2c3d05.s3tc.ctex"]
 
 [params]
 

@@ -4,16 +4,15 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cuygg2y86iqef"
 path.s3tc="res://.godot/imported/None.004_baseColor.jpeg-38cb1cda189bf1aa11d84da0d1cdb65d.s3tc.ctex"
-path.etc2="res://.godot/imported/None.004_baseColor.jpeg-38cb1cda189bf1aa11d84da0d1cdb65d.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/scenery/barriers/textures/None.004_baseColor.jpeg"
-dest_files=["res://.godot/imported/None.004_baseColor.jpeg-38cb1cda189bf1aa11d84da0d1cdb65d.s3tc.ctex", "res://.godot/imported/None.004_baseColor.jpeg-38cb1cda189bf1aa11d84da0d1cdb65d.etc2.ctex"]
+dest_files=["res://.godot/imported/None.004_baseColor.jpeg-38cb1cda189bf1aa11d84da0d1cdb65d.s3tc.ctex"]
 
 [params]
 

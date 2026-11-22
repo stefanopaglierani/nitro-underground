@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://vokv5pfo6nno"
 path.s3tc="res://.godot/imported/desert_desert_rocks_19.png-b411c15e78fe7095be5f6a659be85f1b.s3tc.ctex"
-path.etc2="res://.godot/imported/desert_desert_rocks_19.png-b411c15e78fe7095be5f6a659be85f1b.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/desert_desert_rocks_19.png"
-dest_files=["res://.godot/imported/desert_desert_rocks_19.png-b411c15e78fe7095be5f6a659be85f1b.s3tc.ctex", "res://.godot/imported/desert_desert_rocks_19.png-b411c15e78fe7095be5f6a659be85f1b.etc2.ctex"]
+dest_files=["res://.godot/imported/desert_desert_rocks_19.png-b411c15e78fe7095be5f6a659be85f1b.s3tc.ctex"]
 
 [params]
 

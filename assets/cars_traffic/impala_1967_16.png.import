@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://djepkrbsm57bo"
 path.s3tc="res://.godot/imported/impala_1967_16.png-86937641d43c6d0491a18eccf1fb16e1.s3tc.ctex"
-path.etc2="res://.godot/imported/impala_1967_16.png-86937641d43c6d0491a18eccf1fb16e1.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_traffic/impala_1967_16.png"
-dest_files=["res://.godot/imported/impala_1967_16.png-86937641d43c6d0491a18eccf1fb16e1.s3tc.ctex", "res://.godot/imported/impala_1967_16.png-86937641d43c6d0491a18eccf1fb16e1.etc2.ctex"]
+dest_files=["res://.godot/imported/impala_1967_16.png-86937641d43c6d0491a18eccf1fb16e1.s3tc.ctex"]
 
 [params]
 

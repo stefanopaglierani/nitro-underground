@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bn30vhfr5ureo"
 path.s3tc="res://.godot/imported/road_signs_1.png-845f216f9bbba103e7559f2035f64fb0.s3tc.ctex"
-path.etc2="res://.godot/imported/road_signs_1.png-845f216f9bbba103e7559f2035f64fb0.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/road_signs_1.png"
-dest_files=["res://.godot/imported/road_signs_1.png-845f216f9bbba103e7559f2035f64fb0.s3tc.ctex", "res://.godot/imported/road_signs_1.png-845f216f9bbba103e7559f2035f64fb0.etc2.ctex"]
+dest_files=["res://.godot/imported/road_signs_1.png-845f216f9bbba103e7559f2035f64fb0.s3tc.ctex"]
 
 [params]
 

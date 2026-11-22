@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://byfwv873g31m2"
 path.s3tc="res://.godot/imported/warehouse_2.jpg-d6cbed412b3a78f52039bcdf88f80f7a.s3tc.ctex"
-path.etc2="res://.godot/imported/warehouse_2.jpg-d6cbed412b3a78f52039bcdf88f80f7a.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/warehouse_2.jpg"
-dest_files=["res://.godot/imported/warehouse_2.jpg-d6cbed412b3a78f52039bcdf88f80f7a.s3tc.ctex", "res://.godot/imported/warehouse_2.jpg-d6cbed412b3a78f52039bcdf88f80f7a.etc2.ctex"]
+dest_files=["res://.godot/imported/warehouse_2.jpg-d6cbed412b3a78f52039bcdf88f80f7a.s3tc.ctex"]
 
 [params]
 

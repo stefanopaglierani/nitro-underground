@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dpucqx0mglei5"
 path.s3tc="res://.godot/imported/conifer_pack_5.jpg-4d01a4eebf61274d431b878f71057a05.s3tc.ctex"
-path.etc2="res://.godot/imported/conifer_pack_5.jpg-4d01a4eebf61274d431b878f71057a05.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/conifer_pack_5.jpg"
-dest_files=["res://.godot/imported/conifer_pack_5.jpg-4d01a4eebf61274d431b878f71057a05.s3tc.ctex", "res://.godot/imported/conifer_pack_5.jpg-4d01a4eebf61274d431b878f71057a05.etc2.ctex"]
+dest_files=["res://.godot/imported/conifer_pack_5.jpg-4d01a4eebf61274d431b878f71057a05.s3tc.ctex"]
 
 [params]
 

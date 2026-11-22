@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://ikgsh0v5l2nu"
 path.s3tc="res://.godot/imported/rock_face_rock_face_01_rough.jpg-4a28dd0b610fd28123eca090861a96f8.s3tc.ctex"
-path.etc2="res://.godot/imported/rock_face_rock_face_01_rough.jpg-4a28dd0b610fd28123eca090861a96f8.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/rock_face_rock_face_01_rough.jpg"
-dest_files=["res://.godot/imported/rock_face_rock_face_01_rough.jpg-4a28dd0b610fd28123eca090861a96f8.s3tc.ctex", "res://.godot/imported/rock_face_rock_face_01_rough.jpg-4a28dd0b610fd28123eca090861a96f8.etc2.ctex"]
+dest_files=["res://.godot/imported/rock_face_rock_face_01_rough.jpg-4a28dd0b610fd28123eca090861a96f8.s3tc.ctex"]
 
 [params]
 

@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dr2q65j1nlyb7"
 path.s3tc="res://.godot/imported/goblin_v12_4.png-dd4bd0eece64b18570eaec922234e5b0.s3tc.ctex"
-path.etc2="res://.godot/imported/goblin_v12_4.png-dd4bd0eece64b18570eaec922234e5b0.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_cc/goblin_v12_4.png"
-dest_files=["res://.godot/imported/goblin_v12_4.png-dd4bd0eece64b18570eaec922234e5b0.s3tc.ctex", "res://.godot/imported/goblin_v12_4.png-dd4bd0eece64b18570eaec922234e5b0.etc2.ctex"]
+dest_files=["res://.godot/imported/goblin_v12_4.png-dd4bd0eece64b18570eaec922234e5b0.s3tc.ctex"]
 
 [params]
 

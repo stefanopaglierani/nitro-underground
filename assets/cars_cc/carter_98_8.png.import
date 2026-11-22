@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://c5d8kb4p0nw05"
 path.s3tc="res://.godot/imported/carter_98_8.png-921d8dca9e6ff1128da74833b8fe7dd8.s3tc.ctex"
-path.etc2="res://.godot/imported/carter_98_8.png-921d8dca9e6ff1128da74833b8fe7dd8.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_cc/carter_98_8.png"
-dest_files=["res://.godot/imported/carter_98_8.png-921d8dca9e6ff1128da74833b8fe7dd8.s3tc.ctex", "res://.godot/imported/carter_98_8.png-921d8dca9e6ff1128da74833b8fe7dd8.etc2.ctex"]
+dest_files=["res://.godot/imported/carter_98_8.png-921d8dca9e6ff1128da74833b8fe7dd8.s3tc.ctex"]
 
 [params]
 

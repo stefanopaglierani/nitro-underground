@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dqr4wntqdnham"
 path.s3tc="res://.godot/imported/city_chicago_buildings_2.jpg-f52b7210bc1468fe299985a6c613edc7.s3tc.ctex"
-path.etc2="res://.godot/imported/city_chicago_buildings_2.jpg-f52b7210bc1468fe299985a6c613edc7.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/city_chicago_buildings_2.jpg"
-dest_files=["res://.godot/imported/city_chicago_buildings_2.jpg-f52b7210bc1468fe299985a6c613edc7.s3tc.ctex", "res://.godot/imported/city_chicago_buildings_2.jpg-f52b7210bc1468fe299985a6c613edc7.etc2.ctex"]
+dest_files=["res://.godot/imported/city_chicago_buildings_2.jpg-f52b7210bc1468fe299985a6c613edc7.s3tc.ctex"]
 
 [params]
 

@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://c63lq8tudhlrf"
 path.s3tc="res://.godot/imported/ace_11_10.png-a6f4fcfd861d1e91cf57f3515089c70d.s3tc.ctex"
-path.etc2="res://.godot/imported/ace_11_10.png-a6f4fcfd861d1e91cf57f3515089c70d.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_cc/ace_11_10.png"
-dest_files=["res://.godot/imported/ace_11_10.png-a6f4fcfd861d1e91cf57f3515089c70d.s3tc.ctex", "res://.godot/imported/ace_11_10.png-a6f4fcfd861d1e91cf57f3515089c70d.etc2.ctex"]
+dest_files=["res://.godot/imported/ace_11_10.png-a6f4fcfd861d1e91cf57f3515089c70d.s3tc.ctex"]
 
 [params]
 

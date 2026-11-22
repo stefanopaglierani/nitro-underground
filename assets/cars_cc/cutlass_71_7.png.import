@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dsswd0ns83pqa"
 path.s3tc="res://.godot/imported/cutlass_71_7.png-f231588cb9ce1786fd34f17b5f1654a1.s3tc.ctex"
-path.etc2="res://.godot/imported/cutlass_71_7.png-f231588cb9ce1786fd34f17b5f1654a1.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_cc/cutlass_71_7.png"
-dest_files=["res://.godot/imported/cutlass_71_7.png-f231588cb9ce1786fd34f17b5f1654a1.s3tc.ctex", "res://.godot/imported/cutlass_71_7.png-f231588cb9ce1786fd34f17b5f1654a1.etc2.ctex"]
+dest_files=["res://.godot/imported/cutlass_71_7.png-f231588cb9ce1786fd34f17b5f1654a1.s3tc.ctex"]
 
 [params]
 

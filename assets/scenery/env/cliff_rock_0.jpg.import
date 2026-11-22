@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://c7am0fxygxgsu"
 path.s3tc="res://.godot/imported/cliff_rock_0.jpg-05b3cba16cc47c15d9a3555afb068d43.s3tc.ctex"
-path.etc2="res://.godot/imported/cliff_rock_0.jpg-05b3cba16cc47c15d9a3555afb068d43.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/cliff_rock_0.jpg"
-dest_files=["res://.godot/imported/cliff_rock_0.jpg-05b3cba16cc47c15d9a3555afb068d43.s3tc.ctex", "res://.godot/imported/cliff_rock_0.jpg-05b3cba16cc47c15d9a3555afb068d43.etc2.ctex"]
+dest_files=["res://.godot/imported/cliff_rock_0.jpg-05b3cba16cc47c15d9a3555afb068d43.s3tc.ctex"]
 
 [params]
 

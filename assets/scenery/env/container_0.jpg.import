@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cerc5dmtvy7t4"
 path.s3tc="res://.godot/imported/container_0.jpg-c99879efcd2de4a32578f225d841bf0a.s3tc.ctex"
-path.etc2="res://.godot/imported/container_0.jpg-c99879efcd2de4a32578f225d841bf0a.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/container_0.jpg"
-dest_files=["res://.godot/imported/container_0.jpg-c99879efcd2de4a32578f225d841bf0a.s3tc.ctex", "res://.godot/imported/container_0.jpg-c99879efcd2de4a32578f225d841bf0a.etc2.ctex"]
+dest_files=["res://.godot/imported/container_0.jpg-c99879efcd2de4a32578f225d841bf0a.s3tc.ctex"]
 
 [params]
 

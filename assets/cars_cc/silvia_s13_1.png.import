@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://c3nxno8xoy6nr"
 path.s3tc="res://.godot/imported/silvia_s13_1.png-45b05297158ca6b87b49944073495ba1.s3tc.ctex"
-path.etc2="res://.godot/imported/silvia_s13_1.png-45b05297158ca6b87b49944073495ba1.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_cc/silvia_s13_1.png"
-dest_files=["res://.godot/imported/silvia_s13_1.png-45b05297158ca6b87b49944073495ba1.s3tc.ctex", "res://.godot/imported/silvia_s13_1.png-45b05297158ca6b87b49944073495ba1.etc2.ctex"]
+dest_files=["res://.godot/imported/silvia_s13_1.png-45b05297158ca6b87b49944073495ba1.s3tc.ctex"]
 
 [params]
 

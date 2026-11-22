@@ -4,16 +4,15 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://3tfo13boh1vu"
 path.s3tc="res://.godot/imported/aerial_beach_01_diff_1k.jpg-0c1c56244bc4ccfa058d049d70637dff.s3tc.ctex"
-path.etc2="res://.godot/imported/aerial_beach_01_diff_1k.jpg-0c1c56244bc4ccfa058d049d70637dff.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/materials/aerial_beach_01/aerial_beach_01_diff_1k.jpg"
-dest_files=["res://.godot/imported/aerial_beach_01_diff_1k.jpg-0c1c56244bc4ccfa058d049d70637dff.s3tc.ctex", "res://.godot/imported/aerial_beach_01_diff_1k.jpg-0c1c56244bc4ccfa058d049d70637dff.etc2.ctex"]
+dest_files=["res://.godot/imported/aerial_beach_01_diff_1k.jpg-0c1c56244bc4ccfa058d049d70637dff.s3tc.ctex"]
 
 [params]
 

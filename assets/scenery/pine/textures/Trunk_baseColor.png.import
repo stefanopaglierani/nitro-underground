@@ -4,16 +4,15 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://c8l37khhcnanv"
 path.s3tc="res://.godot/imported/Trunk_baseColor.png-f5a14460fea92dc940e294b264dc2fda.s3tc.ctex"
-path.etc2="res://.godot/imported/Trunk_baseColor.png-f5a14460fea92dc940e294b264dc2fda.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/scenery/pine/textures/Trunk_baseColor.png"
-dest_files=["res://.godot/imported/Trunk_baseColor.png-f5a14460fea92dc940e294b264dc2fda.s3tc.ctex", "res://.godot/imported/Trunk_baseColor.png-f5a14460fea92dc940e294b264dc2fda.etc2.ctex"]
+dest_files=["res://.godot/imported/Trunk_baseColor.png-f5a14460fea92dc940e294b264dc2fda.s3tc.ctex"]
 
 [params]
 

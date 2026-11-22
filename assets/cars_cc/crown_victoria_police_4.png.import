@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://btjx8qcqwdtgc"
 path.s3tc="res://.godot/imported/crown_victoria_police_4.png-a5fadb4673073a645c16fab0b7aa4914.s3tc.ctex"
-path.etc2="res://.godot/imported/crown_victoria_police_4.png-a5fadb4673073a645c16fab0b7aa4914.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_cc/crown_victoria_police_4.png"
-dest_files=["res://.godot/imported/crown_victoria_police_4.png-a5fadb4673073a645c16fab0b7aa4914.s3tc.ctex", "res://.godot/imported/crown_victoria_police_4.png-a5fadb4673073a645c16fab0b7aa4914.etc2.ctex"]
+dest_files=["res://.godot/imported/crown_victoria_police_4.png-a5fadb4673073a645c16fab0b7aa4914.s3tc.ctex"]
 
 [params]
 

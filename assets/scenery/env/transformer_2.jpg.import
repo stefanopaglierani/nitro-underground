@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cas0tppq7u6xk"
 path.s3tc="res://.godot/imported/transformer_2.jpg-d4721fe5a2015c1e6bb25dd1c2b097c7.s3tc.ctex"
-path.etc2="res://.godot/imported/transformer_2.jpg-d4721fe5a2015c1e6bb25dd1c2b097c7.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/transformer_2.jpg"
-dest_files=["res://.godot/imported/transformer_2.jpg-d4721fe5a2015c1e6bb25dd1c2b097c7.s3tc.ctex", "res://.godot/imported/transformer_2.jpg-d4721fe5a2015c1e6bb25dd1c2b097c7.etc2.ctex"]
+dest_files=["res://.godot/imported/transformer_2.jpg-d4721fe5a2015c1e6bb25dd1c2b097c7.s3tc.ctex"]
 
 [params]
 

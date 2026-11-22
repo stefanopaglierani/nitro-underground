@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bvyyo8ednfvoq"
 path.s3tc="res://.godot/imported/propane_propane_tank_metal-propane_tank_rough.jpg-bc698d98972957ab6a6e98b9e3850e37.s3tc.ctex"
-path.etc2="res://.godot/imported/propane_propane_tank_metal-propane_tank_rough.jpg-bc698d98972957ab6a6e98b9e3850e37.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/propane_propane_tank_metal-propane_tank_rough.jpg"
-dest_files=["res://.godot/imported/propane_propane_tank_metal-propane_tank_rough.jpg-bc698d98972957ab6a6e98b9e3850e37.s3tc.ctex", "res://.godot/imported/propane_propane_tank_metal-propane_tank_rough.jpg-bc698d98972957ab6a6e98b9e3850e37.etc2.ctex"]
+dest_files=["res://.godot/imported/propane_propane_tank_metal-propane_tank_rough.jpg-bc698d98972957ab6a6e98b9e3850e37.s3tc.ctex"]
 
 [params]
 

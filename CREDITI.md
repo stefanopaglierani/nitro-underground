@@ -94,7 +94,7 @@ L'isola grande (`assets/worlds/isola_x5/`) ha il suo elenco in
   fonte, autore, link, licenza alla data del download, modifiche.
 - Preferire CC0 e CC BY. Un asset NC o di un marchio reale si aggiunge solo se Stefano lo chiede,
   e va segnalato qui nella sezione "Cosa non si potrebbe usare".
-- I file grandi della libreria di lavoro (modelli non ancora usati, APK, zip originali) restano
+- I file grandi della libreria di lavoro (modelli non ancora usati, zip originali) restano
   nella cartella del progetto, fuori dal repository.
 
 ## Il codice

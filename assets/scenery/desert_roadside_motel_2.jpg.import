@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cur3g30b2nknm"
 path.s3tc="res://.godot/imported/desert_roadside_motel_2.jpg-c325cb02d1f8ea78a1c2f800d8416d54.s3tc.ctex"
-path.etc2="res://.godot/imported/desert_roadside_motel_2.jpg-c325cb02d1f8ea78a1c2f800d8416d54.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/desert_roadside_motel_2.jpg"
-dest_files=["res://.godot/imported/desert_roadside_motel_2.jpg-c325cb02d1f8ea78a1c2f800d8416d54.s3tc.ctex", "res://.godot/imported/desert_roadside_motel_2.jpg-c325cb02d1f8ea78a1c2f800d8416d54.etc2.ctex"]
+dest_files=["res://.godot/imported/desert_roadside_motel_2.jpg-c325cb02d1f8ea78a1c2f800d8416d54.s3tc.ctex"]
 
 [params]
 

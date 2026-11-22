@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://c4y3tqa7kq00s"
 path.s3tc="res://.godot/imported/palm_2.png-6a9b261eb5f93272d8a632b9c2056800.s3tc.ctex"
-path.etc2="res://.godot/imported/palm_2.png-6a9b261eb5f93272d8a632b9c2056800.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/palm_2.png"
-dest_files=["res://.godot/imported/palm_2.png-6a9b261eb5f93272d8a632b9c2056800.s3tc.ctex", "res://.godot/imported/palm_2.png-6a9b261eb5f93272d8a632b9c2056800.etc2.ctex"]
+dest_files=["res://.godot/imported/palm_2.png-6a9b261eb5f93272d8a632b9c2056800.s3tc.ctex"]
 
 [params]
 

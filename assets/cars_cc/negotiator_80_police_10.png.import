@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://c58awnuuoufde"
 path.s3tc="res://.godot/imported/negotiator_80_police_10.png-088ab5fb7e37dd34afeb3d1ed77ec9f9.s3tc.ctex"
-path.etc2="res://.godot/imported/negotiator_80_police_10.png-088ab5fb7e37dd34afeb3d1ed77ec9f9.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_cc/negotiator_80_police_10.png"
-dest_files=["res://.godot/imported/negotiator_80_police_10.png-088ab5fb7e37dd34afeb3d1ed77ec9f9.s3tc.ctex", "res://.godot/imported/negotiator_80_police_10.png-088ab5fb7e37dd34afeb3d1ed77ec9f9.etc2.ctex"]
+dest_files=["res://.godot/imported/negotiator_80_police_10.png-088ab5fb7e37dd34afeb3d1ed77ec9f9.s3tc.ctex"]
 
 [params]
 

@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bhbru1i2jicpf"
 path.s3tc="res://.godot/imported/rock_scan_2.jpg-4d8c0e7ac56af57582532691a7efefe1.s3tc.ctex"
-path.etc2="res://.godot/imported/rock_scan_2.jpg-4d8c0e7ac56af57582532691a7efefe1.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/rock_scan_2.jpg"
-dest_files=["res://.godot/imported/rock_scan_2.jpg-4d8c0e7ac56af57582532691a7efefe1.s3tc.ctex", "res://.godot/imported/rock_scan_2.jpg-4d8c0e7ac56af57582532691a7efefe1.etc2.ctex"]
+dest_files=["res://.godot/imported/rock_scan_2.jpg-4d8c0e7ac56af57582532691a7efefe1.s3tc.ctex"]
 
 [params]
 

@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cc7qa26svsu20"
 path.s3tc="res://.godot/imported/utility_box_utility_box_01_nor_gl.jpg-9ddf7d31d10fa735ccd72a8898d4730c.s3tc.ctex"
-path.etc2="res://.godot/imported/utility_box_utility_box_01_nor_gl.jpg-9ddf7d31d10fa735ccd72a8898d4730c.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/utility_box_utility_box_01_nor_gl.jpg"
-dest_files=["res://.godot/imported/utility_box_utility_box_01_nor_gl.jpg-9ddf7d31d10fa735ccd72a8898d4730c.s3tc.ctex", "res://.godot/imported/utility_box_utility_box_01_nor_gl.jpg-9ddf7d31d10fa735ccd72a8898d4730c.etc2.ctex"]
+dest_files=["res://.godot/imported/utility_box_utility_box_01_nor_gl.jpg-9ddf7d31d10fa735ccd72a8898d4730c.s3tc.ctex"]
 
 [params]
 

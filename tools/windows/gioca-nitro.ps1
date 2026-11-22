@@ -1,4 +1,4 @@
-# Nitro Underground on a Windows PC, without building an APK.
+# Nitro Underground on a Windows PC, without exporting an executable.
 # Downloads Godot 4.7.2 (once) and the latest test version of the game from the "prova-pc" branch
 # on GitHub (only when it changed), imports it and starts it. Everything goes in
 # %LOCALAPPDATA%\NitroUnderground. Mouse clicks work as touches; keyboard: arrows/WASD, Space, Shift.

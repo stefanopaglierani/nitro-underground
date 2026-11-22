@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bjfk1bd2k248w"
 path.s3tc="res://.godot/imported/phone_booth_12.jpg-311e43d8e9032ce8533f2c9d2597e335.s3tc.ctex"
-path.etc2="res://.godot/imported/phone_booth_12.jpg-311e43d8e9032ce8533f2c9d2597e335.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/phone_booth_12.jpg"
-dest_files=["res://.godot/imported/phone_booth_12.jpg-311e43d8e9032ce8533f2c9d2597e335.s3tc.ctex", "res://.godot/imported/phone_booth_12.jpg-311e43d8e9032ce8533f2c9d2597e335.etc2.ctex"]
+dest_files=["res://.godot/imported/phone_booth_12.jpg-311e43d8e9032ce8533f2c9d2597e335.s3tc.ctex"]
 
 [params]
 

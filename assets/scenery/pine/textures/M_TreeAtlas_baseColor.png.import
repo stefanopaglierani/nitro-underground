@@ -4,16 +4,15 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://kbek8cqtcgid"
 path.s3tc="res://.godot/imported/M_TreeAtlas_baseColor.png-f2118d8f4865cfa7c95e87c8e1dcff30.s3tc.ctex"
-path.etc2="res://.godot/imported/M_TreeAtlas_baseColor.png-f2118d8f4865cfa7c95e87c8e1dcff30.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/scenery/pine/textures/M_TreeAtlas_baseColor.png"
-dest_files=["res://.godot/imported/M_TreeAtlas_baseColor.png-f2118d8f4865cfa7c95e87c8e1dcff30.s3tc.ctex", "res://.godot/imported/M_TreeAtlas_baseColor.png-f2118d8f4865cfa7c95e87c8e1dcff30.etc2.ctex"]
+dest_files=["res://.godot/imported/M_TreeAtlas_baseColor.png-f2118d8f4865cfa7c95e87c8e1dcff30.s3tc.ctex"]
 
 [params]
 

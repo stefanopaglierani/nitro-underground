@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dr71r0j4t7fmb"
 path.s3tc="res://.godot/imported/conquer_89_pickup_9.png-02104878635ad65650996ab242439aa9.s3tc.ctex"
-path.etc2="res://.godot/imported/conquer_89_pickup_9.png-02104878635ad65650996ab242439aa9.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_cc/conquer_89_pickup_9.png"
-dest_files=["res://.godot/imported/conquer_89_pickup_9.png-02104878635ad65650996ab242439aa9.s3tc.ctex", "res://.godot/imported/conquer_89_pickup_9.png-02104878635ad65650996ab242439aa9.etc2.ctex"]
+dest_files=["res://.godot/imported/conquer_89_pickup_9.png-02104878635ad65650996ab242439aa9.s3tc.ctex"]
 
 [params]
 

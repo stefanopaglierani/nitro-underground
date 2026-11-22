@@ -4,16 +4,15 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://3yjqsx3e85y"
 path.s3tc="res://.godot/imported/security_light_diff_1k.jpg-0dfa241c06c4a7ba34f0366896d0cdcd.s3tc.ctex"
-path.etc2="res://.godot/imported/security_light_diff_1k.jpg-0dfa241c06c4a7ba34f0366896d0cdcd.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/props/security_light/textures/security_light_diff_1k.jpg"
-dest_files=["res://.godot/imported/security_light_diff_1k.jpg-0dfa241c06c4a7ba34f0366896d0cdcd.s3tc.ctex", "res://.godot/imported/security_light_diff_1k.jpg-0dfa241c06c4a7ba34f0366896d0cdcd.etc2.ctex"]
+dest_files=["res://.godot/imported/security_light_diff_1k.jpg-0dfa241c06c4a7ba34f0366896d0cdcd.s3tc.ctex"]
 
 [params]
 

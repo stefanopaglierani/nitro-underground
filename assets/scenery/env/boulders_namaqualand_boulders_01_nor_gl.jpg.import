@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://b6quscherky8s"
 path.s3tc="res://.godot/imported/boulders_namaqualand_boulders_01_nor_gl.jpg-616151996c16278dcd3ac0ddbe577839.s3tc.ctex"
-path.etc2="res://.godot/imported/boulders_namaqualand_boulders_01_nor_gl.jpg-616151996c16278dcd3ac0ddbe577839.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/boulders_namaqualand_boulders_01_nor_gl.jpg"
-dest_files=["res://.godot/imported/boulders_namaqualand_boulders_01_nor_gl.jpg-616151996c16278dcd3ac0ddbe577839.s3tc.ctex", "res://.godot/imported/boulders_namaqualand_boulders_01_nor_gl.jpg-616151996c16278dcd3ac0ddbe577839.etc2.ctex"]
+dest_files=["res://.godot/imported/boulders_namaqualand_boulders_01_nor_gl.jpg-616151996c16278dcd3ac0ddbe577839.s3tc.ctex"]
 
 [params]
 

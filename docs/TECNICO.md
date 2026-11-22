@@ -38,7 +38,7 @@ game designer) e vuole capire cosa c'è dietro gli screenshot.
 
 ## 2. Architettura
 
-Il gioco è fatto con **Godot 4.7** in **GDScript**, renderer **Mobile (Vulkan)** sul PC e **Compatibility (OpenGL)** sul telefono (v0.14: con Vulkan la gara sull'A51 di Stefano andava a scatti), fisica **Jolt**.
+Il gioco è fatto con **Godot 4.7** in **GDScript**, renderer **Mobile (Vulkan)** sul PC (fino al 22/11/2026 anche **Compatibility (OpenGL)** sul telefono, tolto con la versione Android), fisica **Jolt**.
 Una scelta presa al primo giorno: quasi tutto viene **costruito dal codice**. Le scene `.tscn`
 sono due file quasi vuoti (menu e gara); strade, terreno, guardrail, alberi, auto, interfaccia e
 materiali nascono dagli script. Così ogni cosa è testo leggibile, versionabile e modificabile senza
@@ -151,8 +151,8 @@ un telefono lento e uno veloce:
   allerta e più è alto, più volanti compaiono. Ogni volante insegue la prima auto in gara che
   incontra e passa al giocatore quando lui le passa entro 35 m. Arresto se il giocatore resta sotto
   i 5 km/h accanto a una volante per 5 secondi; seminata se resta oltre 110 m per 10 secondi.
-- **Pausa** (`main.gd`, `hud.gd`): pulsante MENU, tasto Indietro di Android e gioco in secondo
-  piano fermano l'albero della scena (`get_tree().paused`); solo l'interfaccia resta attiva.
+- **Pausa** (`main.gd`, `hud.gd`): pulsante MENU e finestra del gioco che perde il fuoco
+  fermano l'albero della scena (`get_tree().paused`); solo l'interfaccia resta attiva.
 - **Tempo a scalare**: per ogni tratto tra due checkpoint il gioco calcola il tempo ideale sulla
   traiettoria ideale e concede `tempo ideale × 1,55 + 4 s`. Un tratto pieno di tornanti dà più
   tempo di un rettilineo, e il tempo avanzato si somma al tratto dopo.
@@ -292,12 +292,13 @@ Dopo aver provato uno stile realistico, uno anime e uno a fumetto, Stefano ha sc
   nel progetto i modelli passano da `gltf-transform` (semplificazione con meshoptimizer, texture
   ridotte e in JPEG). Il palo della luce viene diviso in palo e cavi, e i cavi sono tesi da un palo
   al successivo. `tools/piece_grid.gd` mostra i pezzi di un pacchetto numerati, per sceglierli.
-- **Libreria separata**: i modelli scaricati ma non usati restano fuori dall'APK grazie ai filtri
+- **Libreria separata**: i modelli scaricati ma non usati restano fuori dal gioco esportato grazie ai filtri
   di esportazione (`export_presets.cfg`), e la libreria completa vive fuori dal repository.
 
 ## 9. Prestazioni su telefono
 
-Il bersaglio è un telefono Android di fascia media, e alcune scelte vengono da problemi veri
+Fino al 22/11/2026 il bersaglio era un telefono Android di fascia media (ora il gioco è solo per PC,
+ma queste scelte restano e lo tengono leggero anche su un PC modesto). Alcune vengono da problemi veri
 segnalati da Stefano:
 
 - **Blocco al 69% del caricamento (v0.10)**: risolto costruendo solo il circuito scelto invece di
@@ -320,8 +321,8 @@ segnalati da Stefano:
   sempre dettagliata. Tetti da vicino: 45 mila triangoli in garage, 30 mila polizia, 18 mila traffico.
 - **Terreno a blocchi** (32×32 celle) e alberi disegnati con MultiMesh; guardrail raggruppati in
   pochi corpi fisici, così la rottura di un tratto ricostruisce solo un pezzo piccolo.
-- **Profilo telefono (v0.22, `scripts/perf.gd`)**: la v0.21 sul Galaxy A51 scattava molto. Sul
-  telefono, o sul PC con `-- --mobile`, il 3D è calcolato al 62% della risoluzione, senza MSAA e
+- **Profilo telefono (v0.22, `scripts/perf.gd`)**: la v0.21 sul Galaxy A51 scattava molto. Dal
+  22/11/2026 il profilo si attiva solo a mano, sul PC con `-- --mobile` (utile per PC deboli): il 3D è calcolato al 62% della risoluzione, senza MSAA e
   senza glow. L'ombra del sole è una sola mappa fino a 45 m. La vista arriva a metà distanza con
   nebbia lineare. Decorazioni, alberi ed erba sono la metà e spariscono al 60% della distanza. Il
   traffico è di 12 auto, il faro del giocatore è acceso solo di notte e i lampioni accesi in
@@ -346,9 +347,10 @@ da Stefano sul telefono: le sue impressioni sono la base della versione successi
 
 ## 11. Build e distribuzione delle versioni di prova
 
-- **APK Android** costruiti in un container cloud senza Android SDK ufficiale: Godot esporta
-  l'APK con i template ufficiali e la firma viene fatta da un piccolo firmatario Java basato su
-  `apksig`. Solo arm64, per tenere l'APK sotto i ~310 MB nonostante i modelli dettagliati.
+- **Solo PC dal 22/11/2026**: la versione Android è stata tolta (niente più APK, preset di
+  esportazione Android, workflow `apk-prova` e `tools/build_android.sh`). L'unico preset di
+  esportazione è "Windows Desktop" (`build/NitroUnderground.exe`, x86_64). Fino alla v0.26 gli APK
+  erano costruiti in un container cloud con i template ufficiali e firmati con `apksig`.
 - **Prova su PC senza installare niente**: `tools/windows/Gioca-Nitro.bat` scarica Godot e
   l'ultima build dal ramo `prova-pc`, la importa e la avvia; riscarica solo quando il ramo cambia.
   È nato perché spostare ogni volta un APK di 300 MB sul telefono era la parte più scomoda delle prove.

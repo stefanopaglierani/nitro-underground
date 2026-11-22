@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://d3idi665vtccy"
 path.s3tc="res://.godot/imported/coast_lighthouse_2_0.png-cdc2749c3f5012778365c518ef291c56.s3tc.ctex"
-path.etc2="res://.godot/imported/coast_lighthouse_2_0.png-cdc2749c3f5012778365c518ef291c56.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/coast_lighthouse_2_0.png"
-dest_files=["res://.godot/imported/coast_lighthouse_2_0.png-cdc2749c3f5012778365c518ef291c56.s3tc.ctex", "res://.godot/imported/coast_lighthouse_2_0.png-cdc2749c3f5012778365c518ef291c56.etc2.ctex"]
+dest_files=["res://.godot/imported/coast_lighthouse_2_0.png-cdc2749c3f5012778365c518ef291c56.s3tc.ctex"]
 
 [params]
 

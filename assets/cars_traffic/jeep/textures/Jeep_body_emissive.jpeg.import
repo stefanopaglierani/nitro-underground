@@ -4,16 +4,15 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bk24ivbmapc1c"
 path.s3tc="res://.godot/imported/Jeep_body_emissive.jpeg-250dce30d268640a14ec3d1cd2401b7a.s3tc.ctex"
-path.etc2="res://.godot/imported/Jeep_body_emissive.jpeg-250dce30d268640a14ec3d1cd2401b7a.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/cars_traffic/jeep/textures/Jeep_body_emissive.jpeg"
-dest_files=["res://.godot/imported/Jeep_body_emissive.jpeg-250dce30d268640a14ec3d1cd2401b7a.s3tc.ctex", "res://.godot/imported/Jeep_body_emissive.jpeg-250dce30d268640a14ec3d1cd2401b7a.etc2.ctex"]
+dest_files=["res://.godot/imported/Jeep_body_emissive.jpeg-250dce30d268640a14ec3d1cd2401b7a.s3tc.ctex"]
 
 [params]
 

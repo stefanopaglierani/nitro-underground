@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cnbrx3tb24frv"
 path.s3tc="res://.godot/imported/coast_old_pier_2.png-e4ec5f8ace08e58cdfe26774cf09e23b.s3tc.ctex"
-path.etc2="res://.godot/imported/coast_old_pier_2.png-e4ec5f8ace08e58cdfe26774cf09e23b.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/coast_old_pier_2.png"
-dest_files=["res://.godot/imported/coast_old_pier_2.png-e4ec5f8ace08e58cdfe26774cf09e23b.s3tc.ctex", "res://.godot/imported/coast_old_pier_2.png-e4ec5f8ace08e58cdfe26774cf09e23b.etc2.ctex"]
+dest_files=["res://.godot/imported/coast_old_pier_2.png-e4ec5f8ace08e58cdfe26774cf09e23b.s3tc.ctex"]
 
 [params]
 
