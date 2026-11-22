@@ -8,7 +8,7 @@ Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come
 [![Godot 4.7](https://img.shields.io/badge/Godot-4.7-478CBF?logo=godotengine&logoColor=white)](https://godotengine.org)
 ![GDScript](https://img.shields.io/badge/GDScript-~7.500_righe-355570)
 ![PC](https://img.shields.io/badge/PC-Windows-0078D6?logo=windows&logoColor=white)
-![Versione](https://img.shields.io/badge/versione-0.26-ff3d8b)
+![Versione](https://img.shields.io/badge/versione-0.27-ff3d8b)
 ![Stato](https://img.shields.io/badge/stato-prototipo_giocabile-f5a623)
 
 📖 [Storia dello sviluppo](docs/STORIA.md) · 🛠️ [Come è costruito](docs/TECNICO.md) · 🎨 [Crediti e licenze](CREDITI.md) · 🇬🇧 [English](#english)
@@ -23,8 +23,8 @@ Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come
 - **Chi l'ha fatto:** **Stefano Paglierani** ha ideato e diretto il gioco: concept, stile,
   circuiti, auto, comandi e ogni scelta di prodotto, provando ogni build sul suo telefono e poi sul PC.
   Il codice è stato scritto da **Claude** (l'assistente AI di Anthropic) sulle sue indicazioni.
-- **In quanto tempo:** 13 giorni, dal 27 ottobre all'8 novembre 2026: **29 versioni** dal primo prototipo
-  alla v0.26, ognuna provata su telefono o PC e migliorata in base alle prove.
+- **In quanto tempo:** 13 giorni, dal 27 ottobre all'8 novembre 2026: **30 versioni** dal primo prototipo
+  alla v0.27, ognuna provata su telefono o PC e migliorata in base alle prove.
 - **Cosa dimostra:** direzione di prodotto e game design su un progetto reale, ciclo rapido
   prova → feedback → nuova versione, uso dell'intelligenza artificiale come squadra di sviluppo,
   attenzione alle licenze degli asset e alle prestazioni su hardware modesto.
@@ -56,7 +56,7 @@ Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come
 | 🔊 **Audio** | Motore V8 sintetizzato che segue i giri, cambiate, turbo, gomme, urti, sirena |
 | 🎨 **Grafica realistica** | Modelli 3D realistici con le impostazioni grafiche di base (lo stile a fumetto 2.5D è stato abbandonato nella v0.13) |
 | 🗺️ **Circuiti in testo** | Ogni pista è un file che si legge come un navigatore: chiunque può disegnarne una |
-| 🎮 **Comandi** | Tastiera, oppure col mouse i pulsanti a esagono con icone, cruscotto digitale, minimappa con le frecce delle auto, traiettoria ideale colorata a terra |
+| 🎮 **Comandi** | Tastiera (WASD, Spazio, Shift sinistro), quattro viste della telecamera con le frecce, cruscotto digitale, minimappa con le frecce delle auto, traiettoria ideale colorata a terra |
 
 ## Come è costruito, in breve
 
@@ -119,6 +119,7 @@ cosa è stato chiesto e come è stato costruito.
 | v0.25 | Isola x5 vestita: erba, sabbia, mare e asfalto dei circuiti, due villaggi e 6.100 tra alberi, rocce e arredi |
 | v0.26 | Il circuito Costa sull'isola grande: un giro chiuso sul mare, collegato al resto del mondo |
 | 22/11/2026 | Solo PC: tolta la versione Android (APK, preset di esportazione, script di build), aggiunta l'esportazione per Windows |
+| v0.27 | Comandi da PC: via i pulsanti touch, guida con WASD, telecamera con le frecce (4 viste e sguardo laterale), schermo intero |
 
 ## Provarlo
 
@@ -129,10 +130,14 @@ e [`gioca-nitro.ps1`](tools/windows/gioca-nitro.ps1) nella stessa cartella e fai
 
 | Tastiera | Azione |
 |---|---|
-| ← → oppure A D | Sterzo |
-| ↑ oppure W / ↓ oppure S | Gas / Freno e retromarcia |
+| A / D | Sterzo |
+| W / S | Gas / Freno e retromarcia |
 | Spazio | Freno a mano (derapata) |
-| Shift oppure N | Nitro |
+| Shift sinistro | Nitro |
+| ← / → (tenute premute) | Guarda a sinistra / a destra; al rilascio la telecamera torna dietro |
+| ↑ / ↓ | Telecamera più vicina / più lontana: base, ravvicinata, cofano, abitacolo |
+
+Il gioco parte a schermo intero; per uscire si usa Alt+F4.
 
 **Eseguibile Windows:** dall'editor, Progetto → Esporta → "Windows Desktop" (servono i template
 di esportazione di Godot 4.7.2). Le build non sono nel repository. Dal 22/11/2026 il gioco è solo per PC:
@@ -163,7 +168,7 @@ diritti sono riservati all'autore.
 ## Roadmap
 
 1. ~~Documento di concept~~ ✔
-2. **Prototipo giocabile su PC** ← siamo qui (v0.1 → v0.26, fase di stabilizzazione)
+2. **Prototipo giocabile su PC** ← siamo qui (v0.1 → v0.27, fase di stabilizzazione)
 3. Vertical slice: un circuito e un'auto rifiniti al livello del gioco finale
 4. Produzione e pubblicazione, con sostituzione degli asset non commerciali
 
@@ -173,7 +178,7 @@ diritti sono riservati all'autore.
 
 **Nitro Underground** is a 3D arcade street-racing game for Windows PC with realistic graphics (the 2.5D comic look was dropped in v0.13;
 the Android version was dropped on 22 November 2026), built with **Godot 4.7** (GDScript, Mobile/Vulkan renderer, Jolt physics). Current version:
-**v0.26**, a playable prototype (stabilisation phase).
+**v0.27**, a playable prototype (stabilisation phase).
 
 **Who made it.** **Stefano Paglierani** conceived and directed the game: concept, art direction,
 circuits, cars, controls and every product decision, testing each build on his phone and later on PC.
