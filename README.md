@@ -56,7 +56,7 @@ Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come
 | 🔊 **Audio** | Motore V8 sintetizzato che segue i giri, cambiate, turbo, gomme, urti, sirena |
 | 🎨 **Grafica realistica** | Modelli 3D realistici con le impostazioni grafiche di base (lo stile a fumetto 2.5D è stato abbandonato nella v0.13) |
 | 🗺️ **Circuiti in testo** | Ogni pista è un file che si legge come un navigatore: chiunque può disegnarne una |
-| 🎮 **Comandi** | Tastiera (WASD, Spazio, Shift sinistro), ABS e TCS inseribili con R e T con spia di intervento, quattro viste della telecamera con le frecce, cruscotto digitale, minimappa con le frecce delle auto, traiettoria ideale colorata a terra |
+| 🎮 **Comandi** | Tastiera (WASD, Spazio, Shift sinistro), ABS e TCS inseribili con R e T con spia di intervento, quattro viste della telecamera col tasto V (base, ravvicinata, cofano, a terra davanti al paraurti), cruscotto digitale, minimappa con le frecce delle auto, traiettoria ideale colorata a terra |
 
 ## Come è costruito, in breve
 
@@ -123,6 +123,7 @@ cosa è stato chiesto e come è stato costruito.
 | v0.28 | ABS e TCS (tasti R e T) con spia di intervento, pulsante EXIT, partita azzerata, tutte le 51 auto al Dealer |
 | v0.29 | Avversari più bravi: partenza senza spinte al giocatore, spazio a chi è affiancato, frenate dosate; traffico che si sposta e 25% di auto in meno |
 | v0.30 | L'isola tropicale (8×8 km, 250.000 piante) a tessere come prima gara; campagna con tutti i circuiti |
+| v0.31 | Telecamera: via la vista dall'abitacolo e le frecce; un solo tasto V scorre 4 viste, la nuova è a terra davanti al paraurti |
 
 ## Provarlo
 
@@ -137,8 +138,7 @@ e [`gioca-nitro.ps1`](tools/windows/gioca-nitro.ps1) nella stessa cartella e fai
 | W / S | Gas / Freno e retromarcia |
 | Spazio | Freno a mano (derapata) |
 | Shift sinistro | Nitro |
-| ← / → (tenute premute) | Guarda a sinistra / a destra; al rilascio la telecamera torna dietro |
-| ↑ / ↓ | Telecamera più vicina / più lontana: base, ravvicinata, cofano, abitacolo |
+| V | Cambia telecamera, a giro: base, ravvicinata, cofano, a terra davanti al paraurti |
 
 Il gioco parte a schermo intero; per uscire si usa Alt+F4.
 
