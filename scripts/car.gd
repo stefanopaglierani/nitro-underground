@@ -118,6 +118,30 @@ var nitro := 1.0
 var nitro_drain := 0.35
 var nitro_refill := 0.05
 
+## Driving aids of the player's car (v0.28, Stefano 22/11/2026), switched with R and T; off they
+## leave the car exactly as before.
+## ABS: braking, each tyre keeps the grip it needs to steer and the brake gets what is left, so a
+## full stop in a bend still turns instead of sliding straight on.
+## TCS: traction and stability. The engine never asks a tyre for more than the grip left after
+## the turn (no wheelspin out of a bend); the turn asked by the steering is held to what the tyres
+## can give at that speed (at 180 km/h a full-lock tap used to swing the tail out by 20-25 degrees); a
+## car that starts to slide gets its throttle cut and is turned back in line. The handbrake
+## switches the stability part off for a moment, so drifts on purpose still work.
+var abs_on := false
+var tcs_on := false
+## How hard each aid is working right now, 0..1 (the HUD shows it).
+var abs_active := 0.0
+var tcs_active := 0.0
+## Sideways slide (degrees between nose and travel) the aids let go before they step in, and the
+## extra slide over which the TCS cuts the throttle completely.
+const TCS_SLIP_DEG := 4.0
+const TCS_SLIP_RANGE := 4.0
+## How much harder than usual the aids turn a sliding car back in line.
+const AID_YAW_GAIN := 2.5
+## Seconds after letting go of the handbrake before the stability part works again.
+const TCS_HANDBRAKE_PAUSE := 0.6
+var _handbrake_t := 0.0
+
 # Inputs, -1..1 or 0..1.
 var in_throttle := 0.0
 var in_brake := 0.0
@@ -415,6 +439,22 @@ func _apply_vehicle_forces(delta: float) -> void:
 		if _shift_t > 0.0:
 			drive *= 0.6  # clutch slipping through the gear change
 
+	# Stability: how far the car slides sideways (signed, degrees) and the throttle it may keep.
+	# The TCS looks after it when accelerating or coasting, the ABS when braking.
+	_handbrake_t = TCS_HANDBRAKE_PAUSE if in_handbrake else maxf(_handbrake_t - delta, 0.0)
+	var aid_braking := braking > 0.0 and abs_on
+	var stability := (tcs_on or aid_braking) and _handbrake_t <= 0.0 and absf(speed) > 8.0
+	var slip_deg := 0.0
+	var flat_v := Vector3(v.x, 0, v.z)
+	if stability and flat_v.length() > 8.0 and speed > 0.0:
+		slip_deg = rad_to_deg(Vector3(fwd.x, 0, fwd.z).signed_angle_to(flat_v, Vector3.UP))
+	var abs_raw := 0.0
+	var tcs_raw := 0.0
+	if stability and tcs_on and drive > 0.0 and absf(slip_deg) > TCS_SLIP_DEG:
+		var cut := clampf((absf(slip_deg) - TCS_SLIP_DEG) / TCS_SLIP_RANGE, 0.0, 1.0)
+		drive *= 1.0 - cut
+		tcs_raw = maxf(tcs_raw, cut)
+
 	wheels_on_ground = 0
 	for i in 4:
 		var cast := _casts[i]
@@ -493,6 +533,16 @@ func _apply_vehicle_forces(delta: float) -> void:
 			f_long -= v_long * 30.0 * WEIGHT
 		var f := Vector2(f_long, f_lat)
 		if f.length() > max_f:
+			# Driving aids: the turn keeps its grip, the brake (ABS) or the engine (TCS) get what is left.
+			if abs_on and braking > 0.0 and not (in_handbrake and not front):
+				var g := _aid_share(f, max_f)
+				abs_raw = maxf(abs_raw, _aid_work(f, g, max_f))
+				f = g
+			elif tcs_on and drive > 0.0 and share > 0.0 and f_long * v_long >= 0.0:
+				var g := _aid_share(f, max_f)
+				tcs_raw = maxf(tcs_raw, _aid_work(f, g, max_f))
+				f = g
+		if f.length() > max_f:
 			f = f.normalized() * max_f
 		# Push a little above the contact point to limit body roll (arcade).
 		var com := b * center_of_mass
@@ -518,6 +568,26 @@ func _apply_vehicle_forces(delta: float) -> void:
 		var target_yaw := -speed * tan(_steer) / (WHEEL_Z * 2.0)
 		var yaw := angular_velocity.dot(up)
 		var assist := yaw_assist * (0.8 if in_handbrake else 1.0) * (0.0 if _knocked > 0.0 else 1.0)
+		if stability:
+			# No faster turn than the tyres can follow at this speed (sideways grip plus downforce,
+			# over the speed), and a slide gets turned back towards the direction of travel.
+			var a_max := grip * gravity_mult * 9.8 + downforce * v.length_squared() / mass
+			var yaw_max := a_max / maxf(absf(speed), 1.0)
+			var work := 0.0
+			if absf(target_yaw) > yaw_max:
+				# Shown as full when the steering asks for five times the turn the tyres can give.
+				work = clampf((absf(target_yaw) / yaw_max - 1.0) / 4.0, 0.0, 1.0)
+				target_yaw = signf(target_yaw) * yaw_max
+			if absf(slip_deg) > TCS_SLIP_DEG:
+				# Travel to the left of the nose (slip > 0): turn the nose left, and the other way round.
+				var over := (absf(slip_deg) - TCS_SLIP_DEG) / TCS_SLIP_RANGE
+				target_yaw += signf(slip_deg) * minf(over, 1.5) * yaw_max
+				assist = maxf(assist, yaw_assist * AID_YAW_GAIN)
+				work = maxf(work, clampf(over, 0.0, 1.0))
+			if aid_braking:
+				abs_raw = maxf(abs_raw, work)
+			else:
+				tcs_raw = maxf(tcs_raw, work)
 		apply_torque(up * (target_yaw - yaw) * assist * mass * 1.5 * float(wheels_on_ground) / 4.0)
 		apply_central_force(-up * downforce * v.length_squared())
 		var ground_share := float(wheels_on_ground) / 4.0
@@ -543,6 +613,29 @@ func _apply_vehicle_forces(delta: float) -> void:
 			took_off.emit()
 
 	apply_central_force(-v * v.length() * drag)
+	abs_active = abs_raw if wheels_on_ground > 0 else 0.0
+	tcs_active = tcs_raw if wheels_on_ground > 0 else 0.0
+
+
+## Driving aids, on a tyre asked for more than its grip `max_f`: the turn is served first and the
+## brake or the engine get what is left, but never less than half of what they would get without
+## the aid (and never more), so the tyre always keeps at least as much sideways grip as before.
+func _aid_share(f: Vector2, max_f: float) -> Vector2:
+	var plain := absf(f.x) * max_f / f.length()  # the brake or the engine without the aid
+	var lat := minf(absf(f.y), max_f)
+	var x := minf(absf(f.x), maxf(sqrt(maxf(max_f * max_f - lat * lat, 0.0)), plain * 0.5))
+	x = minf(x, plain)
+	var y := signf(f.y) * minf(absf(f.y), sqrt(maxf(max_f * max_f - x * x, 0.0)))
+	return Vector2(signf(f.x) * x, y)
+
+
+## How hard an aid worked on one tyre, 0..1: the share of brake or engine it held back (at most
+## half, shown as full).
+func _aid_work(f: Vector2, g: Vector2, max_f: float) -> float:
+	var plain := absf(f.x) * max_f / f.length()
+	if plain < 1.0:
+		return 0.0
+	return clampf(2.0 * (1.0 - absf(g.x) / plain), 0.0, 1.0)
 
 
 func _air_control(b: Basis) -> void:

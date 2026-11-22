@@ -142,6 +142,16 @@ func _build_top_bar() -> void:
 	map.pressed.connect(func(): _say("La mappa arriverà presto"))
 	add_child(map)
 
+	# EXIT (v0.28, Stefano 22/11/2026): closes the game. Next to the map button.
+	var quit := Neon.NeonButton.new().setup("EXIT", "", Neon.RED, false, 26)
+	quit.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	quit.offset_left = 150
+	quit.offset_top = 40
+	quit.offset_right = 270
+	quit.offset_bottom = 100
+	quit.pressed.connect(func(): if not _leaving: get_tree().quit())
+	add_child(quit)
+
 	_toast = UiKit.label(34, Color.WHITE, 12)
 	_toast.set_anchors_preset(Control.PRESET_CENTER)
 	_toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

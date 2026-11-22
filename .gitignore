@@ -1,4 +1,6 @@
 .godot/
 build/
 export_credentials.cfg
+# Originals of the v0.28 dealer cars (they stay in Asset-3D\Auto): only their baked versions are kept.
+assets/cars_new/
 

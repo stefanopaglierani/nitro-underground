@@ -84,7 +84,8 @@ func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	get_viewport().disable_3d = true
 	SaveGame.load_game()
-	_all = CarCatalog.available()
+	# Every car of the project is on sale (v0.28), read from disk only when it is on show.
+	_all = CarCatalog.available(CarCatalog.shop())
 
 	var bg := TextureRect.new()
 	bg.texture = load(BACKGROUND)
