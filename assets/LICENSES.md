@@ -387,3 +387,11 @@ normal map tolte. Terreno, strade e villaggi sono generati.
 `isola_x5/` è l'isola grande a tessere, fatta con gli stessi strumenti e con modelli dalla stessa
 libreria. L'elenco dei modelli che usa, con autori e licenze, è in
 [`assets/worlds/isola_x5/credits.md`](worlds/isola_x5/credits.md).
+
+`isola_tropicale/` (v0.30) è l'isola tropicale del periodo Unreal: terreno, strade e posizioni della
+vegetazione sono **generati dal nostro generatore** (cartella Isola-Tropicale del PC di Stefano, seme
+1977), quindi senza licenze di terzi. `tools/import_isola_tropicale.gd` li porta nelle tessere. Le
+piante e le rocce sono modelli **già nel repository** e già registrati qui sopra, alleggeriti: palma
+`assets/scenery/coast_arabic_palm.glb` (Arabic Palmtree, rodrigogelmi), albero `env/oak.glb`, pino
+`env/pine_tree.glb`, erba `env/grass_patches.glb`, rocce `env/boulders.glb`. I modelli Fab della
+cartella Asset-3D\Fab **non** sono usati (la loro licenza non permette di metterli nel repository).

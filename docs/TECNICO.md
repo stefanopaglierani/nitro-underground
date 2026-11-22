@@ -259,6 +259,29 @@ versioni leggere preparate dagli strumenti (LOD), scelte dal motore in base alla
 Dalla v0.26 una strada del mondo può essere un anello chiuso: la gara allora è un giro, con il
 traguardo sulla partenza, e il cronometro stima i tempi dalle curve (`BakedWorld.drive_time`).
 
+**Isola tropicale (v0.30)** · `scripts/tropical_island.gd` · `tools/import_isola_tropicale.gd`.
+L'isola del periodo Unreal (8×8 km, vulcano di circa 600 m, 79 strade per 114 km, 250.000 piante e
+rocce) era già generata dal nostro generatore: lo strumento la porta nello stesso formato a tessere
+dell'Isola X5. 256 tessere da 512 m, ognuna con il terreno dettagliato (maglia di 4 m) fino a 760 m e
+uno leggero (16 m) oltre, la collisione a mappa di altezze, i pezzi di strada che cadono nella tessera
+con la loro collisione, e piante e rocce in quadrati da 128 m: un MultiMesh per tipo e quadrato, con
+versioni leggere (LOD) scelte dal motore. Le piante sono salvate in ordine casuale, così il gioco ne
+disegna una parte (`visible_instance_count`) senza rifare i file. Sul PC si leggono 5×5 tessere attorno
+alla telecamera. La gara sono i primi 6,5 km della Strada Costiera (2:07-2:23 col pilota automatico).
+Lo strumento va lanciato **con** una finestra: senza renderer le posizioni dei MultiMesh non vengono salvate.
+
+Misure sul PC di Stefano (i5-8365U, Intel UHD 620, 1920×1080, gara automatica completa):
+
+| Isola tropicale | FPS medi (min-max) | Triangoli medi |
+|---|---|---|
+| Senza piante | 26,9 (23-30) | 526 mila |
+| Tutte le 250.000 piante | 14,3 (11-17) | 692 mila |
+| Quota scelta (palme e pini 35%, alberi 20%, erba 25%, rocce 35%) con ombre | 20,3 (17-26) | 678 mila |
+| **Quota scelta senza ombre delle piante (in gioco)** | **21,6 (19-25)** | 615 mila |
+| Per confronto: Isola X5 | 21,6 (19-24) | 578 mila |
+
+Caricamento della gara: circa 4,5 s. File: 80 MB di tessere nel repository.
+
 ## 6. Grafica: lo stile a fumetto 2.5D (spento dalla v0.13)
 
 `scripts/comic_style.gd` · `shaders/stylize.gdshader` e altri 12 shader
