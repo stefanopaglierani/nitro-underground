@@ -243,6 +243,7 @@ func _ready() -> void:
 	city.setup_environment(self)
 	ComicStyle.setup_environment(self, city.night)
 	ComicStyle.add_stylize_pass(camera)
+	CinematicLook.apply_environment(self, city)
 	camera.far = city.view_distance
 	Perf.apply(self, camera, city)
 	await _loading("Ritocchi finali", (steps.size() + 1) / total)
@@ -278,6 +279,7 @@ func _ready() -> void:
 		ResourceLoader.load_threaded_get(path)
 	await _loading("Griglia di partenza", (steps.size() + 4) / total)
 	_start()
+	CinematicLook.install_cars(get_tree(), player)
 	# First frames of the finished level, still under the loading page: the phone prepares the
 	# shaders, lights and shadows here instead of stuttering at the start of the race.
 	await _loading("Luci e ombre", (steps.size() + 5) / total)

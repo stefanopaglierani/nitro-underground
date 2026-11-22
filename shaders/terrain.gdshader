@@ -17,6 +17,11 @@ uniform float sea_level = -1000.0;
 uniform vec3 sand_tint = vec3(1.0, 0.95, 0.85);
 // High mountains: snow above snow_line (ragged edge), less on steep rock. Off by default.
 uniform float snow_line = 100000.0;
+// Cinematic look (--look=cinema, scripts/cinematic_look.gd): broad soft colour patches like brush
+// strokes, warmer and richer grass and sand. 0 = off, the ground looks exactly as before.
+uniform float paint_amount = 0.0;
+uniform vec3 paint_warm : source_color = vec3(0.86, 0.72, 0.3);
+uniform vec3 paint_cool : source_color = vec3(0.12, 0.42, 0.22);
 
 varying vec3 world_pos;
 varying vec3 world_normal;
@@ -56,6 +61,20 @@ void fragment() {
 	float ragged = texture(rock_albedo, world_pos.xz * 0.013).r * 22.0;
 	float snow_w = smoothstep(snow_line - 6.0, snow_line + 6.0, world_pos.y + ragged) * (1.0 - smoothstep(0.3, 0.55, slope) * 0.85);
 	col = mix(col, vec3(0.8, 0.85, 0.95), snow_w);
+	if (paint_amount > 0.0) {
+		// Two very large, slow patterns: warm sunlit patches and deep green ones, mostly on grass.
+		float m1 = texture(grass_albedo, world_pos.xz * 0.0023).g;
+		float m2 = texture(rock_albedo, world_pos.zx * 0.0011).r;
+		float patch = smoothstep(0.3, 0.7, m1 * 0.6 + m2 * 0.6);
+		float grassy = (1.0 - rock_w) * (1.0 - road_near) * (1.0 - snow_w);
+		vec3 tint = mix(paint_cool, paint_warm, patch);
+		float lum = dot(col, vec3(0.299, 0.587, 0.114));
+		vec3 painted = mix(col, tint * (lum * 2.2), 0.45 * grassy);
+		// Richer colour everywhere, rocks a touch warmer.
+		painted = mix(vec3(dot(painted, vec3(0.299, 0.587, 0.114))), painted, 1.25);
+		painted *= mix(vec3(1.0), vec3(1.06, 0.98, 0.92), rock_w);
+		col = mix(col, max(painted, vec3(0.0)), paint_amount);
+	}
 	ALBEDO = col;
 	ROUGHNESS = mix(0.95, 0.85, rock_w);
 	SPECULAR = 0.3;
