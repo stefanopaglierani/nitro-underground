@@ -53,6 +53,9 @@ const CLOCK_SLACK := 1.55
 ## Rivals' top speed and engine pull compared to v0.11 (Stefano: +20%).
 const RIVAL_BOOST := 1.2
 const RIVAL_COLORS := [Color(0.1, 0.85, 0.3), Color(1, 0.55, 0.05), Color(0.1, 0.55, 1)]
+## Each rival's own line on the road (m right of the racing line); the grid puts rivals 0 and 2 on
+## the left, rival 1 and the player on the right.
+const RIVAL_LANES := [-1.8, 1.6, -0.9]
 const CHECKPOINT_RADIUS := 16.0
 const AI_ADVANCE_RADIUS := 12.0
 ## How many race-path points ahead the player's progress looks for (a skipped stretch).
@@ -145,7 +148,8 @@ const CAM_MIN_DIST := 4.0
 const CAM_LOOK_AHEAD := 8.0
 ## Always the same distance and the same field of view: only nitro widens the view a little.
 ## Civilian cars on the road (they are real rigid bodies, so they can be shoved and wrecked).
-const TRAFFIC_CARS := 24
+## v0.28 (Stefano): 25% less traffic, 24 -> 18 cars.
+const TRAFFIC_CARS := 18
 const CAM_FOV := 70.0
 const CAM_FOV_NITRO := 76.0
 ## Camera views (v0.27, Stefano 22/11/2026), from the furthest to the closest: the usual chase
@@ -170,6 +174,11 @@ var screenshot_dir := ""
 var _test_t := 0.0
 var _shots_taken := 0
 var _auto_wp := 1
+## Autotest contact count (v0.28): pairs touching now, and the totals at the start and in the race.
+var _touching := {}
+var _contacts := {"start_car": 0, "race_car": 0, "player_car": 0, "traffic": 0, "police": 0}
+var _hold_lat := INF
+var _max_push := 0.0
 
 
 func _ready() -> void:
@@ -478,8 +487,9 @@ func _start() -> void:
 		r.place(grid[i][0], grid[i][1])
 		r.waypoints = race_path
 		r.wp_index = 1
-		# Close to the racing line, each a little to one side so they don't all queue on it.
-		r.lane_offset = (i - 1) * 1.6 + rng.randf_range(-0.4, 0.4)
+		# Close to the racing line, each a little to one side so they don't all queue on it, on the
+		# same side it starts on (v0.28: the rival beside the player used to aim across its lane).
+		r.lane_offset = RIVAL_LANES[i] + rng.randf_range(-0.4, 0.4)
 		r.max_speed = (57.0 + i * 1.5) * RIVAL_BOOST
 		r.engine_force *= RIVAL_BOOST
 		racers.append(r)
@@ -1040,7 +1050,65 @@ func _autopilot() -> void:
 		if player.global_position.distance_to(race_path[_auto_wp]) < AI_ADVANCE_RADIUS and _auto_wp + 1 < race_path.size():
 			_auto_wp += 1
 		var after := race_path[_auto_wp + 1] if _auto_wp + 1 < race_path.size() else Vector3.INF
-		player._steer_towards(race_path[_auto_wp], dt, after)
+		var aim := race_path[_auto_wp]
+		var prev := race_path[_auto_wp - 1]
+		var dir := (aim - prev).normalized()
+		var side := Vector3(-dir.z, 0, dir.x)
+		if _hold_lat == INF:
+			_hold_lat = (player.global_position - prev).dot(side)
+		# Like a person at the start: keep the grid lane for the first 8 s (that is when the rivals
+		# used to push the player aside), then follow the racing line. The push is how far the
+		# player ends up from that lane meanwhile.
+		if race_time < 8.0:
+			aim += side * _hold_lat
+			_max_push = maxf(_max_push, absf((player.global_position - prev).dot(side) - _hold_lat))
+		player._steer_towards(aim, dt, after)
+	_count_contacts()
+
+
+## Counts every new touch between two racing cars (in the first 10 s of the race and over the
+## whole race, and those against the player) and between a racing car and a driving traffic car.
+func _count_contacts() -> void:
+	if state != "race":
+		return
+	var now := {}
+	for c: Car in [player] + racers + police:
+		for o in c.get_colliding_bodies():
+			if not (o is Car or o is TrafficCar):
+				continue
+			if o is TrafficCar and (o as TrafficCar).crashed and not _touching.has([c, o]):
+				continue  # a wreck lying on the road is not traffic driving into the race
+			var key := [c, o] if o is TrafficCar or c.get_instance_id() < o.get_instance_id() else [o, c]
+			if now.has(key):
+				continue  # the same touch seen from the other car
+			now[key] = true
+			if _touching.has(key):
+				continue
+			if o is TrafficCar:
+				_contacts["traffic"] += 1
+			elif c.driver == Car.Driver.POLICE or (o as Car).driver == Car.Driver.POLICE:
+				_contacts["police"] += 1  # the police shove on purpose
+			else:
+				_contacts["race_car"] += 1
+				if race_time < 10.0:
+					_contacts["start_car"] += 1
+				if c == player or o == player:
+					_contacts["player_car"] += 1
+				var rel: Vector3 = c.global_transform.basis.inverse() * (o.global_position - c.global_position)
+				print("[autotest] CONTACT car-car at %.1f s: %s / %s  rel(x=%.1f z=%.1f) v=%.1f/%.1f steer=%.2f/%.2f brake=%.1f/%.1f" % [race_time, _car_name(c), _car_name(o), rel.x, rel.z, c.speed, o.speed, c.in_steer, o.in_steer, c.in_brake, o.in_brake])
+	_touching = now
+
+
+## Seconds the autotest runs (--testtime=N, 150 by default).
+func _test_limit() -> float:
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--testtime="):
+			return float(a.substr(11))
+	return 150.0
+
+
+func _car_name(c: Car) -> String:
+	return "giocatore" if c == player else ("rivale %d" % racers.find(c) if c.driver == Car.Driver.RACER else "polizia")
 
 
 ## Test of the crash physics (--ram): throws the player sideways into the nearest driving
@@ -1085,8 +1153,9 @@ func _autotest_tick(delta: float) -> void:
 		print("[autotest]   traffic %d cars, %d wrecked" % [get_tree().get_nodes_in_group("traffic").size(), wrecks])
 		for r in racers:
 			print("[autotest]   racer wp=%d speed=%.1f pos=%s up=%.2f" % [r.wp_index, r.speed, r.global_position.round(), r.global_transform.basis.y.y])
-	if state == "end" or _test_t > 150.0:
+	if state == "end" or _test_t > _test_limit():
 		print("[autotest] END state=%s title=%s text=%s" % [state, hud.end_title.text, hud.end_text.text.replace("\n", " | ")])
+		print("[autotest] CONTACTS start(10s) car-car=%d, race car-car=%d (player %d), police=%d, racer-traffic=%d, player pushed %.1f m off its lane in the first 8 s" % [_contacts["start_car"], _contacts["race_car"], _contacts["player_car"], _contacts["police"], _contacts["traffic"], _max_push])
 		for r in racers:
 			print("[autotest] racer wp=%d finished=%s pos=%s" % [r.wp_index, r.finished, r.global_position.round()])
 		get_tree().quit()

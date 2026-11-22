@@ -22,6 +22,15 @@ const DODGE_STEP := 3.2
 const DODGE_RATE := 1.6
 ## How far ahead (m) a car looks for a racing car in its way.
 const DODGE_LOOK := 18.0
+## v0.28 (Stefano: il traffico "cercherà per quanto possibile di evitare scontri con le auto in
+## gara"): a racing car that will pass within YIELD_NEAR metres of this one in the next
+## YIELD_TIME seconds makes the driver move over by YIELD_SHIFT metres, away from its path (and
+## slow down if it comes head-on), then go back to the lane once it has gone by.
+const YIELD_TIME := 2.5
+const YIELD_NEAR := 3.4
+const YIELD_SHIFT := 1.4
+const YIELD_RATE := 2.8
+const YIELD_HOLD := 0.8
 ## A wreck goes back on its lane after this many seconds, once no racer is near enough to see it.
 const WRECK_TIME := 7.0
 const WRECK_HIDE_DIST := 70.0
@@ -50,6 +59,13 @@ var _shift_goal := 0.0
 var _pull_away_t := 0.0
 ## A racing car is right against the front: back up a little before stepping round it.
 var _too_close := false
+## Step taken round a racing car stopped in front (see _dodge_goal).
+var _step := 0.0
+## Moving over for a racing car coming past: the shift, seconds it is still held, and whether
+## that car comes head-on.
+var _yield := 0.0
+var _yield_t := 0.0
+var _oncoming := false
 
 
 func setup(track: Track, rng: RandomNumberGenerator, start_t := -1.0) -> void:
@@ -167,14 +183,24 @@ func _physics_process(delta: float) -> void:
 				continue  # the wreck lies off the lane
 			var m_speed := 0.0 if m.crashed else m.speed
 			want = minf(want, m_speed + (gap - FOLLOW_GAP) * 0.6)
-	# A racing car right in front: step round it, slowly. Otherwise ease back onto the lane.
+	# A racing car right in front: step round it, slowly. A racing car about to come past: move
+	# over and let it through. Otherwise ease back onto the lane.
 	_pull_away_t -= delta
-	_shift_goal = _dodge_goal()
-	if absf(_shift - _shift_goal) > 0.5:
-		want = minf(want, 5.0)
+	_step = _dodge_goal()
+	_shift_goal = _step
+	var rate := DODGE_RATE
+	if absf(_step) > 0.1:
+		if absf(_shift - _shift_goal) > 0.5:
+			want = minf(want, 5.0)
+	else:
+		_update_yield(delta)
+		_shift_goal = _yield
+		rate = YIELD_RATE
+		if _oncoming and _yield != 0.0:
+			want = minf(want, cruise * 0.5)
 	if _too_close:
 		want = -2.0  # reverse a few metres first
-	_shift = move_toward(_shift, _shift_goal, DODGE_RATE * delta)
+	_shift = move_toward(_shift, _shift_goal, rate * delta)
 	speed = move_toward(speed, clampf(want, -2.0, cruise), 6.0 * delta)
 	t = _wrap(t + dir * speed * delta)
 	if not loop and (t == 0.0 or t == _length):
@@ -254,17 +280,54 @@ func _dodge_goal() -> float:
 		var lat := rel.dot(right)
 		if along > 0.0 and along < DODGE_LOOK and absf(lat) < 2.4:
 			_too_close = along < 6.0 and _pull_away_t > -3.0
-			if absf(_shift_goal) > 0.1:
-				return _shift_goal  # already stepping round it
+			if absf(_step) > 0.1:
+				return _step  # already stepping round it
 			return clampf(_shift + (-DODGE_STEP if lat > 0.0 else DODGE_STEP), -6.0, 6.0)
 	# Hold the step until the car it is passing is behind it.
-	if absf(_shift_goal) > 0.1:
+	if absf(_step) > 0.1:
 		for c: Node3D in get_tree().get_nodes_in_group("cars"):
 			var rel := c.global_position - global_position
 			var along := rel.dot(fwd)
 			if along > -6.0 and along < DODGE_LOOK and absf(rel.dot(right)) < 4.5:
-				return _shift_goal
+				return _step
 	return 0.0
+
+
+## Looks for a racing car that will pass close to this one within YIELD_TIME seconds and sets
+## the shift away from its path. A handful of racing cars, so the cost is tiny.
+func _update_yield(delta: float) -> void:
+	_yield_t -= delta
+	var fwd := -global_transform.basis.z
+	var right := global_transform.basis.x
+	var my_v := fwd * speed
+	for c: Node3D in get_tree().get_nodes_in_group("cars"):
+		var rel := c.global_position - global_position
+		rel.y = 0.0
+		if rel.length_squared() > 90.0 * 90.0:
+			continue
+		var rv := (c as RigidBody3D).linear_velocity - my_v
+		rv.y = 0.0
+		var closing := -rel.dot(rv)
+		if closing <= 0.0:
+			continue  # moving away
+		# Where it will be, relative to this car, when it is closest.
+		var t_near := closing / maxf(rv.length_squared(), 0.01)
+		if t_near > YIELD_TIME:
+			continue
+		var miss := rel + rv * t_near
+		if miss.length() > YIELD_NEAR:
+			continue
+		# Move away from the side its path goes by; dead centre: to the right, the road's edge.
+		var lat := miss.dot(right)
+		var away := -YIELD_SHIFT if lat > 0.4 else YIELD_SHIFT
+		if absf(_yield) < 0.1 or _yield_t <= 0.0:
+			_yield = away
+		_yield_t = YIELD_HOLD
+		_oncoming = (c as RigidBody3D).linear_velocity.dot(fwd) < -3.0
+		return
+	if _yield_t <= 0.0:
+		_yield = 0.0
+		_oncoming = false
 
 
 func _drive_off() -> void:
@@ -298,6 +361,8 @@ func _back_on_lane() -> void:
 	t = at
 	_shift = 0.0
 	_shift_goal = 0.0
+	_step = 0.0
+	_yield = 0.0
 	crashed = false
 	_set_driving_layers(true)
 	gravity_scale = 0.0

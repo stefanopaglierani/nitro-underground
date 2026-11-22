@@ -102,6 +102,16 @@ var max_steer_high := deg_to_rad(9)
 const PLAYER_STEER := 0.7
 ## Rivals take the corners at this share of the speed the level advises (fewer crashes).
 const RACER_CORNER_MARGIN := 0.92
+## v0.28 (Stefano: "il pilota in quarta posizione si butta contro l'auto del giocatore"):
+## for this many seconds after the green light a rival keeps the lane it started in and only
+## then eases over to its own line on the road, so it doesn't cut across the grid.
+const LAUNCH_TIME := 6.0
+## Sideways room (m, centre to centre) a rival leaves to a car driving alongside it before it
+## moves over towards it.
+const SIDE_GAP := 3.3
+## Sliding (angle between nose and travel, in radians) past which an AI driver catches the slide:
+## steers into it and eases off the pedals instead of flooring them.
+const SLIDE_CATCH := 0.12
 var steer_rate := 4.0
 var yaw_assist := 0.55
 var downforce := 1.0 * WEIGHT
@@ -162,6 +172,11 @@ var chase_target: Car
 var finished := false
 var _stuck := 0.0
 var _reverse_t := 0.0
+## Racer: sideways place (m from the race path) it stood on the grid, and seconds since the green light.
+var _grid_lane := INF
+var _race_t := 0.0
+## Racer: a car is wheel to wheel with it this frame, too close (see _keep_side_gap).
+var _side_lift := false
 
 var _wheel_pos: Array[Vector3] = [
 	Vector3(-WHEEL_X, MOUNT_Y, -WHEEL_Z), Vector3(WHEEL_X, MOUNT_Y, -WHEEL_Z),
@@ -714,12 +729,39 @@ func _steer_towards(target: Vector3, delta: float, after := Vector3.INF) -> floa
 	# On winding roads the level knows the corners ahead better than the next point does.
 	# Rivals keep a safety margin under it, so they don't arrive too fast and hit the rails.
 	var margin := RACER_CORNER_MARGIN if driver == Driver.RACER else 1.0
-	if city and speed > city.advised_speed(global_position, -global_transform.basis.z) * margin:
-		in_throttle = 0.0
-		in_brake = 1.0
-		in_nitro = false
+	if city:
+		var advised := city.advised_speed(global_position, -global_transform.basis.z) * margin
+		if driver == Driver.PLAYER:
+			if speed > advised:
+				in_throttle = 0.0
+				in_brake = 1.0
+				in_nitro = false
+		elif speed > advised - 2.0:
+			# AI: lift off just under the advised speed and brake as hard as it is over it, like a
+			# driver squeezing the pedal, instead of stamping on it and unsettling the car.
+			in_nitro = false
+			in_throttle = minf(in_throttle, clampf((advised - speed) / 2.0, 0.0, 1.0))
+			if speed > advised:
+				in_brake = maxf(in_brake, clampf((speed - advised) / 4.0, 0.35, 1.0))
+	if driver != Driver.PLAYER:
+		_catch_slide()
 	_handle_stuck(delta)
 	return dist
+
+
+## AI: when the rear steps out, steer into the slide and feed the throttle gently; hard braking
+## or full throttle in a slide is what spun the rivals round.
+func _catch_slide() -> void:
+	if speed < 8.0 or _reverse_t > 0.0:
+		return
+	var slip := atan2(lateral, speed)
+	if absf(slip) < SLIDE_CATCH:
+		return
+	var over := absf(slip) - SLIDE_CATCH
+	in_steer = clampf(in_steer + slip * 1.6, -1.0, 1.0)
+	in_throttle *= clampf(1.0 - over * 3.0, 0.25, 1.0)
+	in_brake = minf(in_brake, 0.5 if over > 0.1 else in_brake)
+	in_nitro = false
 
 
 func _handle_stuck(delta: float) -> void:
@@ -752,19 +794,56 @@ func _drive_racer(delta: float) -> void:
 	var prev := waypoints[wp_index - 1] if wp_index > 0 else global_position
 	var dir := (target - prev).normalized()
 	var side := Vector3(-dir.z, 0, dir.x)
-	var want := _avoid_traffic(prev, dir, side)
+	var my_lat := (global_position - prev).dot(side)
+	# Off the grid: keep the starting lane, then ease over to the racer's own line.
+	_race_t += delta
+	if _grid_lane == INF:
+		_grid_lane = my_lat
+	var lane := lane_offset
+	if _race_t < LAUNCH_TIME:
+		lane = lerpf(_grid_lane, lane_offset, smoothstep(0.0, LAUNCH_TIME, _race_t))
+	var want := _avoid_traffic(prev, dir, side, lane)
 	_dodge = move_toward(_dodge, want, 9.0 * delta)
-	_steer_towards(target + side * (lane_offset + _dodge), delta, after)
-	if speed > _traffic_limit:
-		in_throttle = 0.0
-		in_brake = 1.0
+	_side_lift = false
+	var goal := _keep_side_gap(dir, side, my_lat, lane + _dodge)
+	_steer_towards(target + side * goal, delta, after)
+	if _side_lift:
+		# Side by side too close: back off a little rather than lean on the other car.
+		in_throttle = minf(in_throttle, 0.4)
 		in_nitro = false
+	if speed > _traffic_limit:
+		# Close in on the car in front gently instead of braking flat out.
+		in_throttle = 0.0
+		in_brake = maxf(in_brake, clampf((speed - _traffic_limit) / 5.0, 0.25, 1.0))
+		in_nitro = false
+
+
+## Sideways place to aim for, held back so the racer doesn't move over into a car driving
+## alongside it (the gap it leaves is SIDE_GAP). A car already too close is given a little room.
+func _keep_side_gap(dir: Vector3, side: Vector3, my_lat: float, goal: float) -> float:
+	for c: Node3D in get_tree().get_nodes_in_group("cars"):
+		if c == self:
+			continue
+		var rel := c.global_position - global_position
+		if absf(rel.dot(dir)) > 7.0:
+			continue
+		var lat := rel.dot(side)
+		var move := goal - my_lat
+		if absf(lat) > SIDE_GAP + absf(move) or signf(lat) != signf(move if absf(move) > 0.05 else lat):
+			continue
+		# Stop SIDE_GAP short of it (if already closer, edge away, at most a metre).
+		if absf(lat) < SIDE_GAP and rel.dot(dir) > -1.0:
+			_side_lift = true  # wheel to wheel and not ahead: let the other car through
+		var limit := my_lat + lat - signf(lat) * SIDE_GAP
+		limit = clampf(limit, my_lat - 1.0, my_lat + 1.0) if absf(lat) < SIDE_GAP else limit
+		goal = minf(goal, limit) if lat > 0.0 else maxf(goal, limit)
+	return goal
 
 
 ## Looks for traffic and other cars (the player, the other racers, the police) in the racer's way
 ## and returns the sideways shift (from the racing line) that takes it past them on the side with
 ## room. If there is no room, sets _traffic_limit so the racer follows behind instead of ramming.
-func _avoid_traffic(prev: Vector3, dir: Vector3, side: Vector3) -> float:
+func _avoid_traffic(prev: Vector3, dir: Vector3, side: Vector3, lane: float) -> float:
 	_traffic_limit = INF
 	var flat_v := Vector3(linear_velocity.x, 0, linear_velocity.z)
 	var vdir := flat_v.normalized() if flat_v.length() > 3.0 else -global_transform.basis.z
@@ -785,7 +864,7 @@ func _avoid_traffic(prev: Vector3, dir: Vector3, side: Vector3) -> float:
 		if closing <= 0.5 or along > closing * 4.0 + 20.0:
 			continue
 		# In the way if it is near the line we are driving along, or near the line we are steering to.
-		var in_way := absf(rel.dot(vside)) < 2.8 or absf((tc.global_position - prev).dot(side) - (lane_offset + _dodge)) < 2.8
+		var in_way := absf(rel.dot(vside)) < 2.8 or absf((tc.global_position - prev).dot(side) - (lane + _dodge)) < 2.8
 		if in_way and along < blocker_along:
 			blocker = tc
 			blocker_along = along
@@ -801,21 +880,28 @@ func _avoid_traffic(prev: Vector3, dir: Vector3, side: Vector3) -> float:
 		var b_off: float = (blocker as TrafficCar).offset
 		if absf(b_off) < 1.0:
 			b_off = 3.0 * signf((global_position - blocker.global_position).dot(b_right) + 0.01) * -1.0
-		pass_off = (blocker.global_position - b_right * 2.0 * b_off - prev).dot(side) - lane_offset
+		pass_off = (blocker.global_position - b_right * 2.0 * b_off - prev).dot(side) - lane
 	else:
 		# Another racing car: go round it on the side we are already on, unless that runs out of
 		# road, then the other side.
 		var lat := (blocker.global_position - prev).dot(side)
-		var mine := lane_offset + _dodge
+		var mine := lane + _dodge
 		var go := 3.2 if mine >= lat else -3.2
 		if absf(lat + go) > 4.5:
 			go = -go
-		pass_off = lat + go - lane_offset
-	var pass_point := prev + side * (lane_offset + pass_off) + dir * (blocker.global_position - prev).dot(dir)
+		pass_off = lat + go - lane
+	var pass_point := prev + side * (lane + pass_off) + dir * (blocker.global_position - prev).dot(dir)
 	for tc: Node3D in others:
 		if tc == blocker:
 			continue
-		if (tc.global_position - pass_point).length() < 12.0:
+		# Only something ahead of us, on the line we would pass on, takes the room away. (v0.28:
+		# it used to be anything within 12 m, so racers queued side by side behind a stopped car
+		# took each other's room and all three waited there for ever.)
+		var o_rel: Vector3 = tc.global_position - global_position
+		var o_along := o_rel.dot(vdir)
+		if o_along < 2.0 or o_along > blocker_along + 12.0:
+			continue
+		if absf((tc.global_position - pass_point).dot(side)) < 2.6:
 			# No room to pass: follow until there is.
 			_traffic_limit = maxf(blocker_speed - 1.0, 0.0) + maxf(blocker_along - 12.0, 0.0) * 0.5
 			return _dodge
