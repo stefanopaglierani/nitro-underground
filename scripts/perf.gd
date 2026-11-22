@@ -15,8 +15,8 @@ const SHADOW_DISTANCE := 45.0
 ## Share of the roadside models, trees and grass kept on the phone, and of their visibility range.
 const DENSITY := 0.5
 const VISIBILITY := 0.6
-## City traffic cars on the phone (24 on PC): each one is a physics body with four wheel probes.
-const TRAFFIC := 12
+## Traffic cars in the --mobile mode (18 on PC, v0.29: both 25% fewer).
+const TRAFFIC := 9
 ## Set by apply(): the race is at night (the player's headlight is only lit then on the phone).
 static var night_level := false
 

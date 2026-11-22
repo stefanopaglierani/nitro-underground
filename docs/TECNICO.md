@@ -167,12 +167,19 @@ un telefono lento e uno veloce:
   Dopo un urto perdono aderenza per un attimo (`_knocked`), così uno scontro li scompone davvero.
   Prendono le curve al 92% della velocità consigliata e, se non raggiungono il punto successivo
   del percorso per 8 secondi, vengono rimessi su quel punto.
-- **Traffico** (`traffic.gd`): 24 auto civili (12 sul telefono) che sono **corpi rigidi con il peso di un'auto**.
+  Dalla v0.29: per 6 s dopo il via restano nella corsia di griglia; non si spostano verso un'auto
+  affiancata se resterebbero meno di 3,3 m tra i centri (`_keep_side_gap`) e alzano il piede se sono
+  ruota a ruota; frenano in proporzione a quanto superano la velocità consigliata; controsterzano
+  quando il posteriore scivola oltre 7° (`_catch_slide`); per decidere se c'è spazio per sorpassare
+  contano solo le auto davanti sulla linea di sorpasso, così non si bloccano a vicenda.
+- **Traffico** (`traffic.gd`): 18 auto civili (9 in modalità leggera; erano 24 e 12 fino alla v0.27) che sono **corpi rigidi con il peso di un'auto**.
   Mentre guidano, una spinta limitata le tiene in corsia alla loro velocità: un colpo più forte di
   quella spinta le sposta, uno molto forte le fa girare e sbandare sotto gravità. Qualsiasi urto da
   un'auto in gara le ferma per 3 secondi; poi ripartono da sole, aggirando di lato l'auto che le
   blocca, e tornano in corsia. Se sono ribaltate, fuori dalla vista dei piloti tornano in corsia. Livelli di collisione separati evitano che il traffico
   si comporti come una massa infinita (in Jolt le collisioni sono "a senso unico").
+  Dalla v0.29 ogni auto civile prevede dove passerà ogni auto in gara nei prossimi 2,5 s: se
+  passerà a meno di 3,4 m si sposta di 1,4 m dalla parte opposta e, se arriva contromano, rallenta.
 - **Polizia** (`main.gd`): chiamata dopo 20 secondi di gara; gli incidenti alzano un livello di
   allerta e più è alto, più volanti compaiono. Ogni volante insegue la prima auto in gara che
   incontra e passa al giocatore quando lui le passa entro 35 m. Arresto se il giocatore resta sotto
@@ -363,6 +370,7 @@ segnalati da Stefano:
 |---|---|
 | `tests/physics_bench.gd` | Banco prova della fisica (tabella sopra), risultati in JSON |
 | `--autotest` | L'auto del giocatore corre da sola l'intera gara con seme fisso e stampa un registro; con `--shots=` salva screenshot |
+| `--autotest` (v0.29) | Conta i contatti tra auto in gara (al via, in gara, contro il giocatore, con la polizia, col traffico) nella riga `CONTACTS`; `--seed=N` cambia il seme, `--testtime=N` la durata. Al via il pilota automatico tiene la sua corsia per 8 s |
 | `tools/map_preview.gd` | Disegna le mappe e controlla le distanze minime |
 | `tools/shot.gd` | Screenshot di un circuito da punti scelti, con statistiche di rendering |
 | `tools/pack_sheet.gd`, `inspect_glb.gd` | Mostrano i pezzi dentro un pacchetto di modelli |

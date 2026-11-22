@@ -49,6 +49,7 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.26 | 11/11/2026 | Circuito Costa nel mondo unico, a giro chiuso, con villaggio e strada di collegamento | ramo `claude/mondo-x5-costa` |
 | v0.27 | 22/11/2026 | Comandi da PC: WASD, telecamera con le frecce in 4 viste, schermo intero, primo eseguibile Windows | ramo `claude/controlli-pc-fullscreen` |
 | v0.28 | 22/11/2026 | ABS e TCS (tasti R e T) con spia di intervento, pulsante EXIT, partita azzerata, tutte le 51 auto al Dealer | ramo `claude/abs-tcs-exit-dealer` |
+| v0.29 | 22/11/2026 | Avversari più bravi: niente più spinta al giocatore in partenza, spazio a chi è affiancato, frenate dosate, traffico che si sposta, 25% di traffico in meno | ramo `claude/project-thread-vhvw0q` |
 
 ## Le svolte principali
 
@@ -1093,10 +1094,61 @@ una copia del salvataggio; foto al Dealer di tutte le 20 auto nuove. Stefano non
 
 ---
 
+## v0.29 — Avversari più bravi e traffico più educato (22 novembre)
+
+**Richiesta:** «il pilota della auto che parte in quarta posizione ogni singola gara alla partenza
+si butta contro l'auto del giocatore e la spinge verso destra [...] anche durante tutta la gara le
+auto dei concorrenti non sembrano dei gran piloti, diamogli più intelligenza, e anche al traffico,
+che cercherà per quanto possibile anche di evitare scontri con le auto in gara. E va diminuita la
+densità di traffico almeno del 20% o anche 25%.»
+
+**Come è stato costruito:**
+- **La causa dell'urto in partenza** (`scripts/main.gd`, `scripts/car.gd`): in griglia il rivale
+  dietro a sinistra, accanto al giocatore, aveva come "sua" linea di corsa un punto 1,6 m a destra
+  della traiettoria ideale. Al verde puntava subito lì, cioè attraverso la corsia del giocatore, e
+  i rivali guardavano solo le auto davanti, non quelle affiancate. Ora ogni rivale ha la linea dal
+  lato in cui parte e per i primi 6 secondi resta nella sua corsia di griglia, poi scivola piano
+  sulla sua linea.
+- **Spazio a chi è affiancato** (`_keep_side_gap`): un rivale non si sposta mai verso un'auto che gli
+  corre accanto se resterebbero meno di 3,3 m tra i centri; se è già troppo vicino si allontana di
+  un metro e, se non è davanti, alza il piede invece di appoggiarsi all'altra auto.
+- **Frenata dosata e sbandate** (`_steer_towards`, `_catch_slide`): prima delle curve i rivali
+  alzano il piede appena sotto la velocità consigliata e frenano tanto quanto sono sopra, invece di
+  inchiodare; quando il posteriore scappa controsterzano e danno gas con dolcezza.
+- **Niente più ingorghi** (`_avoid_traffic`): dietro un'auto ferma i tre rivali si toglievano a
+  vicenda lo spazio per sorpassare (bastava un'auto entro 12 m) e restavano lì fermi finché il gioco
+  non li spostava. Ora conta solo un'auto davanti sulla linea di sorpasso.
+- **Traffico che si sposta** (`scripts/traffic.gd`, `_update_yield`): ogni auto civile calcola se
+  un'auto in gara le passerà a meno di 3,4 m nei prossimi 2,5 secondi; se sì si sposta di 1,4 m dal
+  lato opposto (verso il bordo strada se arriva dritta) e, se arriva contromano, rallenta.
+- **Traffico −25%**: da 24 a 18 auto (`TRAFFIC_CARS`), da 12 a 9 nella modalità leggera.
+- Il costo per frame è piccolo: ogni auto guarda solo le 4-8 auto in gara, e ci sono 6 corpi
+  fisici del traffico in meno da simulare.
+
+**Verifica ed esito:** la gara automatica ora conta i contatti (`--autotest`, riga `CONTACTS`), e
+per la partenza il pilota automatico tiene la sua corsia per 8 secondi come farebbe una persona.
+16 gare da 90 secondi (Costa, Città, Deserto e Montagna, due semi ciascuno), prima e dopo:
+
+| | Prima | Dopo |
+|---|---|---|
+| Rivale accanto che urta il giocatore al via (entro 3 s) | 17 contatti, in 8 gare su 8 | **0** |
+| Contatti tra auto in gara nei primi 6 s | 23 | **0** |
+| Contatti tra auto in gara (polizia esclusa), tutta la gara | 100 | **50** |
+| Rivali sotto i 5 m/s (campioni ogni 5 s) | 21% | **11%** |
+| Rivali rimessi in pista perché bloccati | 17 | **10** |
+| Urti tra auto in gara e traffico | 23 | **12** (con il 25% di auto in meno) |
+
+Molti contatti rimasti sono del pilota automatico di prova, che non sa evitare le auto e tampona i
+rivali in frenata. Gli FPS sul PC di Stefano non sono stati misurati (prove in cloud senza
+grafica). Stefano non l'ha ancora provata.
+
+---
+
 ## Prossimi passi
 
 - Provare a mano ABS e TCS, e fare la cernita delle auto al Dealer.
 - L'isola tropicale come prima gara della campagna, poi l'Isola X5 e gli altri circuiti.
+- Provare in gara gli avversari della v0.29: partenza pulita, sorpassi e traffico che si sposta.
 - Costa più fedele all'originale: palme, faro e lungomare.
 - Tappa 4 del mondo unico: Città, Deserto e Montagna.
 
