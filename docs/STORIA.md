@@ -1093,30 +1093,6 @@ ho contati) e una gara
 completa con l'eseguibile Windows esportato; prova dei tre pulsanti EXIT; prova dell'azzeramento su
 una copia del salvataggio; foto al Dealer di tutte le 20 auto nuove. Stefano non l'ha ancora provata.
 
-## v0.30 — L'isola tropicale apre la campagna (22 novembre)
-
-![L'isola tropicale](immagini/v0.30-isola-tropicale.jpg)
-
-**Richiesta:** dopo il ritorno a Godot, Stefano ha chiesto di mettere come **prime gare** l'isola
-importata dal periodo Unreal, poi l'Isola X5 e tutte le altre mappe fatte finora.
-
-**Come è stato costruito:** l'isola (8×8 km, vulcano, 79 strade, 250.000 piante e rocce) era generata
-da un nostro programma, quindi i dati si portano in Godot senza perdite e senza licenze di terzi.
-`tools/import_isola_tropicale.gd` la taglia in 256 tessere da 512 m nello stesso formato dell'Isola X5:
-terreno dettagliato e leggero, collisione, pezzi di strada e piante a quadrati con versioni leggere.
-`scripts/tropical_island.gd` le legge in sottofondo attorno all'auto e ne disegna solo una parte delle
-piante. La gara sono i primi 6,5 km della Strada Costiera, tra mare e colline. La campagna ora è:
-Isola tropicale, Isola X5, Costa, Città, Deserto, Montagna, Costa X5, Isola piccola.
-
-**Verifica ed esito:** prima di scegliere quante piante mostrare, gare automatiche complete sul PC di
-Stefano con quantità diverse: senza piante 27 FPS, con tutte 14 FPS; la quota scelta, senza ombre delle
-piante, fa 21,6 FPS come l'Isola X5 (tabella in [TECNICO.md](TECNICO.md#mondi-generati-v023)).
-Gare complete anche su Costa X5 e Isola piccola, e con l'eseguibile Windows. Problemi noti dei dati
-dell'isola: alcune strade di collina sono scavi profondi e qualche pendio è una parete a picco.
-Stefano non l'ha ancora provata.
-
----
-
 ## v0.29 — Avversari più bravi e traffico più educato (22 novembre)
 
 **Richiesta:** «il pilota della auto che parte in quarta posizione ogni singola gara alla partenza
@@ -1164,6 +1140,28 @@ per la partenza il pilota automatico tiene la sua corsia per 8 secondi come fare
 Molti contatti rimasti sono del pilota automatico di prova, che non sa evitare le auto e tampona i
 rivali in frenata. Gli FPS sul PC di Stefano non sono stati misurati (prove in cloud senza
 grafica). Stefano non l'ha ancora provata.
+
+## v0.30 — L'isola tropicale apre la campagna (22 novembre)
+
+![L'isola tropicale](immagini/v0.30-isola-tropicale.jpg)
+
+**Richiesta:** dopo il ritorno a Godot, Stefano ha chiesto di mettere come **prime gare** l'isola
+importata dal periodo Unreal, poi l'Isola X5 e tutte le altre mappe fatte finora.
+
+**Come è stato costruito:** l'isola (8×8 km, vulcano, 79 strade, 250.000 piante e rocce) era generata
+da un nostro programma, quindi i dati si portano in Godot senza perdite e senza licenze di terzi.
+`tools/import_isola_tropicale.gd` la taglia in 256 tessere da 512 m nello stesso formato dell'Isola X5:
+terreno dettagliato e leggero, collisione, pezzi di strada e piante a quadrati con versioni leggere.
+`scripts/tropical_island.gd` le legge in sottofondo attorno all'auto e ne disegna solo una parte delle
+piante. La gara sono i primi 6,5 km della Strada Costiera, tra mare e colline. La campagna ora è:
+Isola tropicale, Isola X5, Costa, Città, Deserto, Montagna, Costa X5, Isola piccola.
+
+**Verifica ed esito:** prima di scegliere quante piante mostrare, gare automatiche complete sul PC di
+Stefano con quantità diverse: senza piante 27 FPS, con tutte 14 FPS; la quota scelta, senza ombre delle
+piante, fa 21,6 FPS come l'Isola X5 (tabella in [TECNICO.md](TECNICO.md#mondi-generati-v023)).
+Gare complete anche su Costa X5 e Isola piccola, e con l'eseguibile Windows. Problemi noti dei dati
+dell'isola: alcune strade di collina sono scavi profondi e qualche pendio è una parete a picco.
+Stefano non l'ha ancora provata.
 
 ---
 

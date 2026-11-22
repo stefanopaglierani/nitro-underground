@@ -1145,7 +1145,7 @@ func _test_limit() -> float:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--testtime="):
 			return float(a.substr(11))
-	return 150.0
+	return 220.0  # v0.30: the race on the tropical island lasts up to 2:25
 
 
 func _car_name(c: Car) -> String:
