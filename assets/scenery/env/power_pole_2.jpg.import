@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dbqngvddwon0d"
 path.s3tc="res://.godot/imported/power_pole_2.jpg-7f60a34f8ea4f0e9aacce63c5462efb3.s3tc.ctex"
-path.etc2="res://.godot/imported/power_pole_2.jpg-7f60a34f8ea4f0e9aacce63c5462efb3.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/power_pole_2.jpg"
-dest_files=["res://.godot/imported/power_pole_2.jpg-7f60a34f8ea4f0e9aacce63c5462efb3.s3tc.ctex", "res://.godot/imported/power_pole_2.jpg-7f60a34f8ea4f0e9aacce63c5462efb3.etc2.ctex"]
+dest_files=["res://.godot/imported/power_pole_2.jpg-7f60a34f8ea4f0e9aacce63c5462efb3.s3tc.ctex"]
 
 [params]
 

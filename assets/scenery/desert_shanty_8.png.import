@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cfvshik8o2v5j"
 path.s3tc="res://.godot/imported/desert_shanty_8.png-e2f50f693249cb27c9e61d21cd500a8e.s3tc.ctex"
-path.etc2="res://.godot/imported/desert_shanty_8.png-e2f50f693249cb27c9e61d21cd500a8e.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/desert_shanty_8.png"
-dest_files=["res://.godot/imported/desert_shanty_8.png-e2f50f693249cb27c9e61d21cd500a8e.s3tc.ctex", "res://.godot/imported/desert_shanty_8.png-e2f50f693249cb27c9e61d21cd500a8e.etc2.ctex"]
+dest_files=["res://.godot/imported/desert_shanty_8.png-e2f50f693249cb27c9e61d21cd500a8e.s3tc.ctex"]
 
 [params]
 

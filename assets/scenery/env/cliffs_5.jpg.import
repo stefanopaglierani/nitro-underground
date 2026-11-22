@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://c5e6epvw8ini0"
 path.s3tc="res://.godot/imported/cliffs_5.jpg-09e87a8be3a9fc1060f4067b18a8867d.s3tc.ctex"
-path.etc2="res://.godot/imported/cliffs_5.jpg-09e87a8be3a9fc1060f4067b18a8867d.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/cliffs_5.jpg"
-dest_files=["res://.godot/imported/cliffs_5.jpg-09e87a8be3a9fc1060f4067b18a8867d.s3tc.ctex", "res://.godot/imported/cliffs_5.jpg-09e87a8be3a9fc1060f4067b18a8867d.etc2.ctex"]
+dest_files=["res://.godot/imported/cliffs_5.jpg-09e87a8be3a9fc1060f4067b18a8867d.s3tc.ctex"]
 
 [params]
 

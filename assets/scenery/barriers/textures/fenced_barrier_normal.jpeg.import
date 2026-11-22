@@ -4,16 +4,15 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://brsg8i2nfq6gh"
 path.s3tc="res://.godot/imported/fenced_barrier_normal.jpeg-c421416df6345de5eacd3ac8cfd6f978.s3tc.ctex"
-path.etc2="res://.godot/imported/fenced_barrier_normal.jpeg-c421416df6345de5eacd3ac8cfd6f978.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/scenery/barriers/textures/fenced_barrier_normal.jpeg"
-dest_files=["res://.godot/imported/fenced_barrier_normal.jpeg-c421416df6345de5eacd3ac8cfd6f978.s3tc.ctex", "res://.godot/imported/fenced_barrier_normal.jpeg-c421416df6345de5eacd3ac8cfd6f978.etc2.ctex"]
+dest_files=["res://.godot/imported/fenced_barrier_normal.jpeg-c421416df6345de5eacd3ac8cfd6f978.s3tc.ctex"]
 
 [params]
 

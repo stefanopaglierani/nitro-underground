@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cfbfrr5mxtb5v"
 path.s3tc="res://.godot/imported/tyre_old_tyre_nor_gl.jpg-1daf5736b82d388e73daa709385433c2.s3tc.ctex"
-path.etc2="res://.godot/imported/tyre_old_tyre_nor_gl.jpg-1daf5736b82d388e73daa709385433c2.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/tyre_old_tyre_nor_gl.jpg"
-dest_files=["res://.godot/imported/tyre_old_tyre_nor_gl.jpg-1daf5736b82d388e73daa709385433c2.s3tc.ctex", "res://.godot/imported/tyre_old_tyre_nor_gl.jpg-1daf5736b82d388e73daa709385433c2.etc2.ctex"]
+dest_files=["res://.godot/imported/tyre_old_tyre_nor_gl.jpg-1daf5736b82d388e73daa709385433c2.s3tc.ctex"]
 
 [params]
 

@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://e6hn0287xnpx"
 path.s3tc="res://.godot/imported/datsun_280z_0.png-16f38dd6e553ffca578f0c452bbe4269.s3tc.ctex"
-path.etc2="res://.godot/imported/datsun_280z_0.png-16f38dd6e553ffca578f0c452bbe4269.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_cc/datsun_280z_0.png"
-dest_files=["res://.godot/imported/datsun_280z_0.png-16f38dd6e553ffca578f0c452bbe4269.s3tc.ctex", "res://.godot/imported/datsun_280z_0.png-16f38dd6e553ffca578f0c452bbe4269.etc2.ctex"]
+dest_files=["res://.godot/imported/datsun_280z_0.png-16f38dd6e553ffca578f0c452bbe4269.s3tc.ctex"]
 
 [params]
 

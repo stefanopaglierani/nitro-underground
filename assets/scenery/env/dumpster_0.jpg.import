@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bamxc0f83325c"
 path.s3tc="res://.godot/imported/dumpster_0.jpg-3cf0a2ee4ddeb699709c5b1da5dcf517.s3tc.ctex"
-path.etc2="res://.godot/imported/dumpster_0.jpg-3cf0a2ee4ddeb699709c5b1da5dcf517.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/dumpster_0.jpg"
-dest_files=["res://.godot/imported/dumpster_0.jpg-3cf0a2ee4ddeb699709c5b1da5dcf517.s3tc.ctex", "res://.godot/imported/dumpster_0.jpg-3cf0a2ee4ddeb699709c5b1da5dcf517.etc2.ctex"]
+dest_files=["res://.godot/imported/dumpster_0.jpg-3cf0a2ee4ddeb699709c5b1da5dcf517.s3tc.ctex"]
 
 [params]
 

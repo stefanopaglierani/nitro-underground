@@ -4,16 +4,15 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://ccru6lyqo3fuu"
 path.s3tc="res://.godot/imported/concrete_road_barrier_02_arm_1k.jpg-e4125458b5d054663c21e0960a270fcc.s3tc.ctex"
-path.etc2="res://.godot/imported/concrete_road_barrier_02_arm_1k.jpg-e4125458b5d054663c21e0960a270fcc.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/props/concrete_road_barrier_02/textures/concrete_road_barrier_02_arm_1k.jpg"
-dest_files=["res://.godot/imported/concrete_road_barrier_02_arm_1k.jpg-e4125458b5d054663c21e0960a270fcc.s3tc.ctex", "res://.godot/imported/concrete_road_barrier_02_arm_1k.jpg-e4125458b5d054663c21e0960a270fcc.etc2.ctex"]
+dest_files=["res://.godot/imported/concrete_road_barrier_02_arm_1k.jpg-e4125458b5d054663c21e0960a270fcc.s3tc.ctex"]
 
 [params]
 

@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://b60r84ap0afly"
 path.s3tc="res://.godot/imported/house_mobile_4.jpg-d36d8f9b927d08b0e668e1d542943861.s3tc.ctex"
-path.etc2="res://.godot/imported/house_mobile_4.jpg-d36d8f9b927d08b0e668e1d542943861.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/house_mobile_4.jpg"
-dest_files=["res://.godot/imported/house_mobile_4.jpg-d36d8f9b927d08b0e668e1d542943861.s3tc.ctex", "res://.godot/imported/house_mobile_4.jpg-d36d8f9b927d08b0e668e1d542943861.etc2.ctex"]
+dest_files=["res://.godot/imported/house_mobile_4.jpg-d36d8f9b927d08b0e668e1d542943861.s3tc.ctex"]
 
 [params]
 

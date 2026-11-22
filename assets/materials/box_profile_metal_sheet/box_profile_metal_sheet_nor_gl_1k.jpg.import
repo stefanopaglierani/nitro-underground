@@ -4,16 +4,15 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://b5s1raxjy7ehs"
 path.s3tc="res://.godot/imported/box_profile_metal_sheet_nor_gl_1k.jpg-43592b91748cd4251a060f9b136816c0.s3tc.ctex"
-path.etc2="res://.godot/imported/box_profile_metal_sheet_nor_gl_1k.jpg-43592b91748cd4251a060f9b136816c0.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/materials/box_profile_metal_sheet/box_profile_metal_sheet_nor_gl_1k.jpg"
-dest_files=["res://.godot/imported/box_profile_metal_sheet_nor_gl_1k.jpg-43592b91748cd4251a060f9b136816c0.s3tc.ctex", "res://.godot/imported/box_profile_metal_sheet_nor_gl_1k.jpg-43592b91748cd4251a060f9b136816c0.etc2.ctex"]
+dest_files=["res://.godot/imported/box_profile_metal_sheet_nor_gl_1k.jpg-43592b91748cd4251a060f9b136816c0.s3tc.ctex"]
 
 [params]
 

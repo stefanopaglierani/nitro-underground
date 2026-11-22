@@ -330,12 +330,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			_on_select()
 
 
-## Android back button (the game no longer quits on it by itself): from the garage out of the game.
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_WM_GO_BACK_REQUEST and not _leaving:
-		get_tree().quit()
-
-
 ## Lets go of the models before changing scene, so nothing stays half-loaded in memory.
 func _leave(scene: String) -> void:
 	_leaving = true

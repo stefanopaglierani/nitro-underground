@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://vgigkgpd3bca"
 path.s3tc="res://.godot/imported/barrels_pack_5.jpg-33f349af45d28ed34a2efdf321c71987.s3tc.ctex"
-path.etc2="res://.godot/imported/barrels_pack_5.jpg-33f349af45d28ed34a2efdf321c71987.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/barrels_pack_5.jpg"
-dest_files=["res://.godot/imported/barrels_pack_5.jpg-33f349af45d28ed34a2efdf321c71987.s3tc.ctex", "res://.godot/imported/barrels_pack_5.jpg-33f349af45d28ed34a2efdf321c71987.etc2.ctex"]
+dest_files=["res://.godot/imported/barrels_pack_5.jpg-33f349af45d28ed34a2efdf321c71987.s3tc.ctex"]
 
 [params]
 

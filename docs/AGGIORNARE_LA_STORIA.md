@@ -67,11 +67,11 @@ Il rendering in un container senza GPU è lento: circa 20 minuti per gara.
 - In italiano, frasi semplici, comprensibili da chi non programma. La sezione English del README
   segue gli stessi contenuti in breve.
 - Racconta la storia vera: cosa ha chiesto Stefano, cosa è stato fatto, cosa è andato storto.
-  Non dichiarare provato sul telefono quello che non è stato provato.
+  Non dichiarare provato sul PC quello che non è stato provato.
 - Le decisioni di gioco, stile e auto sono di Stefano: scrivilo così.
 - Niente nomi di sessioni, thread o percorsi interni del progetto; solo link pubblici
   (PR, file del repository).
-- Non aggiungere APK, zip o modelli non usati al repository.
+- Non aggiungere build, zip o modelli non usati al repository.
 
 ## Dove trovare le informazioni
 

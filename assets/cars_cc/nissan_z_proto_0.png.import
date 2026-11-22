@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bm62lc5uaap86"
 path.s3tc="res://.godot/imported/nissan_z_proto_0.png-3eb4652b3ded98b7df249098ec343275.s3tc.ctex"
-path.etc2="res://.godot/imported/nissan_z_proto_0.png-3eb4652b3ded98b7df249098ec343275.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_cc/nissan_z_proto_0.png"
-dest_files=["res://.godot/imported/nissan_z_proto_0.png-3eb4652b3ded98b7df249098ec343275.s3tc.ctex", "res://.godot/imported/nissan_z_proto_0.png-3eb4652b3ded98b7df249098ec343275.etc2.ctex"]
+dest_files=["res://.godot/imported/nissan_z_proto_0.png-3eb4652b3ded98b7df249098ec343275.s3tc.ctex"]
 
 [params]
 

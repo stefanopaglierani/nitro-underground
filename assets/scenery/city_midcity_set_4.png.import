@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dfmpejcfkc4nk"
 path.s3tc="res://.godot/imported/city_midcity_set_4.png-1a819c3f38f41ddf968f956f3dfda28f.s3tc.ctex"
-path.etc2="res://.godot/imported/city_midcity_set_4.png-1a819c3f38f41ddf968f956f3dfda28f.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/city_midcity_set_4.png"
-dest_files=["res://.godot/imported/city_midcity_set_4.png-1a819c3f38f41ddf968f956f3dfda28f.s3tc.ctex", "res://.godot/imported/city_midcity_set_4.png-1a819c3f38f41ddf968f956f3dfda28f.etc2.ctex"]
+dest_files=["res://.godot/imported/city_midcity_set_4.png-1a819c3f38f41ddf968f956f3dfda28f.s3tc.ctex"]
 
 [params]
 

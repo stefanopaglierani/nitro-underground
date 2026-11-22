@@ -4,16 +4,15 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://b7dsi2mk3u0u8"
 path.s3tc="res://.godot/imported/covered_car_diff_1k.jpg-af04eeb912fc1bc06243ce52b96eb9e9.s3tc.ctex"
-path.etc2="res://.godot/imported/covered_car_diff_1k.jpg-af04eeb912fc1bc06243ce52b96eb9e9.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/props/covered_car/textures/covered_car_diff_1k.jpg"
-dest_files=["res://.godot/imported/covered_car_diff_1k.jpg-af04eeb912fc1bc06243ce52b96eb9e9.s3tc.ctex", "res://.godot/imported/covered_car_diff_1k.jpg-af04eeb912fc1bc06243ce52b96eb9e9.etc2.ctex"]
+dest_files=["res://.godot/imported/covered_car_diff_1k.jpg-af04eeb912fc1bc06243ce52b96eb9e9.s3tc.ctex"]
 
 [params]
 

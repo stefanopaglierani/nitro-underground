@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://1hp74f1ky1m3"
 path.s3tc="res://.godot/imported/sigil_07_6.png-789edf15236b144c8d8370d47daa54f1.s3tc.ctex"
-path.etc2="res://.godot/imported/sigil_07_6.png-789edf15236b144c8d8370d47daa54f1.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_cc/sigil_07_6.png"
-dest_files=["res://.godot/imported/sigil_07_6.png-789edf15236b144c8d8370d47daa54f1.s3tc.ctex", "res://.godot/imported/sigil_07_6.png-789edf15236b144c8d8370d47daa54f1.etc2.ctex"]
+dest_files=["res://.godot/imported/sigil_07_6.png-789edf15236b144c8d8370d47daa54f1.s3tc.ctex"]
 
 [params]
 

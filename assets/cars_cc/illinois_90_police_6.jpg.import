@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://pnf1uotsfs8n"
 path.s3tc="res://.godot/imported/illinois_90_police_6.jpg-16341cf42ab1f50a72121d079a7d0ec5.s3tc.ctex"
-path.etc2="res://.godot/imported/illinois_90_police_6.jpg-16341cf42ab1f50a72121d079a7d0ec5.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_cc/illinois_90_police_6.jpg"
-dest_files=["res://.godot/imported/illinois_90_police_6.jpg-16341cf42ab1f50a72121d079a7d0ec5.s3tc.ctex", "res://.godot/imported/illinois_90_police_6.jpg-16341cf42ab1f50a72121d079a7d0ec5.etc2.ctex"]
+dest_files=["res://.godot/imported/illinois_90_police_6.jpg-16341cf42ab1f50a72121d079a7d0ec5.s3tc.ctex"]
 
 [params]
 

@@ -4,16 +4,15 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bw3nkjssyryfk"
 path.s3tc="res://.godot/imported/asphalt_pit_lane_arm_1k.jpg-f33e5d5e95d4a8f050f762f445421061.s3tc.ctex"
-path.etc2="res://.godot/imported/asphalt_pit_lane_arm_1k.jpg-f33e5d5e95d4a8f050f762f445421061.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/materials/asphalt_pit_lane/asphalt_pit_lane_arm_1k.jpg"
-dest_files=["res://.godot/imported/asphalt_pit_lane_arm_1k.jpg-f33e5d5e95d4a8f050f762f445421061.s3tc.ctex", "res://.godot/imported/asphalt_pit_lane_arm_1k.jpg-f33e5d5e95d4a8f050f762f445421061.etc2.ctex"]
+dest_files=["res://.godot/imported/asphalt_pit_lane_arm_1k.jpg-f33e5d5e95d4a8f050f762f445421061.s3tc.ctex"]
 
 [params]
 

@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://b2rimfw6ahehs"
 path.s3tc="res://.godot/imported/industrial_3.jpg-cc5784b54b1c3a9b85384c0989fac4e5.s3tc.ctex"
-path.etc2="res://.godot/imported/industrial_3.jpg-cc5784b54b1c3a9b85384c0989fac4e5.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/industrial_3.jpg"
-dest_files=["res://.godot/imported/industrial_3.jpg-cc5784b54b1c3a9b85384c0989fac4e5.s3tc.ctex", "res://.godot/imported/industrial_3.jpg-cc5784b54b1c3a9b85384c0989fac4e5.etc2.ctex"]
+dest_files=["res://.godot/imported/industrial_3.jpg-cc5784b54b1c3a9b85384c0989fac4e5.s3tc.ctex"]
 
 [params]
 

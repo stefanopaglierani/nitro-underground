@@ -4,16 +4,15 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dlt5jg7ql11q2"
 path.s3tc="res://.godot/imported/Jeep_interior_baseColor.jpeg-dbf47f409657b80c62002b4497eed891.s3tc.ctex"
-path.etc2="res://.godot/imported/Jeep_interior_baseColor.jpeg-dbf47f409657b80c62002b4497eed891.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/cars_traffic/jeep/textures/Jeep_interior_baseColor.jpeg"
-dest_files=["res://.godot/imported/Jeep_interior_baseColor.jpeg-dbf47f409657b80c62002b4497eed891.s3tc.ctex", "res://.godot/imported/Jeep_interior_baseColor.jpeg-dbf47f409657b80c62002b4497eed891.etc2.ctex"]
+dest_files=["res://.godot/imported/Jeep_interior_baseColor.jpeg-dbf47f409657b80c62002b4497eed891.s3tc.ctex"]
 
 [params]
 

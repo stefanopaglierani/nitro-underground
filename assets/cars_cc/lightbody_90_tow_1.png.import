@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://db4cuefoh36xv"
 path.s3tc="res://.godot/imported/lightbody_90_tow_1.png-a7fa3ae7dad34d2e8ec4921b2e99c906.s3tc.ctex"
-path.etc2="res://.godot/imported/lightbody_90_tow_1.png-a7fa3ae7dad34d2e8ec4921b2e99c906.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_cc/lightbody_90_tow_1.png"
-dest_files=["res://.godot/imported/lightbody_90_tow_1.png-a7fa3ae7dad34d2e8ec4921b2e99c906.s3tc.ctex", "res://.godot/imported/lightbody_90_tow_1.png-a7fa3ae7dad34d2e8ec4921b2e99c906.etc2.ctex"]
+dest_files=["res://.godot/imported/lightbody_90_tow_1.png-a7fa3ae7dad34d2e8ec4921b2e99c906.s3tc.ctex"]
 
 [params]
 

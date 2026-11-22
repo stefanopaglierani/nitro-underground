@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://wintbg3s27x"
 path.s3tc="res://.godot/imported/lct_3000_07_11.png-9d2e86a5735f045cb7fa4f7d02b46607.s3tc.ctex"
-path.etc2="res://.godot/imported/lct_3000_07_11.png-9d2e86a5735f045cb7fa4f7d02b46607.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_cc/lct_3000_07_11.png"
-dest_files=["res://.godot/imported/lct_3000_07_11.png-9d2e86a5735f045cb7fa4f7d02b46607.s3tc.ctex", "res://.godot/imported/lct_3000_07_11.png-9d2e86a5735f045cb7fa4f7d02b46607.etc2.ctex"]
+dest_files=["res://.godot/imported/lct_3000_07_11.png-9d2e86a5735f045cb7fa4f7d02b46607.s3tc.ctex"]
 
 [params]
 

@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dx06k6x1l7i1y"
 path.s3tc="res://.godot/imported/saba_v12_95_10.png-038ff9f2f82028dc8e10088f481742f9.s3tc.ctex"
-path.etc2="res://.godot/imported/saba_v12_95_10.png-038ff9f2f82028dc8e10088f481742f9.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_cc/saba_v12_95_10.png"
-dest_files=["res://.godot/imported/saba_v12_95_10.png-038ff9f2f82028dc8e10088f481742f9.s3tc.ctex", "res://.godot/imported/saba_v12_95_10.png-038ff9f2f82028dc8e10088f481742f9.etc2.ctex"]
+dest_files=["res://.godot/imported/saba_v12_95_10.png-038ff9f2f82028dc8e10088f481742f9.s3tc.ctex"]
 
 [params]
 

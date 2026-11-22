@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cxgrrcotot8hk"
 path.s3tc="res://.godot/imported/old_buildings_2.jpg-82c803456fa4cc1c92757844956ea4c0.s3tc.ctex"
-path.etc2="res://.godot/imported/old_buildings_2.jpg-82c803456fa4cc1c92757844956ea4c0.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/old_buildings_2.jpg"
-dest_files=["res://.godot/imported/old_buildings_2.jpg-82c803456fa4cc1c92757844956ea4c0.s3tc.ctex", "res://.godot/imported/old_buildings_2.jpg-82c803456fa4cc1c92757844956ea4c0.etc2.ctex"]
+dest_files=["res://.godot/imported/old_buildings_2.jpg-82c803456fa4cc1c92757844956ea4c0.s3tc.ctex"]
 
 [params]
 

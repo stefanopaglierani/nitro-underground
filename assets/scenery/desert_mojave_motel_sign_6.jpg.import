@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://ctc547m3rc6a1"
 path.s3tc="res://.godot/imported/desert_mojave_motel_sign_6.jpg-e219b516d27280ba57371f6334507bc1.s3tc.ctex"
-path.etc2="res://.godot/imported/desert_mojave_motel_sign_6.jpg-e219b516d27280ba57371f6334507bc1.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/desert_mojave_motel_sign_6.jpg"
-dest_files=["res://.godot/imported/desert_mojave_motel_sign_6.jpg-e219b516d27280ba57371f6334507bc1.s3tc.ctex", "res://.godot/imported/desert_mojave_motel_sign_6.jpg-e219b516d27280ba57371f6334507bc1.etc2.ctex"]
+dest_files=["res://.godot/imported/desert_mojave_motel_sign_6.jpg-e219b516d27280ba57371f6334507bc1.s3tc.ctex"]
 
 [params]
 

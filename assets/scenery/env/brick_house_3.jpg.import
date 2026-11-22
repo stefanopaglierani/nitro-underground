@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cm52sx5264g75"
 path.s3tc="res://.godot/imported/brick_house_3.jpg-65e9fb010c9da31c1a3018f09d74f3bf.s3tc.ctex"
-path.etc2="res://.godot/imported/brick_house_3.jpg-65e9fb010c9da31c1a3018f09d74f3bf.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/brick_house_3.jpg"
-dest_files=["res://.godot/imported/brick_house_3.jpg-65e9fb010c9da31c1a3018f09d74f3bf.s3tc.ctex", "res://.godot/imported/brick_house_3.jpg-65e9fb010c9da31c1a3018f09d74f3bf.etc2.ctex"]
+dest_files=["res://.godot/imported/brick_house_3.jpg-65e9fb010c9da31c1a3018f09d74f3bf.s3tc.ctex"]
 
 [params]
 

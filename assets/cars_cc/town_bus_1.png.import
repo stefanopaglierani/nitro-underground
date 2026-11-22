@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://b3a7l0b0c0tgv"
 path.s3tc="res://.godot/imported/town_bus_1.png-541e05484b55cb6f4a2025b000166a1e.s3tc.ctex"
-path.etc2="res://.godot/imported/town_bus_1.png-541e05484b55cb6f4a2025b000166a1e.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_cc/town_bus_1.png"
-dest_files=["res://.godot/imported/town_bus_1.png-541e05484b55cb6f4a2025b000166a1e.s3tc.ctex", "res://.godot/imported/town_bus_1.png-541e05484b55cb6f4a2025b000166a1e.etc2.ctex"]
+dest_files=["res://.godot/imported/town_bus_1.png-541e05484b55cb6f4a2025b000166a1e.s3tc.ctex"]
 
 [params]
 

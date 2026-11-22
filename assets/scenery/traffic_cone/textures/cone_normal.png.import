@@ -4,16 +4,15 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://khhupuy7enue"
 path.s3tc="res://.godot/imported/cone_normal.png-a70d7788c0c1a2553e00dd172b137a3d.s3tc.ctex"
-path.etc2="res://.godot/imported/cone_normal.png-a70d7788c0c1a2553e00dd172b137a3d.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/scenery/traffic_cone/textures/cone_normal.png"
-dest_files=["res://.godot/imported/cone_normal.png-a70d7788c0c1a2553e00dd172b137a3d.s3tc.ctex", "res://.godot/imported/cone_normal.png-a70d7788c0c1a2553e00dd172b137a3d.etc2.ctex"]
+dest_files=["res://.godot/imported/cone_normal.png-a70d7788c0c1a2553e00dd172b137a3d.s3tc.ctex"]
 
 [params]
 

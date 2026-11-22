@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cjlfohyjrnptv"
 path.s3tc="res://.godot/imported/shvan_92_13.png-01a492594f6dd27953d2597b19121014.s3tc.ctex"
-path.etc2="res://.godot/imported/shvan_92_13.png-01a492594f6dd27953d2597b19121014.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_cc/shvan_92_13.png"
-dest_files=["res://.godot/imported/shvan_92_13.png-01a492594f6dd27953d2597b19121014.s3tc.ctex", "res://.godot/imported/shvan_92_13.png-01a492594f6dd27953d2597b19121014.etc2.ctex"]
+dest_files=["res://.godot/imported/shvan_92_13.png-01a492594f6dd27953d2597b19121014.s3tc.ctex"]
 
 [params]
 

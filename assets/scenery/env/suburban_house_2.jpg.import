@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://kvkjcfhq6k3f"
 path.s3tc="res://.godot/imported/suburban_house_2.jpg-0ee6c0f9b8fb95b91e16cad9c793506f.s3tc.ctex"
-path.etc2="res://.godot/imported/suburban_house_2.jpg-0ee6c0f9b8fb95b91e16cad9c793506f.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/suburban_house_2.jpg"
-dest_files=["res://.godot/imported/suburban_house_2.jpg-0ee6c0f9b8fb95b91e16cad9c793506f.s3tc.ctex", "res://.godot/imported/suburban_house_2.jpg-0ee6c0f9b8fb95b91e16cad9c793506f.etc2.ctex"]
+dest_files=["res://.godot/imported/suburban_house_2.jpg-0ee6c0f9b8fb95b91e16cad9c793506f.s3tc.ctex"]
 
 [params]
 

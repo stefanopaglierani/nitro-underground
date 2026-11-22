@@ -4,16 +4,15 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dv527w88568xr"
 path.s3tc="res://.godot/imported/Alpine_chalet_normal.png-e06f5185c7d6cb8d5657b5233f50bc8e.s3tc.ctex"
-path.etc2="res://.godot/imported/Alpine_chalet_normal.png-e06f5185c7d6cb8d5657b5233f50bc8e.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/scenery/alpine_chalet/textures/Alpine_chalet_normal.png"
-dest_files=["res://.godot/imported/Alpine_chalet_normal.png-e06f5185c7d6cb8d5657b5233f50bc8e.s3tc.ctex", "res://.godot/imported/Alpine_chalet_normal.png-e06f5185c7d6cb8d5657b5233f50bc8e.etc2.ctex"]
+dest_files=["res://.godot/imported/Alpine_chalet_normal.png-e06f5185c7d6cb8d5657b5233f50bc8e.s3tc.ctex"]
 
 [params]
 

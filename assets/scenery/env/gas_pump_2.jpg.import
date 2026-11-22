@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://e1xuhp0ysj80"
 path.s3tc="res://.godot/imported/gas_pump_2.jpg-974fd300b16572b939d446bf2a5fe1d8.s3tc.ctex"
-path.etc2="res://.godot/imported/gas_pump_2.jpg-974fd300b16572b939d446bf2a5fe1d8.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/gas_pump_2.jpg"
-dest_files=["res://.godot/imported/gas_pump_2.jpg-974fd300b16572b939d446bf2a5fe1d8.s3tc.ctex", "res://.godot/imported/gas_pump_2.jpg-974fd300b16572b939d446bf2a5fe1d8.etc2.ctex"]
+dest_files=["res://.godot/imported/gas_pump_2.jpg-974fd300b16572b939d446bf2a5fe1d8.s3tc.ctex"]
 
 [params]
 

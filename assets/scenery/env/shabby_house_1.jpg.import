@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bja2eabiu16ih"
 path.s3tc="res://.godot/imported/shabby_house_1.jpg-eedb4f26ac344ef69c21587d58d705d0.s3tc.ctex"
-path.etc2="res://.godot/imported/shabby_house_1.jpg-eedb4f26ac344ef69c21587d58d705d0.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/shabby_house_1.jpg"
-dest_files=["res://.godot/imported/shabby_house_1.jpg-eedb4f26ac344ef69c21587d58d705d0.s3tc.ctex", "res://.godot/imported/shabby_house_1.jpg-eedb4f26ac344ef69c21587d58d705d0.etc2.ctex"]
+dest_files=["res://.godot/imported/shabby_house_1.jpg-eedb4f26ac344ef69c21587d58d705d0.s3tc.ctex"]
 
 [params]
 

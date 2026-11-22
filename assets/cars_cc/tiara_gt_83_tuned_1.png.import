@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://ccr6c7xwi32yn"
 path.s3tc="res://.godot/imported/tiara_gt_83_tuned_1.png-40b5ecca42b6083bbe3f945b0629c4e4.s3tc.ctex"
-path.etc2="res://.godot/imported/tiara_gt_83_tuned_1.png-40b5ecca42b6083bbe3f945b0629c4e4.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/cars_cc/tiara_gt_83_tuned_1.png"
-dest_files=["res://.godot/imported/tiara_gt_83_tuned_1.png-40b5ecca42b6083bbe3f945b0629c4e4.s3tc.ctex", "res://.godot/imported/tiara_gt_83_tuned_1.png-40b5ecca42b6083bbe3f945b0629c4e4.etc2.ctex"]
+dest_files=["res://.godot/imported/tiara_gt_83_tuned_1.png-40b5ecca42b6083bbe3f945b0629c4e4.s3tc.ctex"]
 
 [params]
 

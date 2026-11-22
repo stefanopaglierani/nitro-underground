@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://k1t7mtfu2dj6"
 path.s3tc="res://.godot/imported/vegetation_pack_4.png-44320e2882735b72da1640d3bc5ec78e.s3tc.ctex"
-path.etc2="res://.godot/imported/vegetation_pack_4.png-44320e2882735b72da1640d3bc5ec78e.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/vegetation_pack_4.png"
-dest_files=["res://.godot/imported/vegetation_pack_4.png-44320e2882735b72da1640d3bc5ec78e.s3tc.ctex", "res://.godot/imported/vegetation_pack_4.png-44320e2882735b72da1640d3bc5ec78e.etc2.ctex"]
+dest_files=["res://.godot/imported/vegetation_pack_4.png-44320e2882735b72da1640d3bc5ec78e.s3tc.ctex"]
 
 [params]
 

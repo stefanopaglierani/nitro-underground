@@ -4,16 +4,15 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dw78iusbh3865"
 path.s3tc="res://.godot/imported/Jeep_tires_normal.jpeg-bbbf7138e3fbe31eeb893ae62aed5d59.s3tc.ctex"
-path.etc2="res://.godot/imported/Jeep_tires_normal.jpeg-bbbf7138e3fbe31eeb893ae62aed5d59.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/cars_traffic/jeep/textures/Jeep_tires_normal.jpeg"
-dest_files=["res://.godot/imported/Jeep_tires_normal.jpeg-bbbf7138e3fbe31eeb893ae62aed5d59.s3tc.ctex", "res://.godot/imported/Jeep_tires_normal.jpeg-bbbf7138e3fbe31eeb893ae62aed5d59.etc2.ctex"]
+dest_files=["res://.godot/imported/Jeep_tires_normal.jpeg-bbbf7138e3fbe31eeb893ae62aed5d59.s3tc.ctex"]
 
 [params]
 

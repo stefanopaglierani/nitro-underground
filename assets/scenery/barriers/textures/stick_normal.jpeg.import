@@ -4,16 +4,15 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dbno57fbct1xw"
 path.s3tc="res://.godot/imported/stick_normal.jpeg-72adb83b654f2c979ca38ddb3174119b.s3tc.ctex"
-path.etc2="res://.godot/imported/stick_normal.jpeg-72adb83b654f2c979ca38ddb3174119b.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/scenery/barriers/textures/stick_normal.jpeg"
-dest_files=["res://.godot/imported/stick_normal.jpeg-72adb83b654f2c979ca38ddb3174119b.s3tc.ctex", "res://.godot/imported/stick_normal.jpeg-72adb83b654f2c979ca38ddb3174119b.etc2.ctex"]
+dest_files=["res://.godot/imported/stick_normal.jpeg-72adb83b654f2c979ca38ddb3174119b.s3tc.ctex"]
 
 [params]
 

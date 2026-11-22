@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://c4548byxbp5va"
 path.s3tc="res://.godot/imported/bricks_2.jpg-c82569ecb8777f29f8d9009e1f668199.s3tc.ctex"
-path.etc2="res://.godot/imported/bricks_2.jpg-c82569ecb8777f29f8d9009e1f668199.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/bricks_2.jpg"
-dest_files=["res://.godot/imported/bricks_2.jpg-c82569ecb8777f29f8d9009e1f668199.s3tc.ctex", "res://.godot/imported/bricks_2.jpg-c82569ecb8777f29f8d9009e1f668199.etc2.ctex"]
+dest_files=["res://.godot/imported/bricks_2.jpg-c82569ecb8777f29f8d9009e1f668199.s3tc.ctex"]
 
 [params]
 

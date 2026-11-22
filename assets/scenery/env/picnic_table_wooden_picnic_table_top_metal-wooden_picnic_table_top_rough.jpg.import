@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dui6c3vwqkqqm"
 path.s3tc="res://.godot/imported/picnic_table_wooden_picnic_table_top_metal-wooden_picnic_table_top_rough.jpg-69e15d02538492d5e580d4cb8bd823c1.s3tc.ctex"
-path.etc2="res://.godot/imported/picnic_table_wooden_picnic_table_top_metal-wooden_picnic_table_top_rough.jpg-69e15d02538492d5e580d4cb8bd823c1.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/picnic_table_wooden_picnic_table_top_metal-wooden_picnic_table_top_rough.jpg"
-dest_files=["res://.godot/imported/picnic_table_wooden_picnic_table_top_metal-wooden_picnic_table_top_rough.jpg-69e15d02538492d5e580d4cb8bd823c1.s3tc.ctex", "res://.godot/imported/picnic_table_wooden_picnic_table_top_metal-wooden_picnic_table_top_rough.jpg-69e15d02538492d5e580d4cb8bd823c1.etc2.ctex"]
+dest_files=["res://.godot/imported/picnic_table_wooden_picnic_table_top_metal-wooden_picnic_table_top_rough.jpg-69e15d02538492d5e580d4cb8bd823c1.s3tc.ctex"]
 
 [params]
 

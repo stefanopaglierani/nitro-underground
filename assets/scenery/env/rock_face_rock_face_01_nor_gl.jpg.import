@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dmixbib60k54e"
 path.s3tc="res://.godot/imported/rock_face_rock_face_01_nor_gl.jpg-3c24c20b015a57b00e4939914357aa1a.s3tc.ctex"
-path.etc2="res://.godot/imported/rock_face_rock_face_01_nor_gl.jpg-3c24c20b015a57b00e4939914357aa1a.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/rock_face_rock_face_01_nor_gl.jpg"
-dest_files=["res://.godot/imported/rock_face_rock_face_01_nor_gl.jpg-3c24c20b015a57b00e4939914357aa1a.s3tc.ctex", "res://.godot/imported/rock_face_rock_face_01_nor_gl.jpg-3c24c20b015a57b00e4939914357aa1a.etc2.ctex"]
+dest_files=["res://.godot/imported/rock_face_rock_face_01_nor_gl.jpg-3c24c20b015a57b00e4939914357aa1a.s3tc.ctex"]
 
 [params]
 

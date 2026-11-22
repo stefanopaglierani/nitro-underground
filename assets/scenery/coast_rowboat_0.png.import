@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dyfo8i0i0ve5t"
 path.s3tc="res://.godot/imported/coast_rowboat_0.png-ffed58947e4c3cbe5b2fc785145d8b17.s3tc.ctex"
-path.etc2="res://.godot/imported/coast_rowboat_0.png-ffed58947e4c3cbe5b2fc785145d8b17.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/coast_rowboat_0.png"
-dest_files=["res://.godot/imported/coast_rowboat_0.png-ffed58947e4c3cbe5b2fc785145d8b17.s3tc.ctex", "res://.godot/imported/coast_rowboat_0.png-ffed58947e4c3cbe5b2fc785145d8b17.etc2.ctex"]
+dest_files=["res://.godot/imported/coast_rowboat_0.png-ffed58947e4c3cbe5b2fc785145d8b17.s3tc.ctex"]
 
 [params]
 

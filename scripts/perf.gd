@@ -1,10 +1,10 @@
 class_name Perf
-## Lighter settings for the phone (v0.22, Stefano: "alleggerire veramente tanto").
-## The PC keeps everything as it is. Start the game with "-- --mobile" on the PC to try the phone
-## profile there (used by the measurements in docs/TECNICO.md).
+## Light profile (born in v0.22 for the phone, Stefano: "alleggerire veramente tanto").
+## The game is PC-only since 2026-11-22: the normal PC settings stay as they are, and this profile
+## is only an option for weak PCs, started with "-- --mobile" (used by the measurements in docs/TECNICO.md).
 
-## True on Android/iOS, or when the game is started with --mobile.
-static var mobile: bool = OS.has_feature("mobile") or OS.get_cmdline_user_args().has("--mobile")
+## True only when the game is started with --mobile.
+static var mobile: bool = OS.get_cmdline_user_args().has("--mobile")
 
 ## 3D picture drawn at this fraction of the screen resolution, then stretched (HUD stays sharp).
 const RENDER_SCALE := 0.62

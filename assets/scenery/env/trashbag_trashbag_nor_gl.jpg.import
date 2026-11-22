@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://2b6fnavwp7gb"
 path.s3tc="res://.godot/imported/trashbag_trashbag_nor_gl.jpg-0d3797cb5a698f47170aca964465caf4.s3tc.ctex"
-path.etc2="res://.godot/imported/trashbag_trashbag_nor_gl.jpg-0d3797cb5a698f47170aca964465caf4.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/env/trashbag_trashbag_nor_gl.jpg"
-dest_files=["res://.godot/imported/trashbag_trashbag_nor_gl.jpg-0d3797cb5a698f47170aca964465caf4.s3tc.ctex", "res://.godot/imported/trashbag_trashbag_nor_gl.jpg-0d3797cb5a698f47170aca964465caf4.etc2.ctex"]
+dest_files=["res://.godot/imported/trashbag_trashbag_nor_gl.jpg-0d3797cb5a698f47170aca964465caf4.s3tc.ctex"]
 
 [params]
 

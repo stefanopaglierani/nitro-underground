@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bxt78r6ci8fbc"
 path.s3tc="res://.godot/imported/city_singapore_skyscraper_8.png-6e1cf6096cd32269db281a1276e5f4c1.s3tc.ctex"
-path.etc2="res://.godot/imported/city_singapore_skyscraper_8.png-6e1cf6096cd32269db281a1276e5f4c1.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/city_singapore_skyscraper_8.png"
-dest_files=["res://.godot/imported/city_singapore_skyscraper_8.png-6e1cf6096cd32269db281a1276e5f4c1.s3tc.ctex", "res://.godot/imported/city_singapore_skyscraper_8.png-6e1cf6096cd32269db281a1276e5f4c1.etc2.ctex"]
+dest_files=["res://.godot/imported/city_singapore_skyscraper_8.png-6e1cf6096cd32269db281a1276e5f4c1.s3tc.ctex"]
 
 [params]
 

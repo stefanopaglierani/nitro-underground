@@ -1,13 +1,13 @@
 # Nitro Underground
 
-**Gioco di corse clandestine in 3D per Android, con grafica realistica.**
+**Gioco di corse clandestine in 3D per PC (Windows), con grafica realistica.**
 Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come mappe di testo.
 
 ![Nitro Underground: gara sul passo di montagna](docs/immagini/gara-montagna.jpg)
 
 [![Godot 4.7](https://img.shields.io/badge/Godot-4.7-478CBF?logo=godotengine&logoColor=white)](https://godotengine.org)
 ![GDScript](https://img.shields.io/badge/GDScript-~7.500_righe-355570)
-![Android](https://img.shields.io/badge/Android-arm64-3DDC84?logo=android&logoColor=white)
+![PC](https://img.shields.io/badge/PC-Windows-0078D6?logo=windows&logoColor=white)
 ![Versione](https://img.shields.io/badge/versione-0.26-ff3d8b)
 ![Stato](https://img.shields.io/badge/stato-prototipo_giocabile-f5a623)
 
@@ -17,17 +17,17 @@ Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come
 
 ## In 30 secondi
 
-- **Cos'è:** un racing arcade per telefono nello spirito delle gare su strada: sorpassi nel
+- **Cos'è:** un racing arcade per PC (fino al 22/11/2026 anche per telefono Android) nello spirito delle gare su strada: sorpassi nel
   traffico, nitro, derapate, salti e la polizia che arriva se fai troppi danni. Nome, mondo e
   circuiti sono originali.
 - **Chi l'ha fatto:** **Stefano Paglierani** ha ideato e diretto il gioco: concept, stile,
-  circuiti, auto, comandi e ogni scelta di prodotto, provando ogni build sul suo telefono Android.
+  circuiti, auto, comandi e ogni scelta di prodotto, provando ogni build sul suo telefono e poi sul PC.
   Il codice è stato scritto da **Claude** (l'assistente AI di Anthropic) sulle sue indicazioni.
 - **In quanto tempo:** 13 giorni, dal 27 ottobre all'8 novembre 2026: **29 versioni** dal primo prototipo
   alla v0.26, ognuna provata su telefono o PC e migliorata in base alle prove.
 - **Cosa dimostra:** direzione di prodotto e game design su un progetto reale, ciclo rapido
   prova → feedback → nuova versione, uso dell'intelligenza artificiale come squadra di sviluppo,
-  attenzione alle licenze degli asset e alle prestazioni su telefono.
+  attenzione alle licenze degli asset e alle prestazioni su hardware modesto.
 
 ## Screenshot (v0.11.1, ancora con lo stile a fumetto abbandonato nella v0.13)
 
@@ -56,7 +56,7 @@ Fatto con Godot 4 · fisica dei veicoli scritta da zero · circuiti scritti come
 | 🔊 **Audio** | Motore V8 sintetizzato che segue i giri, cambiate, turbo, gomme, urti, sirena |
 | 🎨 **Grafica realistica** | Modelli 3D realistici con le impostazioni grafiche di base (lo stile a fumetto 2.5D è stato abbandonato nella v0.13) |
 | 🗺️ **Circuiti in testo** | Ogni pista è un file che si legge come un navigatore: chiunque può disegnarne una |
-| 📱 **Comandi touch** | Pulsanti a esagono con icone, cruscotto digitale, minimappa con le frecce delle auto, traiettoria ideale colorata a terra |
+| 🎮 **Comandi** | Tastiera, oppure col mouse i pulsanti a esagono con icone, cruscotto digitale, minimappa con le frecce delle auto, traiettoria ideale colorata a terra |
 
 ## Come è costruito, in breve
 
@@ -74,7 +74,7 @@ Il dettaglio completo, con diagrammi e numeri, è in **[docs/TECNICO.md](docs/TE
   (v0.9-v0.12) è spento dalla v0.13: sul telefono era troppo pesante e Stefano è tornato al realistico.
 - **Costruito dal codice**: le scene sono quasi vuote, strade, terreno, auto, interfaccia e
   materiali nascono dagli script. Tutto è testo leggibile e versionato.
-- **Pensato per il telefono**: caricamento a passi con modelli letti in thread paralleli, modelli
+- **Leggero** (nato per il telefono): caricamento a passi con modelli letti in thread paralleli, modelli
   3D fusi per ridurre le chiamate di disegno (la Porsche da 8.270 a 148), texture compresse con
   mipmap (in gara da 418 a 104 MB).
 - **Licenze tracciate**: oltre 120 asset gratuiti registrati con autore, link e licenza.
@@ -118,6 +118,7 @@ cosa è stato chiesto e come è stato costruito.
 | v0.24 | Isola cinque volte più grande caricata a tessere mentre si guida; niente più scatti quando arriva la polizia |
 | v0.25 | Isola x5 vestita: erba, sabbia, mare e asfalto dei circuiti, due villaggi e 6.100 tra alberi, rocce e arredi |
 | v0.26 | Il circuito Costa sull'isola grande: un giro chiuso sul mare, collegato al resto del mondo |
+| 22/11/2026 | Solo PC: tolta la versione Android (APK, preset di esportazione, script di build), aggiunta l'esportazione per Windows |
 
 ## Provarlo
 
@@ -133,8 +134,9 @@ e [`gioca-nitro.ps1`](tools/windows/gioca-nitro.ps1) nella stessa cartella e fai
 | Spazio | Freno a mano (derapata) |
 | Shift oppure N | Nitro |
 
-**Android:** gli APK (circa 300 MB) non sono nel repository. Si possono creare con
-`GODOT=/percorso/godot tools/build_android.sh` (servono i template Android di Godot 4.7).
+**Eseguibile Windows:** dall'editor, Progetto → Esporta → "Windows Desktop" (servono i template
+di esportazione di Godot 4.7.2). Le build non sono nel repository. Dal 22/11/2026 il gioco è solo per PC:
+la versione Android non esiste più.
 
 **Editor:** apri la cartella con **Godot 4.7** e premi Play.
 
@@ -147,7 +149,7 @@ e [`gioca-nitro.ps1`](tools/windows/gioca-nitro.ps1) nella stessa cartella e fai
 | `tracks/` | Le mappe dei circuiti in testo e la guida [`COME_FARE.md`](tracks/COME_FARE.md) |
 | `assets/` | Modelli, texture e suoni, con il registro [`LICENSES.md`](assets/LICENSES.md) |
 | `tests/` | Banco prova della fisica |
-| `tools/` | Build Android, preparazione delle auto (`bake_cars.gd`), anteprima mappe, screenshot automatici, launcher Windows, sintesi audio |
+| `tools/` | Preparazione delle auto (`bake_cars.gd`), anteprima mappe, screenshot automatici, launcher Windows, sintesi audio |
 | `docs/` | Storia, documentazione tecnica, immagini |
 
 ## Licenze
@@ -161,7 +163,7 @@ diritti sono riservati all'autore.
 ## Roadmap
 
 1. ~~Documento di concept~~ ✔
-2. **Prototipo giocabile su telefono** ← siamo qui (v0.1 → v0.26, fase di stabilizzazione)
+2. **Prototipo giocabile su PC** ← siamo qui (v0.1 → v0.26, fase di stabilizzazione)
 3. Vertical slice: un circuito e un'auto rifiniti al livello del gioco finale
 4. Produzione e pubblicazione, con sostituzione degli asset non commerciali
 
@@ -169,12 +171,12 @@ diritti sono riservati all'autore.
 
 ## English
 
-**Nitro Underground** is a 3D arcade street-racing game for Android with realistic graphics (the 2.5D comic look was dropped in v0.13),
-built with **Godot 4.7** (GDScript, Compatibility/OpenGL renderer on Android, Jolt physics). Current version:
+**Nitro Underground** is a 3D arcade street-racing game for Windows PC with realistic graphics (the 2.5D comic look was dropped in v0.13;
+the Android version was dropped on 22 November 2026), built with **Godot 4.7** (GDScript, Mobile/Vulkan renderer, Jolt physics). Current version:
 **v0.26**, a playable prototype (stabilisation phase).
 
 **Who made it.** **Stefano Paglierani** conceived and directed the game: concept, art direction,
-circuits, cars, controls and every product decision, testing each build on his Android phone.
+circuits, cars, controls and every product decision, testing each build on his phone and later on PC.
 The code was written by **Claude** (Anthropic's AI assistant) from his direction. 28 versions were
 designed, built and play-tested in 13 days (27 October - 8 November 2026).
 
@@ -189,7 +191,7 @@ designed, built and play-tested in 13 days (27 October - 8 November 2026).
 - **Realistic rendering** with Godot's base settings since v0.13; the earlier 2.5D comic shaders
   (toon materials, full-screen ink/halftone pass) are kept in the code but switched off, as they were too heavy for the phone.
 - **Synthesized V8 engine audio**, crossfaded and pitched to RPM in real time.
-- **Mobile-minded**: staged, threaded loading; models merged into one mesh per material
+- **Lightweight** (born on the phone): staged, threaded loading; models merged into one mesh per material
   (a 123-part model went from 1,000+ draw calls to a handful); GPU-compressed textures.
 - **Rigorous asset licensing**: 120+ free assets logged with author, link and licence; the
   non-commercial exceptions are declared openly in [CREDITI.md](CREDITI.md).

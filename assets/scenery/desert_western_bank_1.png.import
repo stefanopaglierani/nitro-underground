@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cb5c0ymiyhix4"
 path.s3tc="res://.godot/imported/desert_western_bank_1.png-b82f47fafa43ff9f0cd6b771fe52bef9.s3tc.ctex"
-path.etc2="res://.godot/imported/desert_western_bank_1.png-b82f47fafa43ff9f0cd6b771fe52bef9.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/desert_western_bank_1.png"
-dest_files=["res://.godot/imported/desert_western_bank_1.png-b82f47fafa43ff9f0cd6b771fe52bef9.s3tc.ctex", "res://.godot/imported/desert_western_bank_1.png-b82f47fafa43ff9f0cd6b771fe52bef9.etc2.ctex"]
+dest_files=["res://.godot/imported/desert_western_bank_1.png-b82f47fafa43ff9f0cd6b771fe52bef9.s3tc.ctex"]
 
 [params]
 

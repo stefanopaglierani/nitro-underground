@@ -4,9 +4,8 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cwcaxufsxpgye"
 path.s3tc="res://.godot/imported/city_street_props_traffic_light_1.png-c75c5620a4303ff4df311e1e413819ed.s3tc.ctex"
-path.etc2="res://.godot/imported/city_street_props_traffic_light_1.png-c75c5620a4303ff4df311e1e413819ed.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"imported_formats": ["s3tc_bptc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -16,7 +15,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/scenery/city_street_props_traffic_light_1.png"
-dest_files=["res://.godot/imported/city_street_props_traffic_light_1.png-c75c5620a4303ff4df311e1e413819ed.s3tc.ctex", "res://.godot/imported/city_street_props_traffic_light_1.png-c75c5620a4303ff4df311e1e413819ed.etc2.ctex"]
+dest_files=["res://.godot/imported/city_street_props_traffic_light_1.png-c75c5620a4303ff4df311e1e413819ed.s3tc.ctex"]
 
 [params]
 
