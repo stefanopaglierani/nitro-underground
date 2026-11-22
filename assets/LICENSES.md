@@ -181,6 +181,39 @@ Scaricate ma non usate: Muscle Car Concept (ViktorKom; il modello ha porte e cof
 | `lct_3000_07.glb` | LCT 3000 '07 (traffico) | LCT 3000 '07- Low poly model | DanielZhabotinsky | https://sketchfab.com/3d-models/lct-3000-07-low-poly-model-3be03b6a43aa41898c9ca806b8787052 | inventato |
 | `town_bus.glb` | Autobus di città (traffico) | Generic Town Bus | own.guest | https://sketchfab.com/3d-models/generic-town-bus-14fe03d792914d51b6c6250b393c44fd | inventato; alleggerito da 55 a 25 mila triangoli |
 
+### Auto in prova al Dealer della v0.28 (22/11/2026) — solo `assets/cars_baked/`
+
+Stefano: "nel Dealer fammi trovare TUTTE le auto a disposizione per il progetto, così posso fare una cernita". Sono le altre
+20 auto della cartella `Asset-3D\Auto` del suo PC, tutte **CC BY 4.0** (autore, licenza e pagina letti dai dati dentro ogni .glb).
+Nel repository c'è **solo la versione preparata** da `tools/bake_cars.gd` (`assets/cars_baked/<id>.res`); gli originali restano
+in `Asset-3D\Auto` e, per prepararle di nuovo, vanno copiati in `assets/cars_new/` (cartella ignorata da git ed esclusa dalla build).
+Le auto di marchi reali hanno un **nome inventato**, ma loghi e scritte del modello **non sono ancora stati tolti**: prima di
+tenerle (e comunque prima di una vendita) vanno controllate. Muscle Car Concept ha porte e cofano aperti nel file e la RX-7 una
+posa sbagliata (vedi sopra): sono al Dealer così come sono, per la cernita.
+
+| File originale | Nome in gioco (id) | Modello originale | Autore | Pagina | Marchio |
+|---|---|---|---|---|---|
+| `1986_chevrolet_m1009.glb` | Militare M10 '86 (`m10_86`) | 1986 Chevrolet M1009 | snafuj | https://sketchfab.com/3d-models/1986-chevrolet-m1009-d2a462c09f054bb093e360a263478732 | Chevrolet |
+| `2000_mercedes_c-class_w203.glb` | Stella C '00 (`stella_c00`) | 2000 Mercedes C-class W203 | RES1N | https://sketchfab.com/3d-models/2000-mercedes-c-class-w203-6cf3d6203793450ba9e6a572fc164c77 | Mercedes-Benz; senza texture |
+| `2012_chevrolet_camaro_zl1.glb` | Corsaro ZL '12 (`corsaro_zl`) | 2012 Chevrolet Camaro ZL1 | Ddiaz Design | https://sketchfab.com/3d-models/2012-chevrolet-camaro-zl1-cf2c1a032fa14828b94176ad526821f3 | Chevrolet |
+| `a_land_explorer.glb` | Land Explorer (`land_explorer`) | A Land Explorer (Free) | Danila Davydov | https://sketchfab.com/3d-models/a-land-explorer-free-343551d39d87444997962ed73a924917 | da verificare (forma simile a un fuoristrada reale) |
+| `bokaroo_67.glb` | Bokaroo '67 (`bokaroo_67`) | Bokaroo '67 - Low poly model | Daniel Zhabotinsky | https://sketchfab.com/3d-models/bokaroo-67-low-poly-model-22015d1863d6455aa31cfd738b972c50 | inventata |
+| `buggy_2.glb` | Buggy Dune (`buggy_dune`) | Buggy_2 | Rzyas | https://sketchfab.com/3d-models/buggy-2-983dc960e4c34a2688456b3c31821cd9 | nessuno; modello in centimetri, riscalato |
+| `chevrolet_c10_pickup_1963.glb` | Pickup C10 '63 (`pickup_63`) | Low Poly Car - Chevrolet C10 Pickup 1963 | tedpermana | https://sketchfab.com/3d-models/low-poly-car-chevrolet-c10-pickup-1963-679354c151984747bb74310ec5af8995 | Chevrolet; in centimetri, riscalato |
+| `dune_buggy_jump.glb` | Jump Buggy (`jump_buggy`) | Dune Buggy "jump" | XP_Frost | https://sketchfab.com/3d-models/dune-buggy-jump-c9838cac69904010923d5024168b0893 | nessuno; in centimetri, riscalato |
+| `el_alamo_78.glb` | El Alamo '78 (`el_alamo_78`) | El Alamo '78 - Low Poly model | Daniel Zhabotinsky | https://sketchfab.com/3d-models/el-alamo-78-low-poly-model-41b3a5c0bc534817b3311c3736c403e6 | inventata |
+| `lightbody_lifted_85.glb` | Lightbody Lifted '85 (`lightbody_lifted`) | Lightbody Lifted '85 - Low poly model | Daniel Zhabotinsky | https://sketchfab.com/3d-models/lightbody-lifted-85-low-poly-model-67beae18c3d24be68f9c8f0ec382d8e3 | inventata |
+| `mazda_rx_7_fd.glb` | Rotore FD (`rotore_fd`) | Mazda RX-7 FD | Lexyc16 | https://sketchfab.com/3d-models/mazda-rx-7-fd-d35ff630df614771b82e7b2f59035b1e | Mazda |
+| `mercedes_190e_evo_1982_3d_model_free.glb` | Stella 190 Evo (`stella_190`) | Mercedes 190E EVO 1982 3D Model Free | Betier Models | https://sketchfab.com/3d-models/mercedes-190e-evo-1982-3d-model-free-15e5576f4b724f2db357165caed3492b | Mercedes-Benz |
+| `mercedes_benz_g_class_w263.glb` | Stella G (`stella_g`) | Mercedes Benz G-class W263 | Lexyc16 | https://sketchfab.com/3d-models/mercedes-benz-g-class-w263-1a2a52b16cad4e618af347461817895c | Mercedes-Benz |
+| `muscle_car_concept.glb` | Muscle Concept (`muscle_concept`) | Muscle Car Concept | ViktorKom | https://sketchfab.com/3d-models/muscle-car-concept-aa5dbdc7d492478ababfd4d385b8339f | inventata; in centimetri, riscalato |
+| `nissan_4x4.glb` | Sakura 4x4 (`sakura_4x4`) | Nissan 4x4 | Gabee | https://sketchfab.com/3d-models/nissan-4x4-9d39d85373e14f54a02b95f0e2852546 | Nissan |
+| `no_budget_soviet_jeep.glb` | Steppa 4x4 (`steppa_4x4`) | No Budget Soviet Jeep | Jorma Rysky | https://sketchfab.com/3d-models/no-budget-soviet-jeep-067ec77c3af840b699286aec46912570 | da verificare (forma di un fuoristrada sovietico reale) |
+| `off_road_4x4_racer_with_4_different_skins.glb` | Off-Road Racer (`offroad_racer`) | Off Road 4X4 racer with 4 different skins | Duane's Mind | https://sketchfab.com/3d-models/off-road-4x4-racer-with-4-different-skins-b065496a2a8a4bf6ba6ab4e4fe5ce133 | inventata |
+| `rancher_50_custom.glb` | Rancher '50 Custom (`rancher_50`) | Rancher '50 Custom - Low Poly model | Daniel Zhabotinsky | https://sketchfab.com/3d-models/rancher-50-custom-low-poly-model-7f75854aba96417f8279bd9f1b24e6b2 | inventata |
+| `rancher_80_lifted.glb` | Rancher '80 Lifted (`rancher_80`) | Rancher '80 Lifted - Low Poly model | Daniel Zhabotinsky | https://sketchfab.com/3d-models/rancher-80-lifted-low-poly-model-fbf1767c4c3a450caa59c6431af79263 | inventata |
+| `toyota_pickup_truck.glb` | Pickup Hilo (`pickup_hilo`) | Toyota Pickup truck | alban | https://sketchfab.com/3d-models/toyota-pickup-truck-cad83751a295463bbb8b823c11a181ea | Toyota |
+
 ## Paesaggio realistico (Sketchfab, CC-BY 4.0) — `assets/scenery/`
 
 Modelli scaricati il 2026-10-30 in formato glTF dall'API di Sketchfab. Licenza **CC Attribution 4.0** (uso commerciale consentito, attribuzione obbligatoria: i crediti qui sotto vanno riportati anche nei titoli di coda del gioco). Modifiche comuni a tutti: texture ridotte a 1024 px; il gioco converte le foglie in alpha scissor e le tinge (scripts/scenery.gd).

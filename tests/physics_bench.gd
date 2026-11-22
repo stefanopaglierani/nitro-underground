@@ -21,10 +21,27 @@ const RAMP_START := -60.0
 const RAMP_LENGTH := 16.0
 
 
+## Handling tests (v0.28): braking in a bend, a lane change and a long bend at high speed, full
+## throttle in a slow bend. --car=<id> picks the car, --abs=0/1 and --tcs=0/1 the driving aids,
+## --only=a,b runs only those phases.
+var aids := {}
+var handling := {}
+
+
 func _initialize() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--tps="):
 			tps = int(a.substr(6))
+		if a.begins_with("--car="):
+			Car.player_body = a.substr(6)
+		if a.begins_with("--abs="):
+			aids["abs_on"] = a.substr(6) == "1"
+		if a.begins_with("--tcs="):
+			aids["tcs_on"] = a.substr(6) == "1"
+		if a.begins_with("--only="):
+			queue.assign(a.substr(7).split(","))
+		if a == "--handling":
+			queue.assign(["brake_turn", "lane_change", "slalom", "fast_turn", "power_turn"])
 	Engine.physics_ticks_per_second = tps
 	Engine.max_physics_steps_per_frame = 64
 	var floor_body := StaticBody3D.new()
@@ -38,6 +55,12 @@ func _initialize() -> void:
 	car = Car.new()
 	root.add_child(car)
 	car.setup(Car.Driver.PLAYER, Color.RED, null)
+	for k in aids:
+		if k in car:
+			car.set(k, aids[k])
+	# The very first phase can't set the car's speed until the body is in the physics world: give
+	# it half a second standing still first.
+	queue.push_front("settle")
 	physics_frame.connect(_step)
 	_next()
 
@@ -53,11 +76,13 @@ func _reset(speed: float) -> void:
 	car.in_steer = 0.0
 	car.in_handbrake = false
 	car.in_nitro = false
+	car._steer = 0.0  # the front wheels straight again after a phase that steered
 	t = 0.0
 	mark_t = -1.0
 	max_yaw_rate = 0.0
 	prev_yaw = 0.0
 	start_pos = car.position
+	handling = {"max_slip": 0.0, "abs_s": 0.0, "tcs_s": 0.0}
 
 
 func _next() -> void:
@@ -71,6 +96,14 @@ func _next() -> void:
 			_reset(0.0)
 		"brake":
 			_reset(40.0)
+		"settle":
+			_reset(0.0)
+		"brake_turn":
+			_reset(45.0)
+		"lane_change", "fast_turn", "slalom":
+			_reset(50.0)
+		"power_turn":
+			_reset(12.0)
 		"turn_low":
 			_reset(12.0)
 		"turn_high", "drift":
@@ -143,6 +176,11 @@ func _step() -> void:
 	t += dt
 	var spd := car.speed
 	match phase:
+		"settle":
+			if t >= 0.5:
+				_next()
+		"brake_turn", "lane_change", "fast_turn", "power_turn", "slalom":
+			_handling_step(dt)
 		"accel":
 			car.in_throttle = 1.0
 			if mark_t < 0 and spd * 3.6 >= 100.0:
@@ -257,6 +295,81 @@ func _step() -> void:
 				if t > mark_t + 3.0:
 					results["drop_upright"] = car.global_transform.basis.y.dot(Vector3.UP) > 0.95
 					_next()
+
+
+## Angle between where the car points and where it goes, in degrees (0 = no slide).
+func _slip_deg() -> float:
+	var flat := Vector3(car.linear_velocity.x, 0, car.linear_velocity.z)
+	if flat.length() < 3.0:
+		return 0.0
+	var fwd := -car.global_transform.basis.z
+	return rad_to_deg(flat.angle_to(Vector3(fwd.x, 0, fwd.z)))
+
+
+func _handling_step(dt: float) -> void:
+	var slip := _slip_deg()
+	handling["max_slip"] = maxf(handling["max_slip"], slip)
+	if car.get("abs_active") != null and car.get("abs_active") > 0.05:
+		handling["abs_s"] += dt
+	if car.get("tcs_active") != null and car.get("tcs_active") > 0.05:
+		handling["tcs_s"] += dt
+	var key := phase + "_"
+	var done := false
+	if OS.get_environment("BENCH_DEBUG") != "" and int(t / 0.1) != int((t - dt) / 0.1):
+		print("%s t=%.1f steer=%.2f yaw=%.2f slip=%.1f hdg=%.1f kmh=%.0f tcs=%.2f abs=%.2f" % [phase, t, car.in_steer, car.angular_velocity.y, slip, rad_to_deg(car.heading()), car.speed * 3.6, car.get("tcs_active"), car.get("abs_active")])
+	match phase:
+		"brake_turn":
+			# 162 km/h, full brake and full lock (keyboard) until the car stops.
+			car.in_brake = 1.0
+			car.in_steer = 1.0
+			if (t > 0.1 and car.linear_velocity.length() <= 1.0) or t > 8.0:
+				results[key + "stop_m"] = snappedf(start_pos.distance_to(car.global_position), 0.1)
+				results[key + "turned_deg"] = snappedf(rad_to_deg(absf(car.heading())), 0.1)
+				# Sideways distance covered: how much the car went where it was steered.
+				results[key + "side_m"] = snappedf(absf(car.global_position.x - start_pos.x), 0.1)
+				done = true
+		"lane_change":
+			# 180 km/h, full throttle, steer right 0.4 s then left 0.4 s (a quick swerve), then let go.
+			car.in_throttle = 1.0
+			car.in_steer = 1.0 if t < 0.4 else (-1.0 if t < 0.8 else 0.0)
+			if t >= 4.0:
+				results[key + "end_slip_deg"] = snappedf(slip, 0.1)
+				results[key + "heading_deg"] = snappedf(rad_to_deg(car.heading()), 0.1)
+				results[key + "kmh"] = snappedf(car.speed * 3.6, 0.1)
+				done = true
+		"slalom":
+			# 180 km/h, full throttle, full lock right, left, right for 0.8 s each (keyboard), then let go.
+			car.in_throttle = 1.0
+			car.in_steer = 0.0 if t >= 2.4 else (1.0 if int(t / 0.8) % 2 == 0 else -1.0)
+			if t >= 5.0:
+				results[key + "end_slip_deg"] = snappedf(slip, 0.1)
+				results[key + "kmh"] = snappedf(car.speed * 3.6, 0.1)
+				done = true
+		"fast_turn":
+			# 180 km/h, full throttle and full lock for 2 s, then straight for 2 s.
+			car.in_throttle = 1.0
+			car.in_steer = 1.0 if t < 2.0 else 0.0
+			if t >= 2.0 and not handling.has("slip_2s"):
+				handling["slip_2s"] = slip
+				results[key + "kmh_2s"] = snappedf(car.speed * 3.6, 0.1)
+				results[key + "turned_2s_deg"] = snappedf(rad_to_deg(absf(car.heading())), 0.1)
+			if t >= 4.0:
+				results[key + "end_slip_deg"] = snappedf(slip, 0.1)
+				done = true
+		"power_turn":
+			# 43 km/h, full throttle and full lock for 3 s: power oversteer on a rear-drive car.
+			car.in_throttle = 1.0
+			car.in_steer = 1.0
+			if t >= 3.0:
+				results[key + "kmh"] = snappedf(car.speed * 3.6, 0.1)
+				done = true
+	if done:
+		results[key + "max_slip_deg"] = snappedf(handling["max_slip"], 0.1)
+		results[key + "spun"] = handling["max_slip"] > 60.0
+		if car.get("abs_active") != null:
+			results[key + "abs_s"] = snappedf(handling["abs_s"], 0.01)
+			results[key + "tcs_s"] = snappedf(handling["tcs_s"], 0.01)
+		_next()
 
 
 func _jump_step() -> void:

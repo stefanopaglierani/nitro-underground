@@ -45,6 +45,29 @@ func _ready() -> void:
 	_start.pressed.connect(_go)
 	add_child(_start)
 
+	# EXIT (v0.28, Stefano 22/11/2026): closes the game. Bottom right, smaller and darker than START.
+	var quit := Button.new()
+	quit.text = "EXIT"
+	quit.focus_mode = Control.FOCUS_NONE
+	quit.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	quit.offset_left = -190
+	quit.offset_right = -32
+	quit.offset_top = -100
+	quit.offset_bottom = -32
+	quit.add_theme_font_size_override("font_size", 32)
+	for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+		quit.add_theme_color_override(state, Color.WHITE)
+	quit.add_theme_color_override("font_outline_color", Color(0.05, 0.02, 0.02))
+	quit.add_theme_constant_override("outline_size", 8)
+	var dark := _box(Color(0.08, 0.06, 0.06, 0.85))
+	var lit := _box(Color(0.55, 0.08, 0.05, 0.95))
+	quit.add_theme_stylebox_override("normal", dark)
+	quit.add_theme_stylebox_override("hover", lit)
+	quit.add_theme_stylebox_override("focus", dark)
+	quit.add_theme_stylebox_override("pressed", lit)
+	quit.pressed.connect(func(): get_tree().quit())
+	add_child(quit)
+
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--titleshot="):
 			# Test aid: picture of the waiting page.

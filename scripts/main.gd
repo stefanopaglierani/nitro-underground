@@ -169,6 +169,7 @@ var autotest := false
 var screenshot_dir := ""
 var _test_t := 0.0
 var _shots_taken := 0
+var _aidshot_t := 0.0
 var _auto_wp := 1
 
 
@@ -202,6 +203,7 @@ func _ready() -> void:
 	hud.menu_pressed.connect(_to_menu)
 	hud.pause_pressed.connect(pause_race)
 	hud.resume_pressed.connect(resume_race)
+	hud.exit_pressed.connect(_quit_game)
 	camera = Camera3D.new()
 	camera.fov = CAM_FOV
 	camera.near = 0.1
@@ -364,6 +366,12 @@ func _restart() -> void:
 	get_tree().reload_current_scene()
 
 
+## EXIT on the pause panel: keeps what was earned so far (like going back to the garage) and closes the game.
+func _quit_game() -> void:
+	SaveGame.save_game()
+	get_tree().quit()
+
+
 ## Back to the garage. The race scene and its models are freed.
 func _to_menu() -> void:
 	SaveGame.save_game()
@@ -392,6 +400,8 @@ func _setup_input() -> void:
 		"cam_look_right": [KEY_RIGHT],
 		"cam_closer": [KEY_UP],
 		"cam_farther": [KEY_DOWN],
+		"aid_abs": [KEY_R],
+		"aid_tcs": [KEY_T],
 	}
 	for action in keys:
 		if not InputMap.has_action(action):
@@ -407,6 +417,19 @@ func _setup_input() -> void:
 ## Up arrow: the next view closer to the car, down arrow: the next one further away.
 func _unhandled_input(event: InputEvent) -> void:
 	if player == null or event.is_echo():
+		return
+	# R and T switch the ABS and the TCS on and off (v0.28); the choice is kept for the next races.
+	if event.is_action_pressed("aid_abs") or event.is_action_pressed("aid_tcs"):
+		var is_abs := event.is_action_pressed("aid_abs")
+		if is_abs:
+			SaveGame.abs_on = not SaveGame.abs_on
+		else:
+			SaveGame.tcs_on = not SaveGame.tcs_on
+		_apply_aids()
+		var on: bool = SaveGame.abs_on if is_abs else SaveGame.tcs_on
+		hud.flash("%s %s" % ["ABS" if is_abs else "TCS", "INSERITO" if on else "DISINSERITO"], 1.2)
+		SaveGame.save_game()
+		get_viewport().set_input_as_handled()
 		return
 	var step := 0
 	if event.is_action_pressed("cam_closer"):
@@ -485,6 +508,7 @@ func _start() -> void:
 		racers.append(r)
 	player = _make_car(Car.Driver.PLAYER, Color(0.95, 0.1, 0.5))
 	player.place(grid[3][0], grid[3][1])
+	_apply_aids()
 	cp_marker.visible = true
 	cp_marker.position = checkpoints[1]
 	time_left = _clock_times[1]
@@ -499,6 +523,17 @@ func _start() -> void:
 	_snap_camera()
 	hud.set_heat(heat)
 	_prepare_police_pool()
+
+
+## The player's driving aids as saved (--abs=0/1, --tcs=0/1 override them for tests).
+func _apply_aids() -> void:
+	player.abs_on = SaveGame.abs_on
+	player.tcs_on = SaveGame.tcs_on
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--abs="):
+			player.abs_on = a.substr(6) == "1"
+		if a.begins_with("--tcs="):
+			player.tcs_on = a.substr(6) == "1"
 
 
 ## The car's size from its meshes, in the car's own space (the bonnet and seat views use it).
@@ -994,6 +1029,7 @@ func _update_hud() -> void:
 	var fast := clampf((absf(player.speed) - 24.0) / 18.0, 0.0, 1.0)
 	hud.speed_lines.material.set_shader_parameter("amount", 1.0 if player.using_nitro else fast * 0.8)
 	hud.dashboard.set_values(absf(player.speed) * 3.6, player.rpm, Car.REDLINE_RPM + 200.0, player.gear, player.nitro, player.using_nitro)
+	hud.aids.set_values(player.abs_on, player.tcs_on, player.abs_active, player.tcs_active, get_process_delta_time())
 	var lines := PackedStringArray()
 	lines.append("POSIZIONE %d/%d" % [_player_position(), racers.size() + 1])
 	lines.append("CHECKPOINT %d/%d" % [mini(player_cp - 1, checkpoints.size() - 1), checkpoints.size() - 1])
@@ -1069,6 +1105,15 @@ func _autotest_tick(delta: float) -> void:
 		_shots_taken += 1
 	if int(_test_t * 2.0) != int((_test_t - delta) * 2.0):
 		print("[autotest] t=%.1f state=%s speed=%.1f cp=%d clock=%.1f heat=%.1f police=%d pos=%s wheels=%d up=%.2f in=(%.1f,%.1f,%.1f,%s)" % [_test_t, state, player.speed, player_cp, time_left, heat, police.size(), player.global_position.round(), player.wheels_on_ground, player.global_transform.basis.y.y, player.in_throttle, player.in_brake, player.in_steer, player.in_handbrake])
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--aidshot=") and screenshot_dir != "" and state == "race" and _shots_taken < 99:
+			# Test aid: a picture of the ABS/TCS keys and tag while an aid is correcting the car.
+			# --aidshot=<name>@<n>: after the n-th intervention, once it has been on screen a moment.
+			var working := maxf(hud.aids.abs_level, hud.aids.tcs_level) > 0.4 and hud.aids.abs_count + hud.aids.tcs_count >= int(a.get_slice("@", 1))
+			_aidshot_t = _aidshot_t + delta if working else 0.0
+			if _aidshot_t > 0.12:
+				get_viewport().get_texture().get_image().save_png("%s/aid_%s.png" % [screenshot_dir, a.substr(10).get_slice("@", 0)])
+				_shots_taken = 99
 	if OS.get_cmdline_user_args().has("--camlook"):
 		# Test aid: hold the right arrow around the second picture (t = 7 s), then let it go.
 		if _test_t > 5.5 and _test_t < 7.5:
@@ -1087,6 +1132,7 @@ func _autotest_tick(delta: float) -> void:
 			print("[autotest]   racer wp=%d speed=%.1f pos=%s up=%.2f" % [r.wp_index, r.speed, r.global_position.round(), r.global_transform.basis.y.y])
 	if state == "end" or _test_t > 150.0:
 		print("[autotest] END state=%s title=%s text=%s" % [state, hud.end_title.text, hud.end_text.text.replace("\n", " | ")])
+		print("[autotest] aids abs=%s tcs=%s interventions abs=%d tcs=%d" % [player.abs_on, player.tcs_on, hud.aids.abs_count, hud.aids.tcs_count])
 		for r in racers:
 			print("[autotest] racer wp=%d finished=%s pos=%s" % [r.wp_index, r.finished, r.global_position.round()])
 		get_tree().quit()

@@ -8,12 +8,15 @@ signal menu_pressed
 ## The MENU button in the race: the game pauses (see Main.pause_race).
 signal pause_pressed
 signal resume_pressed
+signal exit_pressed
 
 const ACCENT := Color(1, 0.18, 0.55)
 const CYAN := Color(0.1, 0.9, 1)
 
 var root: Control
 var dashboard: Dashboard
+var aids: AidPanel
+var aid_tag: AidPanel.CenterTag
 var info_label: Label
 var message_label: Label
 var heat_label: Label
@@ -63,6 +66,15 @@ func _ready() -> void:
 
 	dashboard = Dashboard.new()
 	root.add_child(dashboard)
+
+	# ABS and TCS keys in the bottom right corner, their tag next to the dashboard (v0.28).
+	aids = AidPanel.new()
+	root.add_child(aids)
+	aid_tag = AidPanel.CenterTag.new()
+	aid_tag.panel = aids
+	aid_tag.size = Vector2(240, 60)
+	root.add_child(aid_tag)
+	aids.center_tag = aid_tag
 
 	# Map of the circuit in the top left corner, the race info under it (v0.17).
 	minimap = Minimap.new()
@@ -195,12 +207,17 @@ func _layout() -> void:
 	_layout_loading(s)
 	dashboard.size = Vector2(260, 200)
 	dashboard.position = Vector2((s.x - dashboard.size.x) / 2.0, s.y - dashboard.size.y - 6.0)
+	aids.position = Vector2(s.x - aids.size.x - 24.0, s.y - aids.size.y - 12.0)
+	# Just left of the dashboard, at the height of the speed: in the middle of the view but off the car.
+	aid_tag.position = Vector2(dashboard.position.x - aid_tag.size.x, dashboard.position.y + 86.0)
 
 
 ## The dashboard (speed, gear, nitro) during the race. The on-screen touch buttons of the phone
 ## version are gone (v0.27, PC only): the car is driven from the keyboard, see Main._setup_input.
 func show_controls(on: bool) -> void:
 	dashboard.visible = on
+	aids.visible = on
+	aid_tag.visible = on
 
 
 func set_heat(heat: float) -> void:
@@ -467,6 +484,8 @@ func _build_pause() -> void:
 	box.add_child(title)
 	_big_button(box, "RIPRENDI GARA", Color(0.3, 1, 0.45)).pressed.connect(func(): resume_pressed.emit())
 	_big_button(box, "GARAGE", CYAN).pressed.connect(func(): menu_pressed.emit())
+	# EXIT (v0.28, Stefano 22/11/2026): closes the game (Main saves first).
+	_big_button(box, "EXIT", Color(1, 0.25, 0.2)).pressed.connect(func(): exit_pressed.emit())
 	pause_panel.visible = false
 
 

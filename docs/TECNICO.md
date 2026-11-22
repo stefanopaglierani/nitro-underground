@@ -104,6 +104,32 @@ già pronto, per avere il controllo completo del comportamento:
   c'è 0,8 g di gravità in più: niente più voli di diversi metri.
 - **Salti**: in aria lo sterzo non fa nulla (un'auto non ha contro cosa girare); l'auto si
   raddrizza da sola. Vengono contati decollo, rotazioni e qualità dell'atterraggio.
+- **ABS e TCS** (v0.28, tasti R e T, accesi in una partita nuova; `scripts/car.gd`). Spenti,
+  l'auto guida esattamente come prima. Il problema misurato: con la tastiera lo sterzo è tutto o
+  niente, e l'aiuto alla rotazione chiedeva all'auto di girare fino a cinque volte più in fretta
+  di quanto le gomme permettono a 180 km/h, quindi il retrotreno partiva (20-26° di scivolamento).
+  - **TCS** (trazione e stabilità): la rotazione chiesta dallo sterzo è limitata a quella che
+    l'aderenza può dare a quella velocità (aderenza laterale più deportanza, diviso la velocità);
+    se l'auto scivola di oltre 4° il gas viene tolto e il muso riportato verso la direzione di
+    marcia; una gomma motrice che non ha più presa non riceve più spinta di quella che resta dopo
+    la curva. Il freno a mano spegne la parte di stabilità per 0,6 s, così la derapata voluta resta.
+  - **ABS**: in frenata la gomma serve prima la curva e il freno prende il resto (mai meno della
+    metà di quanto avrebbe avuto), e la stessa stabilità del TCS tiene l'auto in linea.
+  - Ogni aiuto dice quanto sta lavorando (0-1): l'HUD (`scripts/aid_panel.gd`) fa lampeggiare il
+    tasto, riempie la barra sotto, conta gli interventi e accende la scritta ambra accanto al cruscotto.
+
+  Banco prova, nuove manovre (`--handling`), 5 auto, 60 tick, aiuti spenti → accesi:
+
+  | Manovra a 180 km/h | Scivolamento massimo | Velocità |
+  |---|---|---|
+  | Slalom a sterzo pieno (0,8 s per lato) | 19-24° → 0,2-0,3° | 165-174 → 199-216 km/h dopo 5 s |
+  | Curva lunga a sterzo pieno per 2 s | 24-26° → 0,2-0,3° | 141-145 → 179-184 km/h |
+  | Frenata a fondo con sterzo pieno da 162 km/h | ~14° (sotto i 40 km/h) in entrambi i casi | arresto 61,6 → 55,8 m |
+
+  Le altre prove (accelerazione, frenata dritta, salti, cordoli, cadute) danno gli stessi numeri con
+  gli aiuti accesi o spenti. A 30 e 120 tick i risultati sono gli stessi (scivolamento 0,4° con gli
+  aiuti). Effetto da sapere: a sterzo pieno sopra i 130 km/h l'auto gira meno stretta (raggio
+  79 m invece di 40 m a 137 km/h), perché prima la curva più stretta era fatta scivolando.
 
 **Verifica con numeri, non a sensazione.** Il banco prova guida un'auto di riferimento su un
 terreno di test, misura e stampa tutto in JSON. Va lanciato a 30, 60 e 120 tick al secondo per
