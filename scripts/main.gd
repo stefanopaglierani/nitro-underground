@@ -157,19 +157,21 @@ const CAM_LOOK_AHEAD := 8.0
 const TRAFFIC_CARS := 18
 const CAM_FOV := 70.0
 const CAM_FOV_NITRO := 76.0
-## Camera views (v0.27, Stefano 22/11/2026), from the furthest to the closest: the usual chase
-## camera, a closer chase camera, on the bonnet and in the driver's seat. Up/down arrows.
-enum CamView { CHASE, CLOSE, HOOD, COCKPIT }
-const CAM_VIEW_NAMES := ["CAMERA BASE", "CAMERA RAVVICINATA", "CAMERA COFANO", "CAMERA ABITACOLO"]
+## Camera views (v0.27, Stefano 22/11/2026): the usual chase camera, a closer chase camera, on the
+## bonnet and (v0.31) low on the ground just in front of the bumper. The V key goes round them.
+## v0.31 (Stefano 22/11/2026): the driver's seat view is gone (it needed every car's interior
+## redone by hand) and so are the arrow keys, sideways look included.
+enum CamView { CHASE, CLOSE, HOOD, BUMPER }
+const CAM_VIEW_NAMES := ["CAMERA BASE", "CAMERA RAVVICINATA", "CAMERA COFANO", "CAMERA PARAURTI"]
 const CAM_CLOSE_DIST := 5.4
 const CAM_CLOSE_HEIGHT := 2.2
-## Left/right arrows held: the camera turns this far to look at the side (radians, about 80°),
-## and swings back when the key is let go.
-const CAM_LOOK_SIDE := 1.4
-## Field of view from the bonnet and from the seat: a little wider, to feel the speed.
+## Field of view from the bonnet and the bumper: a little wider, to feel the speed.
 const CAM_FOV_INSIDE := 75.0
+## Bumper view: this high above the bottom of the car model (the ground under the wheels) and this
+## far ahead of its front, so the bumper itself stays out of the picture.
+const CAM_BUMPER_HEIGHT := 0.3
+const CAM_BUMPER_AHEAD := 0.15
 var cam_view: int = CamView.CHASE
-var _cam_look := 0.0
 ## The player's car body, in its own space (from the model's meshes): where the bonnet and the
 ## driver's seat are for that car.
 var _car_box := AABB(Vector3(-0.95, 0.4, -2.1), Vector3(1.9, 1.15, 4.2))
@@ -204,8 +206,8 @@ func _ready() -> void:
 		if a.begins_with("--car="):
 			Car.player_body = a.substr(6)
 		if a.begins_with("--camview="):
-			# Test aid: start the race with this camera view (0 base ... 3 seat).
-			cam_view = clampi(int(a.substr(10)), CamView.CHASE, CamView.COCKPIT)
+			# Test aid: start the race with this camera view (0 base ... 3 bumper).
+			cam_view = clampi(int(a.substr(10)), CamView.CHASE, CamView.BUMPER)
 
 	SaveGame.load_game()
 	_setup_input()
@@ -400,7 +402,7 @@ func _to_menu() -> void:
 
 
 ## PC keyboard (v0.27, Stefano 22/11/2026): WASD drives, Space is the handbrake, left Shift the
-## nitro; the four arrows move the camera (see _update_camera). Physical keys, so WASD stays in
+## nitro; V changes the camera view (v0.31, see _update_camera). Physical keys, so WASD stays in
 ## the same place on any keyboard layout.
 func _setup_input() -> void:
 	var keys := {
@@ -410,10 +412,7 @@ func _setup_input() -> void:
 		"brake": [KEY_S],
 		"handbrake": [KEY_SPACE],
 		"nitro": [KEY_SHIFT],
-		"cam_look_left": [KEY_LEFT],
-		"cam_look_right": [KEY_RIGHT],
-		"cam_closer": [KEY_UP],
-		"cam_farther": [KEY_DOWN],
+		"cam_next": [KEY_V],
 		"aid_abs": [KEY_R],
 		"aid_tcs": [KEY_T],
 	}
@@ -428,7 +427,7 @@ func _setup_input() -> void:
 				InputMap.action_add_event(action, ev)
 
 
-## Up arrow: the next view closer to the car, down arrow: the next one further away.
+## V: the next camera view, and after the last one back to the first.
 func _unhandled_input(event: InputEvent) -> void:
 	if player == null or event.is_echo():
 		return
@@ -445,17 +444,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		SaveGame.save_game()
 		get_viewport().set_input_as_handled()
 		return
-	var step := 0
-	if event.is_action_pressed("cam_closer"):
-		step = 1
-	elif event.is_action_pressed("cam_farther"):
-		step = -1
-	if step == 0:
+	if not event.is_action_pressed("cam_next"):
 		return
-	var view := clampi(cam_view + step, CamView.CHASE, CamView.COCKPIT)
-	if view != cam_view:
-		cam_view = view
-		hud.flash(CAM_VIEW_NAMES[cam_view], 1.2)
+	cam_view = (cam_view + 1) % CAM_VIEW_NAMES.size()
+	hud.flash(CAM_VIEW_NAMES[cam_view], 1.2)
 	get_viewport().set_input_as_handled()
 
 
@@ -973,13 +965,7 @@ func _snap_camera() -> void:
 
 
 func _update_camera(delta: float) -> void:
-	# Left/right arrows held: turn the view to that side; let go and it swings back behind.
-	var look_in := Input.get_action_strength("cam_look_left") - Input.get_action_strength("cam_look_right")
-	var k := 1.0 if delta >= 1.0 else clampf(8.0 * delta, 0.0, 1.0)
-	_cam_look = lerpf(_cam_look, look_in * CAM_LOOK_SIDE, k)
-	if player.underglow:
-		player.underglow.visible = cam_view != CamView.COCKPIT
-	if cam_view == CamView.HOOD or cam_view == CamView.COCKPIT:
+	if cam_view == CamView.HOOD or cam_view == CamView.BUMPER:
 		_update_inside_camera(delta)
 		return
 	camera.near = 0.1
@@ -994,7 +980,7 @@ func _update_camera(delta: float) -> void:
 		want = lerp_angle(want, atan2(-flat_v.x, -flat_v.z), 0.35)
 	if player.wheels_on_ground > 0 and player.speed > -2.0:
 		cam_yaw = lerp_angle(cam_yaw, want, clampf(5.0 * delta, 0.0, 1.0))
-	var back := Basis(Vector3.UP, cam_yaw + _cam_look) * Vector3(0, 0, 1)
+	var back := Basis(Vector3.UP, cam_yaw) * Vector3(0, 0, 1)
 	# Only the height is smoothed, so bumps in the road don't shake the picture.
 	_cam_y = car_pos.y if delta >= 1.0 else lerpf(_cam_y, car_pos.y, clampf(10.0 * delta, 0.0, 1.0))
 	var pivot := Vector3(car_pos.x, _cam_y + 1.2, car_pos.z)
@@ -1020,8 +1006,8 @@ func _update_camera(delta: float) -> void:
 	camera.fov = lerpf(camera.fov, fov, clampf(3.0 * delta, 0.0, 1.0))
 
 
-## Bonnet and driver's seat views: fixed to the car (they tilt and roll with it), placed from the
-## size of the car model, so a pickup and a sports car both put the eye in a sensible spot.
+## Bonnet and bumper views: fixed to the car (they tilt and roll with it), placed from the size of
+## the car model, so a pickup and a sports car both put the eye in a sensible spot.
 func _update_inside_camera(delta: float) -> void:
 	var b := _car_box
 	var eye: Vector3
@@ -1029,10 +1015,10 @@ func _update_inside_camera(delta: float) -> void:
 		# Over the middle of the bonnet, a little above it, so the road starts right past the nose.
 		eye = Vector3(b.get_center().x, b.position.y + b.size.y * 0.74, b.position.z + b.size.z * 0.2)
 	else:
-		# Left seat (American cars), at eye height, just behind the middle of the car.
-		eye = Vector3(b.get_center().x - b.size.x * 0.2, b.position.y + b.size.y * 0.72, b.get_center().z + b.size.z * 0.04)
+		# Low on the ground, in the middle, just in front of the bumper.
+		eye = Vector3(b.get_center().x, b.position.y + CAM_BUMPER_HEIGHT, b.position.z - CAM_BUMPER_AHEAD)
 	camera.near = 0.05
-	camera.global_transform = player.global_transform * Transform3D(Basis(Vector3.UP, _cam_look), eye)
+	camera.global_transform = player.global_transform * Transform3D(Basis(), eye)
 	var fov := CAM_FOV_INSIDE + (CAM_FOV_NITRO - CAM_FOV if player.using_nitro else 0.0)
 	camera.fov = lerpf(camera.fov, fov, 1.0 if delta >= 1.0 else clampf(3.0 * delta, 0.0, 1.0))
 	# The chase camera starts from here if the player goes back to it.
@@ -1187,12 +1173,6 @@ func _autotest_tick(delta: float) -> void:
 			if _aidshot_t > 0.12:
 				get_viewport().get_texture().get_image().save_png("%s/aid_%s.png" % [screenshot_dir, a.substr(10).get_slice("@", 0)])
 				_shots_taken = 99
-	if OS.get_cmdline_user_args().has("--camlook"):
-		# Test aid: hold the right arrow around the second picture (t = 7 s), then let it go.
-		if _test_t > 5.5 and _test_t < 7.5:
-			Input.action_press("cam_look_right")
-		else:
-			Input.action_release("cam_look_right")
 	if OS.get_cmdline_user_args().has("--ram") and int(_test_t / 4.0) != int((_test_t - delta) / 4.0):
 		_ram_traffic()
 	if int(_test_t / 5.0) != int((_test_t - delta) / 5.0):

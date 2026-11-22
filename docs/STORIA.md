@@ -51,6 +51,7 @@ Per l'architettura completa vedi [TECNICO.md](TECNICO.md). Le voci più recenti 
 | v0.28 | 22/11/2026 | ABS e TCS (tasti R e T) con spia di intervento, pulsante EXIT, partita azzerata, tutte le 51 auto al Dealer | ramo `claude/abs-tcs-exit-dealer` |
 | v0.29 | 22/11/2026 | Avversari più bravi: niente più spinta al giocatore in partenza, spazio a chi è affiancato, frenate dosate, traffico che si sposta, 25% di traffico in meno | ramo `claude/project-thread-vhvw0q` |
 | v0.30 | 22/11/2026 | L'isola tropicale del periodo Unreal a tessere, prima gara della campagna; poi Isola X5 e tutti gli altri circuiti | ramo `claude/isola-tropicale` |
+| v0.31 | 22/11/2026 | Telecamera col solo tasto V: via abitacolo e frecce, nuova vista a terra davanti al paraurti | ramo `claude/project-thread-2wp00z` |
 
 ## Le svolte principali
 
@@ -1162,6 +1163,32 @@ piante, fa 21,6 FPS come l'Isola X5 (tabella in [TECNICO.md](TECNICO.md#mondi-ge
 Gare complete anche su Costa X5 e Isola piccola, e con l'eseguibile Windows. Problemi noti dei dati
 dell'isola: alcune strade di collina sono scavi profondi e qualche pendio è una parete a picco.
 Stefano non l'ha ancora provata.
+
+---
+
+## v0.31 — Un solo tasto per la telecamera, vista dal paraurti (22 novembre)
+
+![La vista a terra davanti al paraurti](immagini/v0.31-paraurti.jpg)
+
+**Richiesta:** Stefano ha trovato la vista dall'abitacolo sempre troppo buia. Una prima prova con
+una luce di cortesia dentro l'auto la schiariva, ma lui ha deciso di cambiare strada: per farla bene
+bisognerebbe rifare a mano gli interni di ogni auto (volante che gira, luci, braccia del pilota).
+Quindi **via la vista dall'abitacolo**, al suo posto una **camera a terra davanti al paraurti**, e
+niente più frecce: **un solo tasto, V**, scorre tra le viste.
+
+**Come è stato costruito:**
+- `scripts/main.gd`: le viste ora sono base, ravvicinata, cofano e paraurti; V passa alla
+  successiva e dopo l'ultima torna alla prima, con il nome della vista a schermo.
+- La vista dal paraurti è agganciata all'auto come quella dal cofano e si piazza misurando il
+  modello: 30 cm sopra il fondo del modello (il terreno sotto le ruote), 15 cm davanti al muso, in
+  mezzo, così il paraurti resta fuori dall'inquadratura su ogni auto.
+- Tolti i tasti freccia, compreso lo sguardo di lato, e l'aiuto di prova `--camlook` che lo usava.
+
+**Verifica ed esito:** gare automatiche complete sull'isola tropicale in Godot 4.7.2 sul PC di
+Stefano, nessun errore: con la vista dal paraurti (`--camview=3`) 1° posto in 2:16.5, con la vista
+base 1° posto in 2:02.9. Stessi FPS medi con le due viste (11,7: il portatile andava a batteria,
+quindi più lento del solito), cioè la nuova vista non costa niente in più. Stefano non l'ha ancora
+provata.
 
 ---
 
